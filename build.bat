@@ -19,7 +19,7 @@ IF EXIST "obj\*.o" (
    del "obj\*.o"
 )
 
-IF NOT EXIST base.nes (
+IF NOT EXIST baserom.nes (
     echo No baserom.nes file found.  If assets are missing, then the build will fail.
 )
 

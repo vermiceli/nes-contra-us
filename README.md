@@ -162,8 +162,8 @@ scripts required defining the memory addresses and bank layouts in the
 At this point, I had a repository that could be built that matched the NES rom
 byte for byte.  Then, I found and was able to incorporate the comments from
 Trax's IDA Pro disassembly.  This was incredibly helpful, but more work had to
-be done as Trax's disassembly wasn't appropriate for disassembly.  For instance,
-it had a label for every line and all jump and branch statements were
+be done as Trax's disassembly couldn't be used directly for reassembly.  For
+instance, it had a label for every line and all jump and branch statements were
 hard-coded memory address offsets and not label references.
 
 I then worked on updating all branch and jump offsets to point to label
