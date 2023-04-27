@@ -1,0 +1,6 @@
+*.o
+*.dbg
+*.deb
+*.nes
+*.prg
+*.bin

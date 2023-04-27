@@ -1,0 +1,18 @@
+%% This is a mermaid file (https://github.com/mermaid-js/mermaid)
+%% This shows the ordering of the states among the level routines
+
+graph TD
+    level_routine_00 --> level_routine_01
+    level_routine_01 --> level_routine_02
+    level_routine_02 --> level_routine_03
+    level_routine_03 --> level_routine_04
+    level_routine_04 --> |Level Complete|level_routine_08
+    level_routine_04 --> |Game Over|level_routine_0a
+    level_routine_05 --> |Level Complete|level_routine_00
+    level_routine_05 --> |Complete Last Level/Game Over|level_routine_06
+    level_routine_05 --> |Game Over No Continues|level_routine_07
+    level_routine_06 --> |Continue/End Selected|level_routine_00
+    level_routine_08 --> |Game Over|level_routine_0a
+    level_routine_08 --> |Level Complete|level_routine_09
+    level_routine_0a --> |Game Over Timer Expired|level_routine_05
+    level_routine_09 --> |Level Complete|level_routine_05

@@ -1,0 +1,15 @@
+%% This is a mermaid file (https://github.com/mermaid-js/mermaid)
+%% This shows the very high level of the game engine
+
+graph TD
+    nmi_start --> handle_sound_slots
+    handle_sound_slots --> load_controller_state
+    load_controller_state --> exe_game_routine
+    exe_game_routine --> game_routine_01 --> draw_sprites
+    exe_game_routine --> game_routine_02 --> draw_sprites
+    exe_game_routine --> game_routine_03 --> draw_sprites
+    exe_game_routine --> game_routine_04 --> draw_sprites
+    exe_game_routine --> game_routine_05
+    game_routine_05 --> run_level_routine --> draw_sprites
+    exe_game_routine --> game_routine_06 --> draw_sprites
+    draw_sprites --> remove_registers_from_stack_and_rti

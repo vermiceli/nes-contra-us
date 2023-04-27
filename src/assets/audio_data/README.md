@@ -1,0 +1,1 @@
+This folder contains the audio assets required to build the rom.

@@ -1,0 +1,49 @@
+%% This is a mermaid file (https://github.com/mermaid-js/mermaid)
+%% This shows in detail the logic flow for the audio engine
+
+flowchart TD
+
+    5["@check_sound_command"] --> |read next command|6(read_sound_command_00)
+    6 -->|command byte < #$30|8(read_low_sound_cmd)
+    6 -->|command byte >= #$30|9(read_high_sound_cmd)
+    9 --> |noise channel|11(parse_percussion_cmd)
+    9 --> |"not noise regular command (>=#$c0)"|13("@regular_sound_cmd")
+    9 --> |"not noise simple command (< #$c0)"|14(simple_sound_cmd)
+    8 --> |not control byte|17(interpret_sound_byte)
+    8 --> |control byte\n#$fd, #$fe, #$ff|16(sound_cmd_routine_03)
+    11 --> |high nibble #$f|16
+    11 --> |high nibble #$d|20(control_nibble_d)
+    11 --> |high nibble not #$d not #$f|21(sound_byte_calc_cmd_delay)
+    17 --> |high nibble not #$2|24("@high_nibble_not_2")
+    17 --> |high nibble #$2|52[set length multiplier and config]
+    52 -.-> 8
+    24 --> |high nibble #$1 low nibble not #$0|54[flatten note]
+    54 -.-> 8
+    24 --> |high nibble #$1 low nibble #$0|26[set sweep if specified]
+    24 --> |high nibble not #$1|27("@high_nibble_not_1")
+    26 -.-> 8
+    27 --> 55[set sound multiplier]
+    55 --> 56(set_note)
+    56 -.-> 8
+    20 --> 28["SOUND_LENGTH_MULTIPLIER = low nibble"]
+    28 -.-> |read next byte|11
+    16 --> |low nibble < #$0e|33[set NEW_SOUND_CODE_LOW_ADDR, and sound flag bit 3]
+    16 --> |low nibble #$f|32(low_nibble_f)
+    16 --> |low nibble #$e|38(read_sound_command_01)
+    33 --> 34(load_sound_code_addr)
+    32 --> |SOUND_FLAGS bit 3 set|36(move_new_sound_code)
+    32 --> |SOUND_FLAGS bit 3 clear|37(exe_channel_init_ptr_tbl_routine)
+    38 -.-> 6
+    13 --> 16
+    13 --> 39(sound_cmd_routine_00)
+    13 --> 40(sound_cmd_routine_01)
+    13 --> 41(sound_cmd_routine_02)
+    41 --> |low nibble >= #$05|43("@high_val")
+    41 --> |low nibble < #$05|44(set SOUND_PERIOD_ROTATE)
+    44 -.-> |advance sound byte|9
+    43 --> |low nibble #$08|46("@flip_flatten_note_adv")
+    43 --> |low nibble #$0b|48("@set_vibrato_vars_adv")
+    43 --> |low nibble #$0c|50("@set_pitch_adj_adv")
+    43 -.-> |unsupported value, advance sound byte|9
+    50 --> |advance sound byte|51(set SOUND_PITCH_ADJ)
+    51 -.-> |advance sound byte|9

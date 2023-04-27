@@ -1,0 +1,25 @@
+%% This is a mermaid file (https://github.com/mermaid-js/mermaid)
+%% This shows the simplified overview of the audio engine
+flowchart TD
+
+    6(read_sound_command_00) -->|< #$30|8(read_low_sound_cmd)
+    6 --> |>= #$30|9(read_high_sound_cmd)
+    9 --> |sound slot 3|11(parse_percussion_cmd)
+    11 --> 16
+    9 --> 13("@regular_sound_cmd")
+    9 --> 14(simple_sound_cmd)
+    14 --> |set note|42[rts]
+    8 --> 16(sound_cmd_routine_03)
+    16 --> 43[rts]
+    16 -.-> |next sound command|6
+    8 --> 17(interpret_sound_byte)
+    17 --> |set note|46[rts]
+    17 -.-> 8
+    13 --> 39(sound_cmd_routine_00)
+    39 --> 44[rts]
+    13 --> 40(sound_cmd_routine_01)
+    13 --> 41(sound_cmd_routine_02)
+    13 --> 16
+    41 -.-> 9
+    40 --> 45[rts]
+    40 -.-> 9

@@ -1,0 +1,42 @@
+%% This is a mermaid file (https://github.com/mermaid-js/mermaid)
+%% This shows the paths from which the graphics are updated
+flowchart TD
+    level_routine_01:::entry
+    level_routine_01 --> draw_stage_and_level_name
+    draw_stage_and_level_name --> load_bank_6_write_text_palette_to_mem
+    level_routine_01 --> draw_player_num_lives
+    draw_player_num_lives --> load_bank_6_write_text_palette_to_mem
+
+    level_routine_00:::entry
+    level_routine_00 --> |load transition_screen_palettes|load_bank_6_write_text_palette_to_mem
+    load_bank_6_write_text_palette_to_mem --> write_text_palette_to_mem
+    level_routine_00 --> zero_out_nametables
+    zero_out_nametables --> |graphic_data_0|write_graphic_data_to_ppu
+
+    level_routine_04:::entry
+    level_routine_04 --> handle_scroll
+    handle_scroll --> load_column_of_tiles_to_cpu_buffer
+    load_column_of_tiles_to_cpu_buffer --> load_level_supertile_data
+
+    level_routine_05:::entry
+    level_routine_05 --> load_level_intro
+    load_level_intro --> load_A_offset_graphic_data
+    load_A_offset_graphic_data --> load_level_graphic_data
+    load_level_graphic_data --> write_graphic_data_to_ppu
+
+    level_routine_03:::entry
+    level_routine_03 --> init_lvl_nametable_animation
+    init_lvl_nametable_animation --> load_column_of_tiles_to_cpu_buffer
+    init_lvl_nametable_animation --> write_col_attribute_to_cpu_memory
+
+    level_routine_02:::entry
+    level_routine_02 --> zero_out_nametables
+    level_routine_02 --> load_level_graphics
+    load_level_graphics --> load_current_level_graphic_data
+    load_current_level_graphic_data --> write_graphic_data_to_ppu
+    level_routine_02 --> load_palettes_color_to_cpu
+
+    nmi_start:::entry
+    nmi_start --> write_cpu_graphics_buffer_to_ppu
+
+classDef entry fill:#f96

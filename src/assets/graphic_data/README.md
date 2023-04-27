@@ -1,0 +1,1 @@
+This folder contains the graphics assets required to build the rom.
