@@ -146,7 +146,9 @@ In the video starting at 35m 19s, there was a section where a speedrunner named
 `dk28` died in the middle of level 1, and was advanced to level 2 for their next
 life.  The video explains that there still isn't a known explanation as to why
 this happened.  This got me interested in the assembly and thus this project
-began and has since changed in scope as my interest have changed.
+began.  Spoilers, I have not found the cause of the level skip bug.  It is still
+unknown whether the bug is from some bug in the code, or whether it was a
+hardware glitch.
 
 The _Contra_ (US) NES ROM was disassembled using a NES disassembly tool. This
 provided a starting point for code investigation.  The disassembler incorrectly

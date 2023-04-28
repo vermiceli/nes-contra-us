@@ -21,11 +21,20 @@ function Set-Bytes {
     # only read baserom.nes once for speed improvements
     IF ($global:SOURCE_CONTRA -eq $null) {
         Write-Output "    Reading input file baserom.nes."
-        $global:SOURCE_CONTRA = Get-Content .\baserom.nes -AsByteStream
+        IF ($PSVersionTable.PSVersion.Major -ge 6) {
+            $global:SOURCE_CONTRA = Get-Content .\baserom.nes -AsByteStream
+        } ELSE {
+            $global:SOURCE_CONTRA = Get-Content .\baserom.nes -Raw -Encoding Byte
+        }
     }
 
     Write-Output "    Writing file $Output."
-    $global:SOURCE_CONTRA | Select-Object -Skip $Skip -First $Take | Set-Content $Output -AsByteStream
+    
+    IF ($PSVersionTable.PSVersion.Major -ge 6) {
+        $global:SOURCE_CONTRA | Select-Object -Skip $Skip -First $Take | Set-Content $Output -AsByteStream
+    } ELSE {
+        $global:SOURCE_CONTRA | Select-Object -Skip $Skip -First $Take | Set-Content $Output -Encoding Byte
+    }
 }
 
 IF (Test-Path -Path "contra.nes") {
