@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.0
+; Contra US Disassembly - v1.1
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 3 starts with the data that specifies which pattern table tiles comprises
 ; super-tiles along with the color palettes.  This bank also has the routines
@@ -1559,14 +1559,7 @@ indoor_lvl_elevator_pos_tbl:
 indoor_lvl_elevator_attr_tbl:
     .byte $00,$45
 
-; unused space (#$51 bytes)
-; these $ff bytes can technically be deleted here because the contra.cfg
-; specifies that any free bytes in a ROM bank will be filled with $ff
-; and each ROM bank is 16 KiB
+; unused #$51 bytes out of #$4,000 bytes total (99.51% full)
+; unused 81 bytes out of 16,384 bytes total (99.51% full)
+; filled with 81 #$ff bytes by contra.cfg configuration
 bank_3_unused_space:
-    .byte $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
-    .byte $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
-    .byte $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
-    .byte $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
-    .byte $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
-    .byte $ff

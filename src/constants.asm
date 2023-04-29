@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.0
+; Contra US Disassembly - v1.1
 ; https://github.com/vermiceli/nes-contra-us
 ; constants.asm contains the list of constants with meaningful names for the
 ; memory addresses used by the game. It also contains constants for the various
