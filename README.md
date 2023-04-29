@@ -49,6 +49,10 @@ based on your environment.
 ```
 
 * `build.ps1` - PowerShell script recommended for building on Windows machines.
+  Some users have reported needing to run the script as admin to access the
+  `baserom.nes`, although I haven't experienced this.  Additionally, on older
+  versions of PowerShell, you may need to adjust the execution policy with the
+  command `Set-ExecutionPolicy`.
 * `build.bat` - bat script that can be used on windows machines without
   PowerShell, but requires VBScript support.
 * `build.sh` - bash script to be used in unix environments, or on Windows
