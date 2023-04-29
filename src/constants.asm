@@ -89,7 +89,7 @@ LEVEL_SCREEN_SCROLL_OFFSET      = $65 ; the number of pixels into LEVEL_SCREEN_N
                                       ; for indoor levels, after defeating a wall, increases from #$00 to #03
 ATTRIBUTE_TBL_WRITE_LOW_BYTE    = $66 ; the low byte of the attribute table write address to write to (always #$c0, never read)
 ATTRIBUTE_TBL_WRITE_HIGH_BYTE   = $67 ; the high byte of the attribute table write address to write to
-FRAME_SCROLL                    = $68 ; how much to scroll the screen this frame based on player velocity (usually #$00 or #$01), for vertical levels, up to #$03
+FRAME_SCROLL                    = $68 ; how much to scroll the screen this frame based on player velocity (usually #$00 or #$01), for vertical levels, up to #$04
                                       ; note that this is not the scroll distance within the screen
 SUPERTILE_NAMETABLE_OFFSET      = $69 ; base nametable offset into memory address into CPU graphics buffer starting at $0600 (LEVEL_SCREEN_SUPERTILES)
                                       ; always either #$00 (nametable 0) or #$40 (nametable 1), points to area that contains the super-tile indexes for screen
