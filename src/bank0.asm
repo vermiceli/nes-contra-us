@@ -5514,8 +5514,16 @@ boss_gemini_routine_02:
 
 @wait_delay_update_pos:
     lda ENEMY_ANIMATION_DELAY,x ; load enemy animation frame delay counter
-    beq @calc_offset_set_pos    ; branch to calculate new position if animation delay has elapsed
-    dec ENEMY_ANIMATION_DELAY,x ; animation delay hasn't elapsed, decrement enemy animation frame delay counter
+                                ; this specifies how long the helmets should freeze when merged or when really far apart
+                                ; always #$00 when moving
+                                ; !(BUG?) if a bullet collision with the boss gemini occurs in a frame when ENEMY_ANIMATION_DELAY is #$02
+                                ; then the disable_enemy_collision method will not be called
+                                ; and the boss gemini will be vulnerable until the next time it starts moving again
+    beq @calc_offset_set_pos    ; branch if moving, i.e. animation delay is #$00,
+                                ; or animation delay has elapsed and helmets should start moving
+                                ; to calculate new position
+    dec ENEMY_ANIMATION_DELAY,x ; helmets are staying still, either merged, or really far apart
+                                ; decrement enemy animation frame delay counter
     bne @set_x_pos              ; if animation delay still hasn't elapsed, set position based on FRAME_COUNTER and ENEMY_VAR_1
     jsr disable_enemy_collision ; animation delay has elapsed and boss gemini are about to separate
                                 ; prevent player enemy collision check and allow bullets to pass through enemy
@@ -5525,25 +5533,29 @@ boss_gemini_routine_02:
     clc                          ; clear carry in preparation for addition
     adc ENEMY_X_VELOCITY_FRACT,x ; load x fractional velocity. Always #$80 (.5)
     sta ENEMY_Y_VELOCITY_FRACT,x ; store result back into x position offset
-                                 ; this overflows every #$02 frames, causing ENEMY_Y_VELOCITY_FAST to increment
+                                 ; this overflows every #$02 frames, causing ENEMY_Y_VELOCITY_FAST (x position) to increment
                                  ; every other frame
-    lda ENEMY_Y_VELOCITY_FAST,x  ; load x position offset (#$00 or #$80)
+    lda ENEMY_Y_VELOCITY_FAST,x  ; load x position offset from merge point (#$00 to #$30)
     adc ENEMY_X_VELOCITY_FAST,x  ; add x direction (#$00 = away from center, #$ff = towards center)
                                  ; this includes any overflow from previous addition
-    sta ENEMY_Y_VELOCITY_FAST,x  ; set x position offset
+    sta ENEMY_Y_VELOCITY_FAST,x  ; set new x position offset (#$00 to #$30)
     ldy ENEMY_X_VELOCITY_FAST,x  ; load x direction (#$00 = away from center, #$ff = towards center)
     bmi @check_combined_set_x    ; branch if boss gemini helmets are going to the center (combining), or have combined
     cmp #$30                     ; see if x position offset is at maximum (#$30)
     bcc @set_x_pos               ; branch if x position offset is less than max (#$30)
-    lda #$20                     ; x position offset is max, reset to #$20
+    lda #$20                     ; x position offset is max, set animation delay to #$20
     bne @set_delay_reverse_dir   ; always branch to reverse direction
 
+; phantom helmets moving toward center (merging)
 @check_combined_set_x:
-    tay                               ; transfer x position offset to y
-    bpl @set_x_pos                    ; branch if boss gemini haven't yet combined
+    tay                               ; transfer x position away from merge point (#$00 to #$30) offset to y
+                                      ; x position will temporarily underflow to #$ff (-1)
+                                      ; this is when helmet freeze for ENEMY_ANIMATION_DELAY amount of time
+    bpl @set_x_pos                    ; branch if boss gemini haven't yet combined, i.e. their offset isn't #$ff
     jsr set_enemy_y_velocity_to_0     ; boss gemini have combined to become solid, pause motion
     jsr enable_bullet_enemy_collision ; allow bullets to collide (and stop) upon colliding with boss gemini
-    lda #$30                          ; a = #$30 (delay when gemini is fused)
+    lda #$30                          ; a = #$30 (delay when gemini is not moving)
+                                      ; either merged or really far apart
 
 @set_delay_reverse_dir:
     sta ENEMY_ANIMATION_DELAY,x   ; set enemy animation frame delay counter

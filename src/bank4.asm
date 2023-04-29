@@ -125,7 +125,7 @@ game_end_routine_tbl:
     .addr game_end_routine_04 ; CPU address $bae3 (music change and presented by Konami)
     .addr game_end_routine_05 ; CPU address $bb87
 
-; set level to #$08 (ending routing)
+; set level to #$08 (ending routine)
 game_end_routine_00:
     lda #$08                                   ; a = #$08
     sta CURRENT_LEVEL                          ; set current level to 'level 9' (special ending level)

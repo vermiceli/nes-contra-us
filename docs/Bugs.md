@@ -66,3 +66,88 @@ Extracted sound sample: [sound_ff.mp3](attachments/sound_ff.mp3?raw=true)
 Note that the boss defeated audio (`sound_55`) is still played because the enemy
 defeated routine is set to `boss_ufo_routine_09` (see
 `enemy_destroyed_routine_05`).  `boss_ufo_routine_09` plays `sound_55`.
+
+# 3. Level 4 Boss Gemini Vulnerability
+
+Under normal circumstances, when the level 4 indoor/base boss gemini helmet
+(enemy type = #$1c) splits into 'phantoms', then they don't take damage.  Only
+when the helmet re-combines is it vulnerable to damage.  However, `Mr. K`
+[researched](http://www.youtube.com/watch?v=hL1BMFRt6aA) a glitch to find that
+if a player's bullet collides with the helmet at just the right frame, then when
+the helmet separates into two, it can still take damage.
+
+The reason this happens is because the boss gemini uses `ENEMY_ANIMATION_DELAY`
+to know when to be vulnerable or when to be invulnerable.
+`ENEMY_ANIMATION_DELAY` specifies how long for the helmet to stay still when
+merged, or when at the farthest distance apart. The timer is set to #$20 when
+farthest apart, and #$30 when merged.  If the helmets are moving (either toward
+each other or away), the value will be #$00.
+
+When merged and `ENEMY_ANIMATION_DELAY` is 2, the helmet is not moving, but
+about to start separating.  The value will be decremented to 1.  This logic
+happens in `boss_gemini_routine_02`.  After `boss_gemini_routine_02` runs,
+`bullet_enemy_collision_test` is executed to check for a bullet to enemy
+collision.  If during this frame, a bullet hits the gemini, then the
+`ENEMY_ROUTINE` is updated to `boss_gemini_routine_03`. This is known as the
+enemy destroyed routine and it will be executed in the next frame.  However,
+boss gemini is special, in that it isn't automatically destroyed in the
+destroyed routine. Instead, unless boss gemini doesn't have any more health
+(`ENEMY_VAR_4`), the routine will decrement `ENEMY_ANIMATION_DELAY` to 0 and
+set back to `boss_gemini_routine_02` to be called the next frame.
+
+Now when the next frame executes and the `boss_gemini_routine_02` routine is
+run, `ENEMY_ANIMATION_DELAY` is 0 and game thinks that the code that makes the
+helmet invulnerable has already been executed when it hasn't!
+
+In short, the bug happens because for the special time when
+`ENEMY_ANIMATION_DELAY` is decremented from 1 to 0, the code should make the
+helmet invincible by calling `disable_enemy_collision`.  However, if you time
+the bullet collision to happen on the frame when `ENEMY_ANIMATION_DELAY` is 2,
+then the regular game code will decrement the timer to 1, and then next frame
+will have a different routine (`boss_gemini_routine_03`) set the timer to
+0, but that routine doesn't call `disable_enemy_collision`, leaving the helmet
+in a vulnerable state.
+
+Interestingly, if you take advantage of this bug, then you can exploit the same
+logic mistake when the helmet is not moving at the edge of the screen, before it
+starts merging.  If a bullet collides with the helmet right when
+`ENEMY_ANIMATION_DELAY` is 2, then the helmets will remain vulnerable while
+merging.
+
+```
+; ----- Frame 1 -----
+boss_gemini_routine_02:
+    ...
+    lda ENEMY_ANIMATION_DELAY,x ; ENEMY_ANIMATION_DELAY = 2
+    beq @calc_offset_set_pos    ; branch doesn't occur
+    dec ENEMY_ANIMATION_DELAY,x ; ENEMY_ANIMATION_DELAY = 1
+    bne @set_x_pos              ; helmet still not moving, branch
+    ...
+    rts
+
+...
+
+bullet_enemy_collision_test:
+    ...
+    jsr bullet_collision_logic ; set boss gemini routine `boss_gemini_routine_03`
+
+; ----- Frame 2 -----
+boss_gemini_routine_03:
+    lda ENEMY_ANIMATION_DELAY,x ; ENEMY_ANIMATION_DELAY = 1
+    beq @continue               ; branch doesn't occur
+    dec ENEMY_ANIMATION_DELAY,x ; ENEMY_ANIMATION_DELAY = 0
+    ...
+    lda #$03                   ; a = #$03
+    jmp set_enemy_routine_to_a ; set enemy routine index to boss_gemini_routine_02
+
+; ----- Frame 3 -----
+boss_gemini_routine_02:
+    lda ENEMY_ANIMATION_DELAY,x ; ENEMY_ANIMATION_DELAY = 0
+    beq @calc_offset_set_pos    ; branch skipping disabling of collision!!
+    dec ENEMY_ANIMATION_DELAY,x ; skipped!
+    bne @set_x_pos              ; skipped!
+    jsr disable_enemy_collision ; skipped!
+
+@calc_offset_set_pos:
+    ...
+```

@@ -6859,14 +6859,14 @@ bullet_enemy_collision_test:
     cmp #$80
     bcs @next_bullet
     lda PLAYER_BULLET_OWNER,x
-    jsr bullet_collision_logic
-    lda PLAYER_BULLET_SLOT,x
-    cmp #$05
-    bne @set_routine_exit
-    stx $08
-    txa
+    jsr bullet_collision_logic ; subtract enemy HP, play collision sound (if appropriate), award points
+    lda PLAYER_BULLET_SLOT,x   ; load bullet type + 1
+    cmp #$05                   ; see if laser
+    bne @set_routine_exit      ; branch if not laser
+    stx $08                    ; laser, store bullet slot number in $08
+    txa                        ; move bullet slot number to a
     ldx #$00                   ; x = #$00
-    cmp #$0a
+    cmp #$0a                   ; see if bullet slot number to #$0a
     bcc @continue_2
     ldx #$0a                   ; x = #$0a
 
@@ -6879,8 +6879,9 @@ bullet_enemy_collision_test:
     bne @continue_2
 
 @set_routine_exit:
-    jsr set_bullet_routine_to_2 ; move to bullet routine 2 and reset PLAYER_BULLET_TIMER to #$06
-    ldx ENEMY_CURRENT_SLOT
+    jsr set_bullet_routine_to_2 ; move to bullet routine 2, which destroys the bullet (player_bullet_collision_routine)
+                                ; reset PLAYER_BULLET_TIMER to #$06
+    ldx ENEMY_CURRENT_SLOT      ; restore x to the current enemy slot
     rts
 
 ; set PLAYER_BULLET_ROUTINE,x to #$02, which destroys the bullet (player_bullet_collision_routine)
@@ -6893,6 +6894,7 @@ set_bullet_routine_to_2:
     rts
 
 ; subtract enemy HP, play collision sound (if appropriate), award points
+; set enemy destroyed routine if HP is #$00
 bullet_collision_logic:
     sta $17                ; store PLAYER_BULLET_OWNER in $17 0 = p1, 1 = p2
     stx $11                ; backup bullet index in $11 for logic

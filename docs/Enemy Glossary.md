@@ -523,25 +523,33 @@ The health of the boss gemini helmets are #$01 and each hit 'destroys' them.
 However, the destroyed routine `boss_gemini_routine_03` will check `ENEMY_VAR_4`
 for the boss gemini helmet's actual HP.
 
+Note that this enemy uses `ENEMY_Y_VELOCITY_FRACT` and `ENEMY_Y_VELOCITY_FAST`
+not for anything with the y velocity, but rather to control speed of x movement
+and keep track of x distance from initial position respectively.
+
 * `ENEMY_FRAME` - offset into `boss_gemini_sprite_tbl`, which contains the exact
   sprite code: `sprite_68`, `sprite_69`, `sprite_6b`, `sprite_6c`.
 * `ENEMY_VAR_1` - initial x position
-* `ENEMY_VAR_2` - timer after being hit - #$00 down to #$00
+* `ENEMY_VAR_2` - timer after being hit - #$10 down to #$00
 * `ENEMY_VAR_3` - whether or not the boss gemini's health is low (less than
   #$07).  Used to show a red brain instead of a green one.
 * `ENEMY_VAR_4` - actual representation of ENEMY_HP
 * `ENEMY_X_VELOCITY_FRACT` - always #$80 (.50).  Used with
   `ENEMY_Y_VELOCITY_FRACT` to move gemini by 1 every #$02 frames
 * `ENEMY_X_VELOCITY_FAST` - x direction of boss gemini
-  * #$00 - boss gemini are travelling away from center
-  * #$ff - boss gemini are travelling towards center
+  * #$00 - boss gemini are traveling away from center
+  * #$ff - boss gemini are traveling towards center
 * `ENEMY_Y_VELOCITY_FRACT` - alternates every frame between #$00 and #$80.  Used
   with `ENEMY_Y_VELOCITY_FRACT` to move gemini by 1 every #$02 frames
 * `ENEMY_Y_VELOCITY_FAST` - offset from initial x position.  Either added to or
-  subtracted `ENEMY_VAR_1` based on whether the frame is even or odd.  Always
-  either #$00 or #$80
+  subtracted `ENEMY_VAR_1` based on whether the frame is even or odd.  Goes from
+  #$00 to #$30
 * `ENEMY_HP` - always #$01 until hit by bullet. The 'enemy destroyed' routine
   will reset `ENEMY_HP` back to #$01 until `ENEMY_VAR_4` is #$00.
+* `ENEMY_ANIMATION_DELAY` - how long for the helmet to stay still when merged,
+  or when farthest distance apart. The value is set to #$20 in game for when
+  farthest apart, and #$30 when merged.  If the helmets are moving (either
+  toward each other or away), the value will be #$00.
 
 ### 1D - Gardegura
 
@@ -718,7 +726,7 @@ simplify defining the enemy vars.
   * all other orbs - the running total of index into `dragon_arm_orb_pos_tbl`.
   Each farther orb has the next value. Then the orb's `ENEMY_VAR_1` is added to
   get position.
-* `ENEMY_VAR_1` - used in correlation wiht shoulder's `ENEMY_X_VELOCITY_FRACT`
+* `ENEMY_VAR_1` - used in correlation with shoulder's `ENEMY_X_VELOCITY_FRACT`
   to set position.  `ENEMY_VAR_1` is the distance from the previous orb's
   position index.
 * `ENEMY_VAR_2` - duration timer for rotation direction. positive = clockwise,
@@ -797,7 +805,7 @@ No attributes exist for this enemy.
 
 Appears randomly and creates flying saucers (enemy type - #$15) and drop bombs
 (enemy type - #$16).  One of the few enemies that use BG_PALETTE_ADJ_TIMER to
-create a fadeing in effect.
+create a fading in effect.
 
 #### Logic
 
