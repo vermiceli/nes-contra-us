@@ -57,6 +57,7 @@ do
     start=$2
     length=$3
     length=$(echo $length | tr -d '\r')
+    file=$(echo "$file" | tr '\\' '/')
     setBytes $start $length $file
 done < assets.txt
 
