@@ -11,6 +11,7 @@ Falcon](https://www.romhacking.net/hacks/2701/) project.
 ```
 |-- docs - supplemental documentation
 |   |-- attachments - files used in other documentation
+|   |-- debugging - files used to help debugging
 |   |-- diagrams - mermaid diagram files documenting program flow
 |   |-- lua_scripts - lua scripts for mesen and fceux
 |   |-- sprite_library - extracted sprites for ease of viewing
@@ -141,6 +142,34 @@ interesting observations.  You can search the code for these annotations.
 * `!(WHY?)` - unsure of why the code is the way it is
 * `!(UNUSED)` - unused code or data that is never executed nor read
 * `!(OBS)` - observation or note
+
+# Debugging
+
+One of the biggest advantages of building this rom is that the build scripts
+also build the debugging symbols.  Debugging symbols can be read by emulators
+and be included in the source view while debugging the game.  For example,
+[Mesen](https://github.com/SourMesen/Mesen2) will automatically load the
+debugging symbols as long as the `contra.dbg` file exists in the same folder as
+`contra.nes`.  Below is a screenshot of what debugging looks like with symbols.
+
+![Mesen debugger screenshot](docs/attachments/mesen_debugger_screenshot.png?raw=true)
+
+You can see that the debugging symbols file points to the source code to include
+comments and labels.  If you move or delete the source files, you will lose all
+the debugging information.
+
+## FCEUX NameList
+
+[FCEUX](https://fceux.com/web/home.html) doesn't support reading the debugger
+symbols, but you can load NameList (`.nl`) files.  These files aren't as fully
+featured as the debugging symbols file, but does at least allow you to label
+jump/branch locations.  It doesn't easily support comments on individual lines.
+
+I've included the `.nl` files in `docs/debugging/fceux_namelists`.  These files
+were generated from the `-Ln contra.labels.txt` command line parameter to
+`ld65`.  Then the that file was converted to the `.nl` files with a custom
+script.  I can't promise to keep these up to date as the source labels change,
+but I will try to.
 
 # Project History
 I first became interested in this project after watching the

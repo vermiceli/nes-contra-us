@@ -4617,7 +4617,7 @@ handle_jump:
 @set_jump_status_from_input:
     jsr get_x_velocity_d_pad_code ; see if left or right d-pad button is pressed
     beq @set_x_velocity           ; branch if neither were pressed
-    sta $08                       ; store #$20 for left d-pad, #$40 for right d-pad in $08
+    sta $08                       ; store #$20 for right d-pad, #$40 for left d-pad in $08
     lda PLAYER_JUMP_STATUS,x      ; low nibble 1 = jumping, 0 not jumping; high nibble = facing direction
     and #$9f                      ; keep bits x..x xxxx
     ora $08                       ; update EDGE_FALL_CODE based on d-pad input
