@@ -72,7 +72,7 @@ replaced with "AC TEAM".
 
 Many of the sprites were changed to replace humans with robots.
 Additionally, some sprite animations were simplified, making many sprites
-identical, when they weren't identity in _Contra_ (US)
+identical, when they weren't in _Contra_ (US)
 
 * `sprite_27`, `sprite_28`, `sprite_3c` are equal
 * `sprite_29` and `sprite_42` are equal

@@ -100,7 +100,7 @@ do
     length=$(echo $length | tr -d '\r')
     file=$(echo "$file" | tr '\\' '/')
     setBytes $start $length $file
-done < assets.txt
+done < $ASSETS_NAME
 
 echo "$GAME" > $ASSET_GAME_TYPE
 
