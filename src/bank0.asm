@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.1
+; Contra US Disassembly - v1.2
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 0 is used exclusively for enemy routines. Enemy routines are the logic
 ; controlling enemy behaviors, AI, movements, and attack patterns. Almost every
@@ -146,8 +146,12 @@ weapon_item_routine_00:
     sta ENEMY_STATE_WIDTH,x             ; mark weapon item so bullets travel through it
     lda #$22                            ; a = #$22
     sta ENEMY_SCORE_COLLISION,x         ; score code #$02, collision type #$02
+.ifdef Probotector
+    lda #$00                            ; use sprite code palette
+.else
     lda #$05                            ; set sprite palette #$01, bit 2 specifies sprite code ROM data override
-    sta ENEMY_SPRITE_ATTR,x             ; set weapon item sprite palette to palette #$01
+.endif
+    sta ENEMY_SPRITE_ATTR,x             ; set weapon item sprite palette to palette
     lda LEVEL_LOCATION_TYPE             ; 0 = outdoor; 1 = indoor
     beq @set_velocity_outdoor           ; branch for outdoor level
     lda ENEMY_Y_POS,x                   ; indoor level, load y position on screen
@@ -362,7 +366,7 @@ set_weapon_item_sprite:
 weapon_item_sprite_code_tbl:
     .byte $33,$34,$31,$2f,$32,$30,$4e
 
-; pointer table for enemy bullet (#$4 * #42 = #48 bytes)
+; pointer table for enemy bullet (#$4 * #$2 = #$8 bytes)
 enemy_bullet_routine_ptr_tbl:
     .addr enemy_bullet_routine_00 ; CPU address $814f (initialize collision code)
     .addr enemy_bullet_routine_01 ; CPU address $8161 (init palette, sprite, and velocity)
@@ -666,7 +670,7 @@ weapon_box_destroyed_supertile:
     .byte $09,$09 ; level 7
     .byte $16,$16 ; ending
 
-; pointer table for weapon zeppelin (#43 * #$2 = #$6 bytes)
+; pointer table for weapon zeppelin (#$3 * #$2 = #$6 bytes)
 flying_capsule_routine_ptr_tbl:
     .addr flying_capsule_routine_00 ; CPU address $830b
     .addr flying_capsule_routine_01 ; CPU address $835d
@@ -1076,7 +1080,7 @@ red_turret_routine_03:
     sta ENEMY_FRAME,x                   ; initial frame code when returning to ground (#$02)
     jsr disable_enemy_collision         ; prevent player enemy collision check and allow bullets to pass through enemy
     lda #$01                            ; a = #$01
-    jmp set_enemy_delay_adv_routine     ; set ENEMY_ANIMATION_DELAY counter to #401 advance to red_turret_routine_04
+    jmp set_enemy_delay_adv_routine     ; set ENEMY_ANIMATION_DELAY counter to #$01 advance to red_turret_routine_04
 
 @gen_bullet_if_appropriate:
     jsr red_turret_find_target_player ; find player to target, set to y
@@ -3231,7 +3235,7 @@ wall_core_enable_collision_adv_routine:
     jsr enable_bullet_enemy_collision ; allow bullets to collide (and stop) upon colliding with wall core
     jmp advance_enemy_routine
 
-; table for core opening update nametable tiles (offsets into level_2_4_tile_animation) (#43 bytes)
+; table for core opening update nametable tiles (offsets into level_2_4_tile_animation) (#$03 bytes)
 ; #$85 wall turret / core - opening frame 1
 ; #$86 core - opening frame 2
 ; #$87 core - open
@@ -3553,7 +3557,7 @@ jumping_soldier_routine_01:
     lda #$93                    ; a = #$93 (sprite_93 jumping man running)
     cpy #$04                    ; compare animation delay to #$04
     bcc @set_sprite             ; continue if animation delay is less than #$04
-    lda #$98                    ; animation delay is > #404, set a = #$98 (sprite_98 jumping man running)
+    lda #$98                    ; animation delay is > #$04, set a = #$98 (sprite_98 jumping man running)
 
 @set_sprite:
     sta ENEMY_SPRITES,x    ; write enemy sprite code to CPU buffer
@@ -3561,10 +3565,14 @@ jumping_soldier_routine_01:
     lsr
     lsr
     lda #$00               ; a = #$00 (default palette)
-    bcc @set_sprite_attr
-    lda #$05               ; sprite palette #$01 (red jumping man)
-                           ; #$00-#$03 (green normal), #$04 (blue), #$05 (red)
-                           ; #$06 (fire), #$07 (green with green hair)
+    bcc @set_sprite_attr   ; branch if jumping soldier doesn't drop a R weapon item
+.ifdef Probotector
+    lda #$07               ; red jumping soldier, set sprite palette #$03 and sprite code override bit
+                           ; jumping soldier drops R weapon, so override palette so it's red
+.else
+    lda #$05               ; red jumping soldier, set sprite palette #$01 and sprite code override bit
+                           ; jumping soldier drops R weapon, so override palette so it's red
+.endif
 
 @set_sprite_attr:
     sta $08
@@ -7439,6 +7447,14 @@ boss_giant_soldier_routine_ptr_tbl:
 
 ; boss robot - pointer 0
 boss_giant_soldier_routine_00:
+.ifdef Probotector
+    stx ENEMY_CURRENT_SLOT              ; backup current enemy slot number
+    lda #$5e                            ; 4th level sprite palette
+    sta LEVEL_PALETTE_INDEX+7           ; set 4th level sprite palette (offset into game_palettes)
+    lda #$20                            ; a = #$20
+    jsr load_palettes_color_to_cpu      ; load #$20 palette colors into PALETTE_CPU_BUFFER based on LEVEL_PALETTE_INDEX
+    ldx ENEMY_CURRENT_SLOT              ; restore current enemy slot number
+.endif
     lda PLAYER_WEAPON_STRENGTH
     asl
     asl

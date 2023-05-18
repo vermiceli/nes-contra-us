@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.1
+; Contra US Disassembly - v1.2
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 1 is responsible for audio and sprites.  The audio code takes up about
 ; 3/4  of the bank. The remaining 1/4 of the bank is for sprite data and code to
@@ -4309,184 +4309,185 @@ sprite_ptr_tbl_0:
     .addr sprite_1d ; CPU address $b356 - player in water aiming forward
     .addr sprite_1e ; CPU address $b366 - default bullet
     .addr sprite_1f ; CPU address $b369 - M bullet
-    .addr sprite_20 ; CPU address $6cb3 - S bullet, mortar
-    .addr sprite_21 ; CPU address $6fb3 - boss turret bullet
-    .addr sprite_22 ; CPU address $72b3 - F bullet and snow field level boss ufo bomb
-    .addr sprite_23 ; CPU address $75b3 - L bullet (up)
-    .addr sprite_24 ; CPU address $78b3 - L bullet
-    .addr sprite_25 ; CPU address $81b3 - L bullet (angled)
-    .addr sprite_26 ; CPU address $84b3 - soldier crouched shooting
-    .addr sprite_27 ; CPU address $95b3 - soldier running 1
-    .addr sprite_28 ; CPU address $a6b3 - soldier running 2
-    .addr sprite_29 ; CPU address $b2b3 - soldier shooting angled up
-    .addr sprite_2a ; CPU address $c3b3 - hangar mine cart (frame 1)
-    .addr sprite_2b ; CPU address $dcb3 - hangar mine cart (frame 2)
-    .addr sprite_2c ; CPU address $e8b3 - soldier shooting
-    .addr sprite_2d ; CPU address $fdb3 - soldier shooting angled down
-    .addr sprite_2e ; CPU address $12b4 - unknown (doesn't seem to be used)
-    .addr sprite_2f ; CPU address $23b4 - S weapon item
-    .addr sprite_30 ; CPU address $30b4 - B weapon item
-    .addr sprite_31 ; CPU address $38b4 - F weapon item
-    .addr sprite_32 ; CPU address $40b4 - L weapon item
-    .addr sprite_33 ; CPU address $48b4 - R weapon item
-    .addr sprite_34 ; CPU address $50b4 - M weapon item
-    .addr sprite_35 ; CPU address $58b4 - big explosion
-    .addr sprite_36 ; CPU address $79b4 - explosion
-    .addr sprite_37 ; CPU address $8eb4 - small explosion
-    .addr sprite_38 ; CPU address $97b4 - round explosion
-    .addr sprite_39 ; CPU address $b0b4 - thick explosion ring
-    .addr sprite_3a ; CPU address $d1b4 - wide explosion ring
-    .addr sprite_3b ; CPU address $f2b4 - soldier running
-    .addr sprite_3c ; CPU address $03b5 - soldier running
-    .addr sprite_3d ; CPU address $14b5 - soldier running
-    .addr sprite_3e ; CPU address $25b5 - soldier running
-    .addr sprite_3f ; CPU address $31b5 - soldier running
-    .addr sprite_40 ; CPU address $3db5 - soldier shooting
-    .addr sprite_41 ; CPU address $4db5 - soldier shooting downward
-    .addr sprite_42 ; CPU address $62b5 - soldier shooting up angled
-    .addr sprite_43 ; CPU address $72b5 - rifle man shooting
-    .addr sprite_44 ; CPU address $82b5 - rifle man behind bush (frame 1)
-    .addr sprite_45 ; CPU address $87b5 - rifle man behind bush (frame 2)
-    .addr sprite_46 ; CPU address $94b5 - rifle man behind bush (frame 3)
-    .addr sprite_47 ; CPU address $98b5 - small ring explosion
-    .addr sprite_48 ; CPU address $9bb5 - floating rock (waterfall level)
-    .addr sprite_49 ; CPU address $b8b5 - bridge fire (waterfall level)
-    .addr sprite_4a ; CPU address $c1b5 - boulder (waterfall level)
-    .addr sprite_4b ; CPU address $dab5 - scuba soldier hiding
-    .addr sprite_4c ; CPU address $e3b5 - scuba soldier out of water shooting up
-    .addr sprite_4d ; CPU address $f0b5 - weapon zeppelin
-    .addr sprite_4e ; CPU address $fdb5 - flashing falcon weapon
-    .addr sprite_4f ; CPU address $05b6 - unused blank sprite
-    .addr sprite_50 ; CPU address $06b6 - indoor player facing up
-    .addr sprite_51 ; CPU address $23b6 - indoor player strafing (frame 1)
-    .addr sprite_52 ; CPU address $33b6 - indoor player strafing (frame 2)
-    .addr sprite_53 ; CPU address $43b6 - indoor player strafing (frame 3)
-    .addr sprite_54 ; CPU address $53b6 - indoor player crouch
-    .addr sprite_55 ; CPU address $70b6 - indoor player electrocuted
-    .addr sprite_56 ; CPU address $91b6 - indoor player lying dead
-    .addr sprite_57 ; CPU address $b2b6 - indoor player running
-    .addr sprite_58 ; CPU address $cbb6 - indoor player running
-    .addr sprite_59 ; CPU address $e4b6 - unused blank sprite
-    .addr sprite_59 ; CPU address $e4b6 - unused blank sprite
-    .addr sprite_59 ; CPU address $e4b6 - unused blank sprite
-    .addr sprite_59 ; CPU address $e4b6 - unused blank sprite
-    .addr sprite_5d ; CPU address $e5b6 - boss eye
-    .addr sprite_5e ; CPU address $06b7 - boss eye
-    .addr sprite_5f ; CPU address $1ab7 - boss eye
-    .addr sprite_60 ; CPU address $2eb7 - boss eye
-    .addr sprite_61 ; CPU address $42b7 - boss eye
-    .addr sprite_62 ; CPU address $4eb7 - boss eye
-    .addr sprite_63 ; CPU address $56b7 - small boss eye projectile (unused)
-    .addr sprite_64 ; CPU address $5fb7 - boss eye projectile
-    .addr sprite_65 ; CPU address $80b7 - unused blank sprite
-    .addr sprite_65 ; CPU address $80b7 - unused blank sprite
-    .addr sprite_65 ; CPU address $80b7 - unused blank sprite
-    .addr sprite_68 ; CPU address $81b7 - base 2 boss metal helmet (Godomuga) (frame 1)
-    .addr sprite_69 ; CPU address $a2b7 - base 2 boss metal helmet (Godomuga) (frame 2)
-    .addr sprite_6a ; CPU address $beb7 - base 2 boss metal helmet (Godomuga) (frame 3)
-    .addr sprite_6b ; CPU address $d2b7 - base 2 boss metal helmet (Godomuga) (frame 4)
-    .addr sprite_6c ; CPU address $deb7 - base 2 boss metal helmet (Godomuga) (frame 5)
-    .addr sprite_6d ; CPU address $eab7 - base 2 boss metal helmet (Godomuga) bubble projectile
-    .addr sprite_6e ; CPU address $f3b7 - base 2 boss metal helmet (Godomuga) bubble projectile
-    .addr sprite_6f ; CPU address $fcb7 - base 2 boss metal helmet (Godomuga) bubble projectile
-    .addr sprite_70 ; CPU address $ffb7 - base 2 boss metal helmet (Godomuga) bubble projectile
-    .addr sprite_71 ; CPU address $08b8 - base 2 boss metal helmet (Godomuga) bubble projectile
-    .addr sprite_72 ; CPU address $11b8 - base 2 boss metal helmet (Godomuga) bubble projectile
-    .addr sprite_73 ; CPU address $14b8 - water splash
-    .addr sprite_74 ; CPU address $1db8 - ice grenade
-    .addr sprite_75 ; CPU address $26b8 - ice grenade
-    .addr sprite_76 ; CPU address $2fb8 - ice grenade
-    .addr sprite_77 ; CPU address $38b8 - ice grenade (vertical)
-    .addr sprite_78 ; CPU address $41b8 - !(UNUSED) duplicate of sprite_74 (ice grenade lean right), unused in game
-    .addr sprite_79 ; CPU address $4ab8 - dragon boss projectile
-    .addr sprite_7a ; CPU address $53b8 - dragon arm interior orb (gray)
-    .addr sprite_7b ; CPU address $5cb8 - dragon arm hand orb (red)
-    .addr sprite_7c ; CPU address $65b8 - snow field boss mini UFO
-    .addr sprite_7d ; CPU address $72b8 - snow field boss mini UFO
-    .addr sprite_7e ; CPU address $7fb8 - snow field boss mini UFO
-    .addr sprite_7f ; CPU address $8cb8 - unknown (doesn't seem to be used)
+    .addr sprite_20 ; CPU address $b36c - S bullet, mortar
+    .addr sprite_21 ; CPU address $b36f - boss turret bullet
+    .addr sprite_22 ; CPU address $b372 - F bullet and snow field level boss ufo bomb
+    .addr sprite_23 ; CPU address $b375 - L bullet (up)
+    .addr sprite_24 ; CPU address $b378 - L bullet
+    .addr sprite_25 ; CPU address $b381 - L bullet (angled)
+    .addr sprite_26 ; CPU address $b384 - soldier crouched shooting
+    .addr sprite_27 ; CPU address $b395 - soldier running 1
+    .addr sprite_28 ; CPU address $b3a6 - soldier running 2
+    .addr sprite_29 ; CPU address $b3b2 - soldier shooting angled up
+    .addr sprite_2a ; CPU address $b3c3 - hangar mine cart (frame 1)
+    .addr sprite_2b ; CPU address $b3dc - hangar mine cart (frame 2)
+    .addr sprite_2c ; CPU address $b3e8 - soldier shooting
+    .addr sprite_2d ; CPU address $b3fd - soldier shooting angled down
+    .addr sprite_2e ; CPU address $b412 - unknown (doesn't seem to be used)
+    .addr sprite_2f ; CPU address $b423 - S weapon item
+    .addr sprite_30 ; CPU address $b430 - B weapon item
+    .addr sprite_31 ; CPU address $b438 - F weapon item
+    .addr sprite_32 ; CPU address $b440 - L weapon item
+    .addr sprite_33 ; CPU address $b448 - R weapon item
+    .addr sprite_34 ; CPU address $b450 - M weapon item
+    .addr sprite_35 ; CPU address $b458 - big explosion
+    .addr sprite_36 ; CPU address $b479 - explosion
+    .addr sprite_37 ; CPU address $b48e - small explosion
+    .addr sprite_38 ; CPU address $b497 - round explosion
+    .addr sprite_39 ; CPU address $b4b0 - thick explosion ring
+    .addr sprite_3a ; CPU address $b4d1 - wide explosion ring
+    .addr sprite_3b ; CPU address $b4f2 - soldier running
+    .addr sprite_3c ; CPU address $b503 - soldier running
+    .addr sprite_3d ; CPU address $b514 - soldier running
+    .addr sprite_3e ; CPU address $b525 - soldier running
+    .addr sprite_3f ; CPU address $b531 - soldier running
+    .addr sprite_40 ; CPU address $b53d - soldier shooting
+    .addr sprite_41 ; CPU address $b54d - soldier shooting downward
+    .addr sprite_42 ; CPU address $b562 - soldier shooting up angled
+    .addr sprite_43 ; CPU address $b572 - rifle man shooting
+    .addr sprite_44 ; CPU address $b582 - rifle man behind bush (frame 1)
+    .addr sprite_45 ; CPU address $b587 - rifle man behind bush (frame 2)
+    .addr sprite_46 ; CPU address $b594 - rifle man behind bush (frame 3)
+    .addr sprite_47 ; CPU address $b598 - small ring explosion
+    .addr sprite_48 ; CPU address $b59b - floating rock (waterfall level)
+    .addr sprite_49 ; CPU address $b5b8 - bridge fire (waterfall level)
+    .addr sprite_4a ; CPU address $b5c1 - boulder (waterfall level)
+    .addr sprite_4b ; CPU address $b5da - scuba soldier hiding
+    .addr sprite_4c ; CPU address $b5e3 - scuba soldier out of water shooting up
+    .addr sprite_4d ; CPU address $b5f0 - weapon zeppelin
+    .addr sprite_4e ; CPU address $b5fd - flashing falcon weapon
+    .addr sprite_4f ; CPU address $b605 - unused blank sprite
+    .addr sprite_50 ; CPU address $b606 - indoor player facing up
+    .addr sprite_51 ; CPU address $b623 - indoor player strafing (frame 1)
+    .addr sprite_52 ; CPU address $b633 - indoor player strafing (frame 2)
+    .addr sprite_53 ; CPU address $b643 - indoor player strafing (frame 3)
+    .addr sprite_54 ; CPU address $b653 - indoor player crouch
+    .addr sprite_55 ; CPU address $b670 - indoor player electrocuted
+    .addr sprite_56 ; CPU address $b691 - indoor player lying dead
+    .addr sprite_57 ; CPU address $b6b2 - indoor player running
+    .addr sprite_58 ; CPU address $b6cb - indoor player running
+    .addr sprite_59 ; CPU address $b6e4 - unused blank sprite
+    .addr sprite_59 ; CPU address $b6e4 - unused blank sprite
+    .addr sprite_59 ; CPU address $b6e4 - unused blank sprite
+    .addr sprite_59 ; CPU address $b6e4 - unused blank sprite
+    .addr sprite_5d ; CPU address $b6e5 - boss eye
+    .addr sprite_5e ; CPU address $b706 - boss eye
+    .addr sprite_5f ; CPU address $b71a - boss eye
+    .addr sprite_60 ; CPU address $b72e - boss eye
+    .addr sprite_61 ; CPU address $b742 - boss eye
+    .addr sprite_62 ; CPU address $b74e - boss eye
+    .addr sprite_63 ; CPU address $b756 - small boss eye projectile (unused)
+    .addr sprite_64 ; CPU address $b75f - boss eye projectile
+    .addr sprite_65 ; CPU address $b780 - unused blank sprite
+    .addr sprite_65 ; CPU address $b780 - unused blank sprite
+    .addr sprite_65 ; CPU address $b780 - unused blank sprite
+    .addr sprite_68 ; CPU address $b781 - base 2 boss metal helmet (Godomuga) (frame 1)
+    .addr sprite_69 ; CPU address $b7a2 - base 2 boss metal helmet (Godomuga) (frame 2)
+    .addr sprite_6a ; CPU address $b7be - base 2 boss metal helmet (Godomuga) (frame 3)
+    .addr sprite_6b ; CPU address $b7d2 - base 2 boss metal helmet (Godomuga) (frame 4)
+    .addr sprite_6c ; CPU address $b7de - base 2 boss metal helmet (Godomuga) (frame 5)
+    .addr sprite_6d ; CPU address $b7ea - base 2 boss metal helmet (Godomuga) bubble projectile
+    .addr sprite_6e ; CPU address $b7f3 - base 2 boss metal helmet (Godomuga) bubble projectile
+    .addr sprite_6f ; CPU address $b7fc - base 2 boss metal helmet (Godomuga) bubble projectile
+    .addr sprite_70 ; CPU address $b7ff - base 2 boss metal helmet (Godomuga) bubble projectile
+    .addr sprite_71 ; CPU address $b808 - base 2 boss metal helmet (Godomuga) bubble projectile
+    .addr sprite_72 ; CPU address $b811 - base 2 boss metal helmet (Godomuga) bubble projectile
+    .addr sprite_73 ; CPU address $b814 - water splash
+    .addr sprite_74 ; CPU address $b81d - ice grenade
+    .addr sprite_75 ; CPU address $b826 - ice grenade
+    .addr sprite_76 ; CPU address $b82f - ice grenade
+    .addr sprite_77 ; CPU address $b838 - ice grenade (vertical)
+    .addr sprite_78 ; CPU address $b841 - !(UNUSED) duplicate of sprite_74 (ice grenade lean right), unused in game
+    .addr sprite_79 ; CPU address $b84a - dragon boss projectile
+    .addr sprite_7a ; CPU address $b853 - dragon arm interior orb (gray)
+    .addr sprite_7b ; CPU address $b85c - dragon arm hand orb (red)
+    .addr sprite_7c ; CPU address $b865 - snow field boss mini UFO
+    .addr sprite_7d ; CPU address $b872 - snow field boss mini UFO
+    .addr sprite_7e ; CPU address $b87f - snow field boss mini UFO
+    .addr sprite_7f ; CPU address $b88c - unknown (doesn't seem to be used)
 
 sprite_ptr_tbl_1:
-    .addr sprite_80 ; (offset 00) CPU address $8cb8 - unknown (doesn't seem to be used)
-    .addr sprite_81 ; (offset 01) CPU address $95b8 - unknown (doesn't seem to be used)
-    .addr sprite_82 ; (offset 02) CPU address $9eb8 - l bullet indoor level
-    .addr sprite_83 ; (offset 03) CPU address $a3b8 - l bullet indoor level
-    .addr sprite_84 ; (offset 04) CPU address $a8b8 - l bullet indoor level
-    .addr sprite_85 ; (offset 05) CPU address $adb8 - base 2 boss blue soldier
-    .addr sprite_86 ; (offset 06) CPU address $c2b8 - base 2 boss blue soldier
-    .addr sprite_87 ; (offset 07) CPU address $d3b8 - base 2 boss blue soldier
-    .addr sprite_88 ; (offset 08) CPU address $e0b8 - base 2 blue soldier facing out (frame 1)
-    .addr sprite_89 ; (offset 09) CPU address $f1b8 - base 2 blue soldier facing out (frame 2)
-    .addr sprite_8a ; (offset 0a) CPU address $02b9 - base 2 blue soldier flying (frame 1)
-    .addr sprite_8b ; (offset 0b) CPU address $17b9 - base 2 blue soldier flying (frame 2)
-    .addr sprite_8c ; (offset 0c) CPU address $34b9 - base boss level 4 base 2 red soldier
-    .addr sprite_8d ; (offset 0d) CPU address $3cb9 - base boss level 4 base 2 red soldier
-    .addr sprite_8e ; (offset 0e) CPU address $44b9 - base boss level 4 base 2 red soldier
-    .addr sprite_8f ; (offset 0f) CPU address $4cb9 - base boss level 4 base 2 red soldier facing player
-    .addr sprite_90 ; (offset 10) CPU address $54b9 - base boss level 4 base 2 red soldier facing player with weapon
-    .addr sprite_91 ; (offset 11) CPU address $65b9 - indoor boss defeated elevator with player on top
-    .addr sprite_92 ; (offset 12) CPU address $75b9 - l bullet indoor level
-    .addr sprite_93 ; (offset 13) CPU address $7ab9 - jumping man
-    .addr sprite_94 ; (offset 14) CPU address $8bb9 - jumping man
-    .addr sprite_95 ; (offset 15) CPU address $9cb9 - jumping man
-    .addr sprite_96 ; (offset 16) CPU address $adb9 - indoor soldier hit by bullet (indoor soldier, jumping man, grenade launcher, group of four soldiers)
-    .addr sprite_97 ; (offset 17) CPU address $beb9 - jumping man in air
-    .addr sprite_98 ; (offset 18) CPU address $d3b9 - jumping man facing player
-    .addr sprite_99 ; (offset 19) CPU address $e0b9 - small indoor rolling grenade
-    .addr sprite_9a ; (offset 1a) CPU address $e9b9 - closer indoor rolling grenade
-    .addr sprite_9b ; (offset 1b) CPU address $f2b9 - even closer indoor rolling grenade
-    .addr sprite_9c ; (offset 1c) CPU address $ffb9 - closest indoor rolling grenade
-    .addr sprite_9d ; (offset 1d) CPU address $0cba - indoor base enemy kill explosion (frame 1)
-    .addr sprite_9e ; (offset 1e) CPU address $0fba - indoor base enemy kill explosion (frame 2)
-    .addr sprite_9f ; (offset 1f) CPU address $18ba - indoor base enemy kill explosion (frame 3)
-    .addr sprite_a0 ; (offset 20) CPU address $21ba - indoor hand grenade
-    .addr sprite_a1 ; (offset 21) CPU address $2aba - indoor hand grenade
-    .addr sprite_a2 ; (offset 22) CPU address $2fba - indoor hand grenade
-    .addr sprite_a3 ; (offset 23) CPU address $32ba - indoor hand grenade
-    .addr sprite_a4 ; (offset 24) CPU address $37ba - indoor hand grenade
-    .addr sprite_a5 ; (offset 25) CPU address $3cba - indoor hand grenade
-    .addr sprite_a6 ; (offset 26) CPU address $41ba - indoor hand grenade
-    .addr sprite_a7 ; (offset 27) CPU address $44ba - indoor hand grenade
-    .addr sprite_a8 ; (offset 28) CPU address $49ba - indoor hand grenade
-    .addr sprite_a9 ; (offset 29) CPU address $4cba - indoor hand grenade
-    .addr sprite_aa ; (offset 2a) CPU address $50ba - falcon (player select icon)
-    .addr sprite_ab ; (offset 2b) CPU address $59ba - Bill and Lance's hair and shirt
-    .addr sprite_ac ; (offset 2c) CPU address $b2ba - alien's lair bundle (crustacean-like alien)
-    .addr sprite_ad ; (offset 2d) CPU address $cbba - alien's lair bundle (crustacean-like alien) mouth open
-    .addr sprite_ae ; (offset 2e) CPU address $d7ba - alien's lair bundle (crustacean-like alien)
-    .addr sprite_af ; (offset 2f) CPU address $f0ba - alien's lair bundle (crustacean-like alien)
-    .addr sprite_b0 ; (offset 30) CPU address $fcba - poisonous insect gel
-    .addr sprite_b1 ; (offset 31) CPU address $05bb - poisonous insect gel (frame 1)
-    .addr sprite_b2 ; (offset 32) CPU address $0ebb - poisonous insect gel (frame 2)
-    .addr sprite_b3 ; (offset 33) CPU address $17bb - boss alien bugger insect/spider (frame 1)
-    .addr sprite_b4 ; (offset 34) CPU address $30bb - boss alien bugger insect/spider (frame 2)
-    .addr sprite_b5 ; (offset 35) CPU address $51bb - boss alien bugger insect/spider (frame 3)
-    .addr sprite_b6 ; (offset 36) CPU address $6ebb - boss alien eggron (alien egg)
-    .addr sprite_b7 ; (offset 37) CPU address $77bb - energy zone boss giant armored soldier gordea
-    .addr sprite_b7 ; (offset 38) CPU address $77bb - energy zone boss giant armored soldier gordea
-    .addr sprite_b9 ; (offset 39) CPU address $d0bb - energy zone boss giant armored soldier gordea (legs together)
-    .addr sprite_ba ; (offset 3a) CPU address $19bc - energy zone boss giant armored soldier gordea (running, jumping)
-    .addr sprite_bb ; (offset 3b) CPU address $45bc - energy zone boss projectile (spiked disk)
-    .addr sprite_bc ; (offset 3c) CPU address $4ebc - energy zone boss projectile (spiked disk)
-    .addr sprite_bd ; (offset 3d) CPU address $57bc - turret man (basquez)
-    .addr sprite_be ; (offset 3e) CPU address $74bc - turret man (basquez)
-    .addr sprite_bf ; (offset 3f) CPU address $91bc - energy zone wall fire
-    .addr sprite_c0 ; (offset 40) CPU address $96bc - energy zone wall fire
-    .addr sprite_c1 ; (offset 41) CPU address $9bbc - energy zone ceiling fire
-    .addr sprite_c2 ; (offset 42) CPU address $a0bc - energy zone ceiling fire
-    .addr sprite_c3 ; (offset 43) CPU address $a5bc - energy zone boss giant armored soldier gordea (throwing)
-    .addr sprite_c4 ; (offset 44) CPU address $cdbc - snow field ground separator
-    .addr sprite_c5 ; (offset 45) CPU address $d2bc - green helicopter ending scene (frame 1)
-    .addr sprite_c6 ; (offset 46) CPU address $dbbc - green helicopter ending scene (frame 2)
-    .addr sprite_c7 ; (offset 47) CPU address $e8bc - green helicopter ending scene (frame 3)
-    .addr sprite_c8 ; (offset 48) CPU address $f1bc - green helicopter ending scene (frame 4)
-    .addr sprite_c9 ; (offset 49) CPU address $febc - green helicopter facing forward (frame 1)
-    .addr sprite_ca ; (offset 4a) CPU address $13bd - green helicopter facing forward (frame 2)
-    .addr sprite_cb ; (offset 4b) CPU address $30bd - green helicopter facing forward (frame 3)
-    .addr sprite_cc ; (offset 4c) CPU address $59bd - green helicopter facing forward (frame 4)
-    .addr sprite_cd ; (offset 4d) CPU address $7ebd - green helicopter facing forward (frame 5)
-    .addr sprite_ce ; (offset 4e) CPU address $abbd - green helicopter facing forward (frame 6)
-    .addr sprite_cf ; (offset 4f) CPU address $d0bd - ending sequence mountains
+    .addr sprite_80 ; (offset 00) CPU address $b88c - unknown (doesn't seem to be used)
+    .addr sprite_81 ; (offset 01) CPU address $b895 - unknown (doesn't seem to be used)
+    .addr sprite_82 ; (offset 02) CPU address $b89e - l bullet indoor level
+    .addr sprite_83 ; (offset 03) CPU address $b8a3 - l bullet indoor level
+    .addr sprite_84 ; (offset 04) CPU address $b8a8 - l bullet indoor level
+    .addr sprite_85 ; (offset 05) CPU address $b8ad - base boss level 4 blue soldier
+    .addr sprite_86 ; (offset 06) CPU address $b8c2 - base boss level 4 blue soldier
+    .addr sprite_87 ; (offset 07) CPU address $b8d3 - base boss level 4 blue soldier
+    .addr sprite_88 ; (offset 08) CPU address $b8e0 - base boss level 4 blue soldier facing out (frame 1)
+    .addr sprite_89 ; (offset 09) CPU address $b8f1 - base boss level 4 blue soldier facing out (frame 2)
+    .addr sprite_8a ; (offset 0a) CPU address $b902 - base boss level 4 blue soldier flying (frame 1)
+    .addr sprite_8b ; (offset 0b) CPU address $b917 - base boss level 4 blue soldier flying (frame 2)
+    .addr sprite_8c ; (offset 0c) CPU address $b934 - base boss level 4 base 2 red soldier
+    .addr sprite_8d ; (offset 0d) CPU address $b93c - base boss level 4 base 2 red soldier
+    .addr sprite_8e ; (offset 0e) CPU address $b944 - base boss level 4 base 2 red soldier
+    .addr sprite_8f ; (offset 0f) CPU address $b94c - base boss level 4 base 2 red soldier facing player
+                    ; Probotector uses sprite_88 rather than separately defining a sprite_8f
+    .addr sprite_90 ; (offset 10) CPU address $b954 - base boss level 4 base 2 red soldier facing player with weapon
+    .addr sprite_91 ; (offset 11) CPU address $b965 - indoor boss defeated elevator with player on top
+    .addr sprite_92 ; (offset 12) CPU address $b975 - l bullet indoor level
+    .addr sprite_93 ; (offset 13) CPU address $b97a - jumping man
+    .addr sprite_94 ; (offset 14) CPU address $b98b - jumping man
+    .addr sprite_95 ; (offset 15) CPU address $b99c - jumping man
+    .addr sprite_96 ; (offset 16) CPU address $b9ad - indoor soldier hit by bullet (indoor soldier, jumping man, grenade launcher, group of four soldiers)
+    .addr sprite_97 ; (offset 17) CPU address $b9be - jumping man in air
+    .addr sprite_98 ; (offset 18) CPU address $b9d3 - jumping man facing player
+    .addr sprite_99 ; (offset 19) CPU address $b9e0 - small indoor rolling grenade
+    .addr sprite_9a ; (offset 1a) CPU address $b9e9 - closer indoor rolling grenade
+    .addr sprite_9b ; (offset 1b) CPU address $b9f2 - even closer indoor rolling grenade
+    .addr sprite_9c ; (offset 1c) CPU address $b9ff - closest indoor rolling grenade
+    .addr sprite_9d ; (offset 1d) CPU address $ba0c - indoor base enemy kill explosion (frame 1)
+    .addr sprite_9e ; (offset 1e) CPU address $ba0f - indoor base enemy kill explosion (frame 2)
+    .addr sprite_9f ; (offset 1f) CPU address $ba18 - indoor base enemy kill explosion (frame 3)
+    .addr sprite_a0 ; (offset 20) CPU address $ba21 - indoor hand grenade
+    .addr sprite_a1 ; (offset 21) CPU address $ba2a - indoor hand grenade
+    .addr sprite_a2 ; (offset 22) CPU address $ba2f - indoor hand grenade
+    .addr sprite_a3 ; (offset 23) CPU address $ba32 - indoor hand grenade
+    .addr sprite_a4 ; (offset 24) CPU address $ba37 - indoor hand grenade
+    .addr sprite_a5 ; (offset 25) CPU address $ba3c - indoor hand grenade
+    .addr sprite_a6 ; (offset 26) CPU address $ba41 - indoor hand grenade
+    .addr sprite_a7 ; (offset 27) CPU address $ba44 - indoor hand grenade
+    .addr sprite_a8 ; (offset 28) CPU address $ba49 - indoor hand grenade
+    .addr sprite_a9 ; (offset 29) CPU address $ba4c - indoor hand grenade
+    .addr sprite_aa ; (offset 2a) CPU address $ba50 - falcon (player select icon)
+    .addr sprite_ab ; (offset 2b) CPU address $ba59 - Bill and Lance's hair and shirt (for Probotector - red splash behind Probotector title)
+    .addr sprite_ac ; (offset 2c) CPU address $bab2 - alien's lair bundle (crustacean-like alien)
+    .addr sprite_ad ; (offset 2d) CPU address $bacb - alien's lair bundle (crustacean-like alien) mouth open
+    .addr sprite_ae ; (offset 2e) CPU address $bad7 - alien's lair bundle (crustacean-like alien)
+    .addr sprite_af ; (offset 2f) CPU address $baf0 - alien's lair bundle (crustacean-like alien)
+    .addr sprite_b0 ; (offset 30) CPU address $bafc - poisonous insect gel
+    .addr sprite_b1 ; (offset 31) CPU address $bb05 - poisonous insect gel (frame 1)
+    .addr sprite_b2 ; (offset 32) CPU address $bb0e - poisonous insect gel (frame 2)
+    .addr sprite_b3 ; (offset 33) CPU address $bb17 - boss alien bugger insect/spider (frame 1)
+    .addr sprite_b4 ; (offset 34) CPU address $bb30 - boss alien bugger insect/spider (frame 2)
+    .addr sprite_b5 ; (offset 35) CPU address $bb51 - boss alien bugger insect/spider (frame 3)
+    .addr sprite_b6 ; (offset 36) CPU address $bb6e - boss alien eggron (alien egg)
+    .addr sprite_b7 ; (offset 37) CPU address $bb77 - energy zone boss giant armored soldier gordea
+    .addr sprite_b7 ; (offset 38) CPU address $bb77 - energy zone boss giant armored soldier gordea (sprite_b8)
+    .addr sprite_b9 ; (offset 39) CPU address $bbd0 - energy zone boss giant armored soldier gordea (legs together)
+    .addr sprite_ba ; (offset 3a) CPU address $bc19 - energy zone boss giant armored soldier gordea (running, jumping)
+    .addr sprite_bb ; (offset 3b) CPU address $bc45 - energy zone boss projectile (spiked disk)
+    .addr sprite_bc ; (offset 3c) CPU address $bc4e - energy zone boss projectile (spiked disk)
+    .addr sprite_bd ; (offset 3d) CPU address $bc57 - turret man (basquez)
+    .addr sprite_be ; (offset 3e) CPU address $bc74 - turret man (basquez)
+    .addr sprite_bf ; (offset 3f) CPU address $bc91 - energy zone wall fire
+    .addr sprite_c0 ; (offset 40) CPU address $bc96 - energy zone wall fire
+    .addr sprite_c1 ; (offset 41) CPU address $bc9b - energy zone ceiling fire
+    .addr sprite_c2 ; (offset 42) CPU address $bca0 - energy zone ceiling fire
+    .addr sprite_c3 ; (offset 43) CPU address $bca5 - energy zone boss giant armored soldier gordea (throwing)
+    .addr sprite_c4 ; (offset 44) CPU address $bccd - snow field ground separator
+    .addr sprite_c5 ; (offset 45) CPU address $bcd2 - green helicopter ending scene (frame 1)
+    .addr sprite_c6 ; (offset 46) CPU address $bcdb - green helicopter ending scene (frame 2)
+    .addr sprite_c7 ; (offset 47) CPU address $bce8 - green helicopter ending scene (frame 3)
+    .addr sprite_c8 ; (offset 48) CPU address $bcf1 - green helicopter ending scene (frame 4)
+    .addr sprite_c9 ; (offset 49) CPU address $bcfe - green helicopter facing forward (frame 1)
+    .addr sprite_ca ; (offset 4a) CPU address $bd13 - green helicopter facing forward (frame 2)
+    .addr sprite_cb ; (offset 4b) CPU address $bd30 - green helicopter facing forward (frame 3)
+    .addr sprite_cc ; (offset 4c) CPU address $bd59 - green helicopter facing forward (frame 4)
+    .addr sprite_cd ; (offset 4d) CPU address $bd7e - green helicopter facing forward (frame 5)
+    .addr sprite_ce ; (offset 4e) CPU address $bdab - green helicopter facing forward (frame 6)
+    .addr sprite_cf ; (offset 4f) CPU address $bdd0 - ending sequence mountains
 
 ; each sprite entry is defined as follows
 ; first byte (n) is number of tiles for sprite
@@ -4522,56 +4523,107 @@ sprite_01:
 
 ; player walking (frame 1)
 sprite_02:
+.ifdef Probotector
+    .byte $05
+    .byte $ee,$28,$00,$fa
+    .byte $ee,$2a,$00,$02
+.else
     .byte $05
     .byte $ee,$28,$01,$fb
     .byte $ee,$2a,$01,$03
+.endif
 
 ; no sprite code, only part of other sprite codes
 player_walking_1_bottom:
+.ifdef Probotector
+    .byte $fe,$34,$00,$f6
+    .byte $fe,$36,$00,$fe
+    .byte $0e,$3e,$00,$f8
+.else
     .byte $fe,$34,$00,$f8
     .byte $fe,$36,$00,$00
     .byte $0e,$40,$00,$f8
+.endif
 
 ; player walking (frame 2)
 sprite_03:
+.ifdef Probotector
+    .byte $05
+    .byte $ef,$2c,$00,$fa
+    .byte $ef,$2e,$00,$02
+.else
     .byte $05
     .byte $ef,$2c,$01,$fc
     .byte $ef,$2e,$01,$04
+.endif
 
 ; no sprite code, only part of other sprite codes
 player_walking_2_bottom:
+.ifdef Probotector
+    .byte $ff,$38,$00,$f5
+    .byte $ff,$3a,$00,$fd
+    .byte $09,$40,$00,$02
+.else
     .byte $fd,$38,$00,$f8
     .byte $fd,$3a,$00,$00
     .byte $0d,$42,$00,$04
+.endif
 
 ; player walking (frame 3)
 sprite_04:
+.ifdef Probotector
+    .byte $04
+    .byte $ee,$30,$00,$f8
+    .byte $ee,$32,$00,$00
+.else
     .byte $05
     .byte $ee,$30,$01,$fa
     .byte $ee,$32,$01,$02
+.endif
 
 ; no sprite code, only part of other sprite codes
 player_bottom:
+.ifdef Probotector
+    .byte $fe,$3c,$00,$fb
+    .byte $0e,$42,$00,$fb
+.else
     .byte $fe,$3c,$00,$f7
     .byte $fe,$3e,$00,$ff
     .byte $0e,$42,$00,$fe
+.endif
 
 ; player walking (frame 4)
 ; player falling through floor, or walk off ledge
 sprite_05:
+.ifdef Probotector
+    .byte $05
+    .byte $ee,$30,$00,$f8
+    .byte $ee,$32,$00,$00
+    .byte $80
+    .addr player_walking_1_bottom
+.else
     .byte $05
     .byte $ee,$30,$01,$fa
     .byte $ee,$32,$01,$02
     .byte $80
     .addr player_walking_1_bottom
+.endif
 
 ; player walking (frame 5)
 sprite_06:
+.ifdef Probotector
+    .byte $04
+    .byte $ee,$28,$00,$fa
+    .byte $ee,$2a,$00,$02
+    .byte $80
+    .addr player_bottom
+.else
     .byte $05
     .byte $ee,$28,$01,$fb
     .byte $ee,$2a,$01,$03
     .byte $80
     .addr player_bottom
+.endif
 
 ; enemy bullet (snow field)
 sprite_07:
@@ -4579,185 +4631,362 @@ sprite_07:
 
 ; player curled up (frame 1)
 sprite_08:
+.ifdef Probotector
+    .byte $02
+    .byte $f8,$44,$00,$f8
+    .byte $f8,$46,$00,$00
+.else
     .byte $04
     .byte $f2,$44,$01,$f8
     .byte $f2,$48,$01,$00
     .byte $02,$46,$00,$f8
     .byte $02,$4a,$00,$00
+.endif
 
 ; player curled up (frame 2)
 sprite_09:
+.ifdef Probotector
+    .byte $02
+    .byte $f7,$48,$00,$f8
+    .byte $f7,$4a,$00,$00
+.else
     .byte $03
     .byte $f8,$4c,$00,$f6
     .byte $f8,$4e,$01,$fe
     .byte $f8,$50,$01,$06
+.endif
 
 ; player hit (frame 1)
 sprite_0a:
+.ifdef Probotector
+    .byte $04
+    .byte $f0,$68,$00,$f7
+    .byte $00,$6c,$00,$f9
+    .byte $f0,$6a,$00,$ff
+    .byte $00,$6e,$00,$01
+.else
     .byte $04
     .byte $f3,$68,$01,$f6
     .byte $03,$6a,$00,$f6
     .byte $f7,$6c,$00,$fe
     .byte $f7,$6e,$00,$06
+.endif
 
 ; player hit (frame 2)
 sprite_0b:
+.ifdef Probotector
+    .byte $03
+    .byte $f9,$70,$00,$f5
+    .byte $fb,$72,$00,$fd
+    .byte $f7,$74,$00,$05
+.else
     .byte $04
     .byte $f9,$70,$00,$f8
     .byte $fa,$74,$00,$ff
     .byte $ea,$72,$00,$fc
     .byte $ff,$76,$01,$fa
+.endif
 
 ; player lying on ground
 sprite_0c:
+.ifdef Probotector
+    .byte $04
+    .byte $00,$78,$00,$f0
+    .byte $07,$7a,$00,$f8
+    .byte $01,$7c,$00,$00
+    .byte $08,$7e,$00,$08
+.else
     .byte $04
     .byte $00,$78,$01,$f0
     .byte $00,$7a,$01,$f8
     .byte $00,$7c,$00,$00
     .byte $00,$7e,$00,$08
+.endif
 
 ; player walking holding weapon out (frame 1)
 sprite_0d:
+.ifdef Probotector
+    .byte $06
+    .byte $ee,$94,$00,$f8
+    .byte $ee,$96,$00,$00
+    .byte $ee,$98,$00,$08
+    .byte $80
+    .addr player_walking_1_bottom
+.else
     .byte $06
     .byte $ee,$94,$01,$f9
     .byte $ee,$96,$01,$01
     .byte $ee,$98,$01,$09
     .byte $80
     .addr player_walking_1_bottom
+.endif
 
 ; player walking holding weapon out (frame 2)
 sprite_0e:
+.ifdef Probotector
+    .byte $06
+    .byte $ed,$94,$00,$f8
+    .byte $ed,$96,$00,$00
+    .byte $ed,$98,$00,$08
+    .byte $80
+    .addr player_walking_2_bottom
+.else
     .byte $06
     .byte $ef,$94,$01,$f9
     .byte $ef,$96,$01,$01
     .byte $ef,$98,$01,$09
     .byte $80
     .addr player_walking_2_bottom
+.endif
 
 ; player walking holding weapon out (frame 3)
 sprite_0f:
+.ifdef Probotector
+    .byte $05
+.else
     .byte $06
+.endif
 
 player_facing_side:
+.ifdef Probotector
+    .byte $ee,$94,$00,$f8
+    .byte $ee,$96,$00,$00
+    .byte $ee,$98,$00,$08
+.else
     .byte $ee,$94,$01,$f9
     .byte $ee,$96,$01,$01
     .byte $ee,$98,$01,$09
+.endif
     .byte $80
     .addr player_bottom
 
 ; player aiming angled up (frame 1)
 sprite_10:
+.ifdef Probotector
+    .byte $05
+    .byte $ee,$8c,$00,$fa
+    .byte $ee,$8e,$00,$02
+    .byte $80
+    .addr player_walking_1_bottom
+.else
     .byte $05
     .byte $ee,$8c,$01,$fb
     .byte $ee,$8e,$01,$03
     .byte $80
     .addr player_walking_1_bottom
+.endif
 
 ; player aiming angled up (frame 2)
 sprite_11:
+.ifdef Probotector
+    .byte $05
+    .byte $ed,$8c,$00,$fa
+    .byte $ed,$8e,$00,$02
+    .byte $80
+    .addr player_walking_2_bottom
+.else
     .byte $05
     .byte $ef,$8c,$01,$fb
     .byte $ef,$8e,$01,$03
     .byte $80
     .addr player_walking_2_bottom
+.endif
 
 ; player aiming angled up (frame 3)
 sprite_12:
+.ifdef Probotector
+    .byte $04
+    .byte $ee,$8c,$00,$fa
+    .byte $ee,$8e,$00,$02
+    .byte $80
+    .addr player_bottom
+.else
     .byte $05
     .byte $ee,$8c,$01,$fb
     .byte $ee,$8e,$01,$03
     .byte $80
     .addr player_bottom
+.endif
 
 ; player aiming angled down (frame 1)
 sprite_13:
+.ifdef Probotector
+    .byte $06
+    .byte $ee,$86,$00,$f7
+    .byte $ee,$88,$00,$ff
+    .byte $fe,$8a,$00,$03
+    .byte $80
+    .addr player_walking_1_bottom
+.else
     .byte $06
     .byte $ee,$86,$01,$f8
     .byte $ee,$88,$01,$00
     .byte $f3,$8a,$01,$05
     .byte $80
     .addr player_walking_1_bottom
+.endif
 
 ; player aiming angled down (frame 2)
 sprite_14:
+.ifdef Probotector
+    .byte $06
+    .byte $ed,$86,$00,$f7
+    .byte $ed,$88,$00,$ff
+    .byte $fd,$8a,$00,$03
+    .byte $80
+    .addr player_walking_2_bottom
+.else
     .byte $06
     .byte $ef,$86,$01,$f8
     .byte $ef,$88,$01,$00
     .byte $f4,$8a,$01,$05
     .byte $80
     .addr player_walking_2_bottom
+.endif
 
 ; player aiming angled down (frame 3)
 sprite_15:
+.ifdef Probotector
+    .byte $05
+    .byte $ee,$86,$00,$f7
+    .byte $ee,$88,$00,$ff
+    .byte $fe,$8a,$00,$03
+    .byte $80
+    .addr player_bottom
+.else
     .byte $06
     .byte $ee,$86,$01,$f8
     .byte $ee,$88,$01,$00
     .byte $f3,$8a,$01,$05
     .byte $80
     .addr player_bottom
+.endif
 
 ; player aiming straight up
 sprite_16:
+.ifdef Probotector
+    .byte $05
+    .byte $de,$82,$00,$00
+    .byte $ee,$80,$00,$f8
+    .byte $ee,$84,$00,$00
+    .byte $80
+    .addr player_bottom
+.else
     .byte $06
     .byte $de,$82,$01,$01
     .byte $ee,$80,$01,$f9
     .byte $ee,$84,$01,$01
     .byte $80
     .addr player_bottom
+.endif
 
 ; player prone
 sprite_17:
+.ifdef Probotector
+    .byte $04
+    .byte $ff,$9c,$00,$f0
+    .byte $00,$9e,$00,$f8
+    .byte $00,$a0,$00,$00
+    .byte $00,$a2,$00,$08
+.else
     .byte $04
     .byte $00,$9c,$00,$f0
     .byte $00,$9e,$00,$f8
     .byte $00,$a0,$01,$00
     .byte $00,$a2,$01,$08
+.endif
 
 ; water splash/puddle
 sprite_18:
     .byte $02
 
 water_splash:
+.ifdef Probotector
+    .byte $fa,$dc,$00,$f8
+    .byte $fa,$dc,$40,$00
+.else
     .byte $fa,$dc,$01,$f8
     .byte $fa,$dc,$41,$00
+.endif
 
 ; player in water
 sprite_19:
+.ifdef Probotector
+    .byte $02
+    .byte $f2,$de,$00,$fa
+    .byte $f2,$e0,$00,$02
+.else
     .byte $02
     .byte $f2,$de,$01,$f8
     .byte $f2,$e0,$01,$00
+.endif
 
 ; player climbing out of water
 sprite_1a:
+.ifdef Probotector
+    .byte $03
+    .byte $f9,$e2,$00,$f7
+    .byte $f7,$e4,$00,$ff
+    .byte $f5,$e8,$00,$07
+.else
     .byte $02
     .byte $fa,$e2,$01,$f8
     .byte $fa,$e4,$01,$00
+.endif
 
 ; player in water aiming straight up
 sprite_1b:
+.ifdef Probotector
+    .byte $05
+    .byte $df,$82,$00,$00
+    .byte $ef,$80,$00,$f8
+    .byte $ef,$84,$00,$00
+
+water_splash_00:
+    .byte $fa,$f8,$00,$f8
+    .byte $fa,$fa,$40,$00
+.else
     .byte $05
     .byte $df,$82,$01,$01
     .byte $ef,$80,$01,$f9
     .byte $ef,$84,$01,$01
     .byte $80
     .addr water_splash
+.endif
 
 ; player in water aiming angled up
 sprite_1c:
+.ifdef Probotector
+    .byte $04
+    .byte $ef,$8c,$00,$fa
+    .byte $ef,$8e,$00,$02
+    .byte $80
+    .addr water_splash_00
+.else
     .byte $04
     .byte $ef,$8c,$01,$fb
     .byte $ef,$8e,$01,$03
     .byte $80
     .addr water_splash
+.endif
 
 ; player in water aiming forward
 sprite_1d:
+.ifdef Probotector
+    .byte $05
+    .byte $ef,$94,$00,$f8
+    .byte $ef,$96,$00,$00
+    .byte $ef,$98,$00,$08
+    .byte $80
+    .addr water_splash_00
+.else
     .byte $05
     .byte $ef,$94,$01,$f9
     .byte $ef,$96,$01,$01
     .byte $ef,$98,$01,$09
     .byte $80
     .addr water_splash
+.endif
 
 ; default bullet
 sprite_1e:
@@ -4795,37 +5024,68 @@ sprite_25:
 
 ; soldier crouching shooting
 sprite_26:
+.ifdef Probotector
+    .byte $03
+    .byte $01,$dc,$43,04
+    .byte $00,$de,$43,$fc
+    .byte $fb,$e0,$43,$f4
+.else
     .byte $04
     .byte $00,$dc,$03,$f0
     .byte $00,$de,$01,$f8
     .byte $00,$e0,$01,$00
     .byte $00,$e2,$03,$08
+.endif
 
 ; soldier running 1
 sprite_27:
+.ifdef Probotector
+sprite_28:
+    .byte $04
+    .byte $ee,$be,$43,$01
+    .byte $f0,$c6,$43,$f9
+.else
     .byte $04
     .byte $f0,$d6,$01,$f8
     .byte $f0,$d8,$01,$00
+.endif
 
 soldier_bottom_0:
+.ifdef Probotector
+    .byte $00,$c8,$43,$00
+    .byte $00,$ca,$43,$f8
+.else
     .byte $00,$ce,$03,$f8
     .byte $00,$cc,$03,$00
+.endif
 
 ; soldier running 2
+.ifdef Probotector
+.else
 sprite_28:
     .byte $04
     .byte $f0,$be,$01,$f8
     .byte $f0,$c0,$01,$00
     .byte $80
     .addr soldier_bottom_0
+.endif
 
 ; soldier shooting angled up
 sprite_29:
+.ifdef Probotector
+    .byte $05
+    .byte $f0,$ae,$01,$f8
+    .byte $f0,$b0,$01,$00
+    .byte $e0,$b2,$01,$01
+    .byte $00,$ba,$01,$f8
+    .byte $00,$bc,$01,$00
+.else
     .byte $04
     .byte $f0,$ae,$01,$f8
     .byte $f0,$b0,$01,$00
     .byte $00,$ba,$01,$f8
     .byte $00,$bc,$01,$00
+.endif
 
 ; hangar mine cart (frame 1)
 sprite_2a:
@@ -4849,73 +5109,144 @@ sprite_2b:
 
 ; sniper type #$04 shooting (boss rifle man), compare sprite_43
 sprite_2c:
+.ifdef Probotector
+    .byte $05
+    .byte $f0,$f2,$41,$f8
+    .byte $f0,$b6,$41,$00
+    .byte $f0,$b8,$01,$08
+    .byte $00,$f4,$41,$f8
+    .byte $00,$bc,$01,$00
+.else
     .byte $05
     .byte $f0,$f2,$41,$f8
     .byte $f0,$b6,$01,$00
     .byte $f0,$b8,$01,$08
     .byte $00,$f4,$41,$f8
     .byte $00,$bc,$01,$00
+.endif
 
 ; soldier shooting angled down
 sprite_2d:
+.ifdef Probotector
+    .byte $05
+    .byte $e2,$aa,$01,$00
+    .byte $f2,$ac,$01,$00
+    .byte $f0,$f6,$41,$f8
+    .byte $00,$bc,$01,$00
+    .byte $00,$f4,$41,$f8
+.else
     .byte $05
     .byte $f0,$f6,$41,$f8
     .byte $f0,$aa,$01,$00
     .byte $f8,$ac,$01,$08
     .byte $00,$f4,$41,$f8
     .byte $00,$bc,$01,$00
+.endif
 
 ; unknown (doesn't seem to be used)
 sprite_2e:
+.ifdef Probotector
+    .byte $04
+    .byte $f0,$fa,$01,$f8
+    .byte $f0,$f8,$01,$00
+    .byte $00,$f4,$01,$f8
+    .byte $00,$fc,$01,$00
+.else
     .byte $04
     .byte $f0,$fa,$41,$f8
     .byte $f0,$f8,$41,$00
     .byte $00,$f4,$41,$f8
     .byte $00,$fc,$41,$00
+.endif
 
 ; S weapon item
 sprite_2f:
+.ifdef Probotector
+    .byte $03
+    .byte $f8,$1c,$03,$fc
+.else
     .byte $03
     .byte $f8,$1c,$01,$fc
+.endif
 
 weapon_wings:
+.ifdef Probotector
+    .byte $f8,$1a,$03,$f4
+    .byte $f8,$1a,$43,$04
+.else
     .byte $f8,$1a,$01,$f4
     .byte $f8,$1a,$41,$04
+.endif
 
 ; B weapon item
 sprite_30:
+.ifdef Probotector
+    .byte $03
+    .byte $f8,$1e,$03,$fc
+    .byte $80
+    .addr weapon_wings
+.else
     .byte $03
     .byte $f8,$1e,$01,$fc
     .byte $80
     .addr weapon_wings
+.endif
 
 ; F weapon item
 sprite_31:
+.ifdef Probotector
+    .byte $03
+    .byte $f8,$20,$03,$fc
+    .byte $80
+    .addr weapon_wings
+.else
     .byte $03
     .byte $f8,$20,$01,$fc
     .byte $80
     .addr weapon_wings
+.endif
 
 ; L weapon item
 sprite_32:
+.ifdef Probotector
+    .byte $03
+    .byte $f8,$22,$03,$fc
+    .byte $80
+    .addr weapon_wings
+.else
     .byte $03
     .byte $f8,$22,$01,$fc
     .byte $80
     .addr weapon_wings
+.endif
 
 ; R weapon item
 sprite_33:
+.ifdef Probotector
+    .byte $03
+    .byte $f8,$24,$03,$fc
+    .byte $80
+    .addr weapon_wings
+.else
     .byte $03
     .byte $f8,$24,$01,$fc
     .byte $80
     .addr weapon_wings
+.endif
 
 ; M weapon item
 sprite_34:
+.ifdef Probotector
+    .byte $03
+    .byte $f8,$26,$03,$fc
+    .byte $80
+    .addr weapon_wings
+.else
     .byte $03
     .byte $f8,$26,$01,$fc
     .byte $80
     .addr weapon_wings
+.endif
 
 ; big explosion
 sprite_35:
@@ -4980,6 +5311,14 @@ sprite_3a:
 
 ; soldier running
 sprite_3b:
+.ifdef Probotector
+sprite_3f:
+    .byte $04
+    .byte $ef,$be,$43,$01
+    .byte $f0,$c0,$43,$f9
+    .byte $07,$c4,$43,$01
+    .byte $00,$c2,$43,$f9
+.else
     .byte $04
     .byte $f0,$be,$01,$f8
     .byte $f0,$c0,$01,$00
@@ -4987,69 +5326,117 @@ sprite_3b:
 soldier_bottom_1:
     .byte $00,$ca,$03,$f8
     .byte $00,$cc,$03,$00
+.endif
 
 ; soldier running
 sprite_3c:
+.ifdef Probotector
+    .byte $04
+    .byte $ee,$be,$43,$01
+    .byte $f0,$c6,$43,$f9
+    .byte $00,$c8,$43,$00
+    .byte $00,$ca,$43,$f8
+.else
     .byte $04
     .byte $f0,$c2,$01,$f8
     .byte $f0,$c4,$01,$00
     .byte $00,$ce,$03,$f8
     .byte $00,$d0,$03,$00
+.endif
 
 ; soldier running
 sprite_3d:
+.ifdef Probotector
+sprite_3e:
+    .byte $05
+    .byte $e7,$cc,$43,$f9
+    .byte $ef,$be,$43,$01
+    .byte $f7,$ce,$43,$fa
+    .byte $00,$d0,$43,$02
+    .byte $07,$d2,$43,$f9
+.else
     .byte $04
     .byte $f0,$c6,$01,$f8
     .byte $f0,$c8,$01,$00
 
-soldier_bottom_2:
+soldier_bottom_3:
     .byte $00,$d2,$03,$f8
     .byte $00,$d4,$03,$00
+.endif
 
-; soldier running
+.ifdef Probotector
+.else
 sprite_3e:
     .byte $04
     .byte $f0,$be,$01,$f8
     .byte $f0,$c0,$01,$00
     .byte $80
-    .addr soldier_bottom_2
+    .addr soldier_bottom_3
+.endif
 
-; soldier running
+.ifdef Probotector
+.else
 sprite_3f:
     .byte $04
     .byte $f0,$c6,$01,$f8
     .byte $f0,$c8,$01,$00
     .byte $80
     .addr soldier_bottom_1
+.endif
 
-; soldier shooting
+; soldier running
 sprite_40:
+.ifdef Probotector
+    .byte $05
+    .byte $ed,$d4,$43,$02
+    .byte $ee,$d6,$43,$fa
+    .byte $f4,$d8,$43,$f7
+    .byte $00,$da,$43,$f9
+    .byte $07,$c4,$43,$01
+.else
     .byte $05
     .byte $f0,$d6,$01,$f8
     .byte $f0,$d8,$01,$00
     .byte $f0,$da,$03,$08
     .byte $80
-    .addr soldier_bottom_2
+    .addr soldier_bottom_3
+.endif
 
 ; soldier shooting downward
 sprite_41:
+.ifdef Probotector
+    .byte $05
+    .byte $f0,$a8,$01,$f8
+    .byte $e2,$aa,$01,$00
+    .byte $f2,$ac,$01,$00
+.else
     .byte $05
     .byte $f0,$a8,$01,$f8
     .byte $f0,$aa,$01,$00
     .byte $f8,$ac,$01,$08
+.endif
 
-soldier_bottom_3:
+soldier_bottom_2:
     .byte $00,$ba,$01,$f8
     .byte $00,$bc,$01,$00
 
 ; soldier shooting up angled
 sprite_42:
+.ifdef Probotector
+    .byte $05
+    .byte $f0,$ae,$01,$f8
+    .byte $f0,$b0,$01,$00
+    .byte $e0,$b2,$01,$01
+    .byte $80
+    .addr soldier_bottom_2
+.else
     .byte $05
     .byte $f0,$ae,$01,$f8
     .byte $f0,$b0,$01,$00
     .byte $e0,$b2,$01,$02
     .byte $80
-    .addr soldier_bottom_3
+    .addr soldier_bottom_2
+.endif
 
 ; rifle man shooting (sniper type #$00 and #$01)
 sprite_43:
@@ -5060,27 +5447,46 @@ rifle_man_top:
     .byte $f0,$b6,$01,$00
     .byte $f0,$b8,$01,$08
     .byte $80
-    .addr soldier_bottom_3
+    .addr soldier_bottom_2
 
 ; rifle man behind bush (frame 1)
 sprite_44:
+.ifdef Probotector
+    .byte $02
+    .byte $f0,$ec,$41,$f8
+    .byte $f0,$ea,$41,$00
+.else
     .byte $01
     .byte $f0,$ea,$41,$fc
+.endif
 
 ; rifle man behind bush (frame 2)
 sprite_45:
+.ifdef Probotector
+    .byte $02
+    .byte $f0,$f0,$41,$f8
+    .byte $f0,$ee,$41,$00
+.else
     .byte $03
     .byte $f0,$f0,$41,$f8
     .byte $f0,$ee,$41,$00
     .byte $f0,$ec,$41,$08
+.endif
 
 ; rifle man behind bush (frame 3)
 ; by specifying #$03 entries, only top half of soldier is drawn
-; soldier_bottom_3 isn't used
+; soldier_bottom_2 isn't used
 sprite_46:
+.ifdef Probotector
+    .byte $03
+    .byte $f0,$b4,$01,$f8
+    .byte $f0,$b6,$01,$00
+    .byte $f0,$b8,$01,$08
+.else
     .byte $03
     .byte $80
     .addr rifle_man_top
+.endif
 
 ; small ring explosion
 sprite_47:
@@ -5088,6 +5494,16 @@ sprite_47:
 
 ; floating rock (waterfall level)
 sprite_48:
+.ifdef Probotector
+    .byte $07
+    .byte $f0,$ee,$00,$f0
+    .byte $f0,$f0,$00,$f8
+    .byte $f0,$f0,$40,$00
+    .byte $f0,$ee,$40,$08
+    .byte $00,$f2,$00,$f4
+    .byte $00,$fc,$00,$fc
+    .byte $00,$f2,$40,$04
+.else
     .byte $07
     .byte $f0,$ee,$03,$f0
     .byte $f0,$f0,$03,$f8
@@ -5096,6 +5512,7 @@ sprite_48:
     .byte $00,$f2,$03,$f4
     .byte $00,$fc,$03,$fc
     .byte $00,$f2,$43,$04
+.endif
 
 ; bridge fire (waterfall level)
 sprite_49:
@@ -5105,6 +5522,15 @@ sprite_49:
 
 ; boulder (waterfall level)
 sprite_4a:
+.ifdef Probotector
+    .byte $06
+    .byte $f0,$e6,$00,$f4
+    .byte $f0,$e8,$00,$fc
+    .byte $f0,$d7,$00,$04
+    .byte $00,$d9,$00,$f4
+    .byte $00,$db,$00,$fc
+    .byte $00,$dd,$00,$04
+.else
     .byte $06
     .byte $f0,$e6,$03,$f4
     .byte $f0,$e8,$03,$fc
@@ -5112,33 +5538,61 @@ sprite_4a:
     .byte $00,$d9,$03,$f4
     .byte $00,$db,$03,$fc
     .byte $00,$dd,$03,$04
+.endif
 
 ; scuba soldier hiding
 sprite_4b:
+.ifdef Probotector
+    .byte $02
+    .byte $f8,$dc,$03,$f8
+    .byte $f8,$de,$03,$00
+.else
     .byte $02
     .byte $f8,$dc,$01,$f8
     .byte $f8,$de,$01,$00
+.endif
 
 ; scuba soldier out of water shooting up
 sprite_4c:
+.ifdef Probotector
+    .byte $03
+    .byte $e9,$e2,$03,$00
+    .byte $f5,$e0,$03,$f9
+    .byte $f9,$e4,$03,$00
+.else
     .byte $03
     .byte $e8,$e2,$03,$00
     .byte $f8,$e0,$01,$f8
     .byte $f8,$e4,$01,$00
+.endif
 
 ; weapon zeppelin
 sprite_4d:
+.ifdef Probotector
+    .byte $03
+    .byte $f8,$a4,$03,$f4
+    .byte $f8,$a6,$03,$fc
+    .byte $f8,$a4,$43,$04
+.else
     .byte $03
     .byte $f8,$a4,$01,$f4
     .byte $f8,$a6,$01,$fc
     .byte $f8,$a4,$41,$04
+.endif
 
 ; flashing falcon weapon
 sprite_4e:
+.ifdef Probotector
+    .byte $03
+    .byte $f8,$00,$03,$fc
+    .byte $80
+    .addr weapon_wings
+.else
     .byte $03
     .byte $f8,$00,$01,$fc
     .byte $80
     .addr weapon_wings
+.endif
 
 ; unused blank sprite
 sprite_4f:
@@ -5146,6 +5600,16 @@ sprite_4f:
 
 ; indoor player facing up
 sprite_50:
+.ifdef Probotector
+    .byte $07
+    .byte $de,$7c,$00,$fa
+    .byte $ee,$7e,$00,$f8
+    .byte $ee,$80,$00,$00
+    .byte $fe,$78,$00,$f7
+    .byte $fe,$78,$40,$ff
+    .byte $0e,$7a,$00,$f7
+    .byte $0e,$7a,$40,$ff
+.else
     .byte $07
     .byte $de,$7c,$01,$fa
     .byte $ee,$7e,$01,$f8
@@ -5154,36 +5618,72 @@ sprite_50:
     .byte $fe,$78,$40,$ff
     .byte $0e,$7a,$00,$f6
     .byte $0e,$7a,$40,$01
+.endif
 
 ; indoor player strafing (frame 1)
 sprite_51:
+.ifdef Probotector
+    .byte $05
+    .byte $de,$7c,$00,$fb
+    .byte $ee,$8c,$00,$f8
+    .byte $ee,$8e,$00,$00
+    .byte $80
+    .addr player_walking_1_bottom
+.else
     .byte $05
     .byte $de,$7c,$01,$fb
     .byte $ee,$8c,$01,$fa
     .byte $ee,$8e,$01,$02
     .byte $80
     .addr player_walking_1_bottom
+.endif
 
 ; indoor player strafing (frame 2)
 sprite_52:
+.ifdef Probotector
+    .byte $06
+    .byte $df,$7c,$00,$fb
+    .byte $ef,$8c,$00,$f8
+    .byte $ef,$8e,$00,$00
+    .byte $80
+    .addr player_walking_2_bottom
+.else
     .byte $06
     .byte $df,$7c,$01,$fb
     .byte $ef,$8c,$01,$fa
     .byte $ef,$8e,$01,$02
     .byte $80
     .addr player_walking_2_bottom
+.endif
 
 ; indoor player strafing (frame 3)
 sprite_53:
+.ifdef Probotector
+    .byte $05
+    .byte $de,$7c,$00,$fb
+    .byte $ee,$8c,$00,$f8
+    .byte $ee,$8e,$00,$00
+    .byte $80
+    .addr player_bottom
+.else
     .byte $06
     .byte $de,$7c,$01,$fb
     .byte $ee,$8c,$01,$fa
     .byte $ee,$8e,$01,$02
     .byte $80
     .addr player_bottom
+.endif
 
 ; indoor player crouch
 sprite_54:
+.ifdef Probotector
+    .byte $05
+    .byte $f4,$82,$00,$f8
+    .byte $f4,$84,$00,$00
+    .byte $04,$86,$00,$f4
+    .byte $04,$86,$40,$04
+    .byte $04,$88,$00,$fc
+.else
     .byte $07
     .byte $f4,$82,$01,$f8
     .byte $f4,$84,$01,$00
@@ -5192,10 +5692,22 @@ sprite_54:
     .byte $04,$88,$00,$f8
     .byte $04,$88,$40,$00
     .byte $fa,$8a,$00,$fc
+.endif
 
 ; indoor player electrocuted
 ; indoor player hit by bullet frame #$01
 sprite_55:
+.ifdef Probotector
+    .byte $08
+    .byte $e0,$76,$00,$f8
+    .byte $ea,$74,$00,$00
+    .byte $f0,$72,$00,$fc
+    .byte $f4,$70,$00,$f4
+    .byte $00,$78,$00,$f7
+    .byte $00,$78,$40,$ff
+    .byte $10,$7a,$00,$f7
+    .byte $10,$7a,$40,$ff
+.else
     .byte $08
     .byte $e2,$70,$01,$01
     .byte $f5,$72,$01,$f0
@@ -5205,9 +5717,19 @@ sprite_55:
     .byte $fd,$78,$40,$ff
     .byte $0d,$7a,$00,$f6
     .byte $0d,$7a,$40,$01
+.endif
 
 ; indoor player lying dead (frame #$02)
 sprite_56:
+.ifdef Probotector
+    .byte $06
+    .byte $ec,$68,$00,$f4
+    .byte $ec,$68,$40,$04
+    .byte $fc,$6a,$00,$f4
+    .byte $fc,$6c,$00,$fc
+    .byte $fc,$6e,$00,$04
+    .byte $0c,$8a,$00,$00
+.else
     .byte $08
     .byte $fa,$68,$00,$f0
     .byte $fa,$6a,$00,$f8
@@ -5217,9 +5739,19 @@ sprite_56:
     .byte $0a,$6e,$01,$f8
     .byte $0a,$6e,$41,$00
     .byte $0a,$6c,$41,$08
+.endif
 
 ; indoor player running
 sprite_57:
+.ifdef Probotector
+    .byte $06
+    .byte $f1,$94,$00,$f6
+    .byte $f0,$96,$00,$fc
+    .byte $ea,$98,$00,$02
+    .byte $00,$90,$00,$f8
+    .byte $00,$92,$00,$00
+    .byte $10,$be,$00,$fc
+.else
     .byte $06
     .byte $f4,$94,$01,$f4
     .byte $ef,$96,$01,$fc
@@ -5227,9 +5759,19 @@ sprite_57:
     .byte $ff,$be,$00,$f8
     .byte $ff,$90,$00,$00
     .byte $0f,$92,$00,$00
+.endif
 
 ; indoor player running
 sprite_58:
+.ifdef Probotector
+    .byte $06
+    .byte $f0,$9a,$00,$f5
+    .byte $f0,$9c,$00,$fd
+    .byte $ed,$9e,$00,$00
+    .byte $00,$92,$40,$f5
+    .byte $00,$90,$40,$fd
+    .byte $10,$be,$40,$f9
+.else
     .byte $06
     .byte $f1,$9a,$01,$f4
     .byte $f1,$9c,$01,$fc
@@ -5237,6 +5779,7 @@ sprite_58:
     .byte $01,$90,$40,$fa
     .byte $01,$be,$40,$02
     .byte $11,$92,$40,$fa
+.endif
 
 ; unused blank sprite
 sprite_59:
@@ -5307,12 +5850,29 @@ sprite_62:
 
 ; small boss eye projectile (unused)
 sprite_63:
+.ifdef Probotector
+    .byte $02
+    .byte $f8,$b0,$02,$f8
+    .byte $f8,$b2,$02,$00
+.else
     .byte $02
     .byte $f8,$b0,$03,$f8
     .byte $f8,$b2,$03,$00
+.endif
 
 ; boss eye projectile
 sprite_64:
+.ifdef Probotector
+    .byte $08
+    .byte $f0,$b4,$02,$f0
+    .byte $f0,$b6,$02,$f8
+    .byte $f0,$b8,$02,$00
+    .byte $f0,$ba,$02,$08
+    .byte $00,$bc,$02,$f0
+    .byte $00,$be,$02,$f8
+    .byte $00,$c0,$02,$00
+    .byte $00,$c2,$02,$08
+.else
     .byte $08
     .byte $f0,$b4,$03,$f0
     .byte $f0,$b6,$03,$f8
@@ -5322,6 +5882,7 @@ sprite_64:
     .byte $00,$be,$03,$f8
     .byte $00,$c0,$03,$00
     .byte $00,$c2,$03,$08
+.endif
 
 ; unused blank sprite
 sprite_65:
@@ -5473,24 +6034,45 @@ sprite_7b:
 
 ; snow field boss mini UFO
 sprite_7c:
+.ifdef Probotector
+    .byte $03
+    .byte $f8,$fc,$02,$f4
+    .byte $f8,$33,$02,$fc
+    .byte $f8,$35,$02,$04
+.else
     .byte $03
     .byte $f8,$fc,$03,$f4
     .byte $f8,$33,$03,$fc
     .byte $f8,$35,$03,$04
+.endif
 
 ; snow field boss mini UFO
 sprite_7d:
+.ifdef Probotector
+    .byte $03
+    .byte $f8,$37,$02,$f4
+    .byte $f8,$39,$02,$fc
+    .byte $f8,$3b,$02,$04
+.else
     .byte $03
     .byte $f8,$37,$03,$f4
     .byte $f8,$39,$03,$fc
     .byte $f8,$3b,$03,$04
+.endif
 
 ; snow field boss mini UFO
 sprite_7e:
+.ifdef Probotector
+    .byte $03
+    .byte $f8,$3d,$02,$f4
+    .byte $f8,$3f,$02,$fc
+    .byte $f8,$41,$02,$04
+.else
     .byte $03
     .byte $f8,$3d,$03,$f4
     .byte $f8,$3f,$03,$fc
     .byte $f8,$41,$03,$04
+.endif
 
 ; unknown (doesn't seem to be used)
 sprite_7f:
@@ -5515,6 +6097,7 @@ sprite_82:
 ; l bullet indoor level shot from
 ;  * 20%-27% horizontal portion of the playable screen
 ;  * 70%-80% horizontal portion of the playable screen
+; same as sprite_92
 sprite_83:
     .byte $01
     .byte $f8,$a0,$02,$fc
@@ -5528,63 +6111,131 @@ sprite_84:
 
 ; base 2 boss blue soldier
 sprite_85:
+.ifdef Probotector
+    .byte $04
+    .byte $f0,$fa,$00,$01
+.else
     .byte $05
     .byte $f0,$f2,$03,$08
+.endif
 
 base_2_soldier_part:
+.ifdef Probotector
+    .byte $f0,$c4,$00,$f9
+    .byte $00,$c8,$00,$f6
+    .byte $00,$ca,$00,$fe
+.else
     .byte $f0,$ee,$03,$f8
     .byte $f0,$f0,$03,$00
     .byte $00,$f4,$03,$f6
     .byte $00,$f6,$03,$fe
+.endif
 
 ; base 2 boss blue soldier
 sprite_86:
+.ifdef Probotector
+    .byte $05
+    .byte $f5,$fc,$00,$00
+.else
     .byte $04
+.endif
 
 base_2_soldier_bottom:
+.ifdef Probotector
+    .byte $e8,$cc,$00,$f8
+    .byte $f8,$ce,$00,$f2
+    .byte $f8,$ee,$00,$fa
+    .byte $05,$f2,$00,$04
+.else
     .byte $e8,$f8,$03,$fe
     .byte $f8,$fa,$03,$f6
     .byte $f8,$ce,$03,$fe
     .byte $08,$dd,$03,$03
+.endif
 
 ; base 2 boss blue soldier
 sprite_87:
+.ifdef Probotector
+    .byte $03
+    .byte $f4,$dd,$00,$f8
+base_2_soldier_bottom_2:
+    .byte $f4,$f6,$00,$00
+    .byte $04,$f8,$00,$fb
+.else
     .byte $03
 
 base_2_soldier_bottom_2:
     .byte $f0,$df,$03,$f8
     .byte $f0,$e1,$03,$00
     .byte $00,$e3,$03,$fc
+.endif
 
 ; base 2 blue soldier facing out (frame 1)
+.ifdef Probotector
+sprite_8f:
+.endif
 sprite_88:
     .byte $04
 
 blue_soldier_facing_out:
+.ifdef Probotector
+    .byte $f0,$e5,$00,$f9
+    .byte $f0,$e5,$40,$00
+    .byte $00,$e7,$00,$f9
+    .byte $00,$e7,$40,$00
+.else
     .byte $f0,$e5,$43,$f9
     .byte $f0,$e5,$03,$00
     .byte $00,$e7,$43,$f9
     .byte $00,$e7,$03,$00
+.endif
 
 ; base 2 blue soldier facing out (frame 2)
 sprite_89:
+.ifdef Probotector
+    .byte $04
+    .byte $f0,$e9,$00,$f9
+    .byte $f0,$e9,$40,$00
+    .byte $00,$eb,$00,$f9
+    .byte $00,$eb,$40,$00
+.else
     .byte $04
     .byte $f0,$e9,$43,$f9
     .byte $f0,$e9,$03,$00
     .byte $00,$eb,$43,$f9
     .byte $00,$eb,$03,$00
+.endif
 
 ; base 2 blue soldier flying (frame 1)
 sprite_8a:
+.ifdef Probotector
+    .byte $05
+    .byte $f0,$ed,$00,$f5
+    .byte $f0,$ef,$00,$fd
+    .byte $f0,$ed,$40,$04
+    .byte $00,$f1,$00,$f8
+    .byte $00,$f3,$00,$00
+.else
     .byte $05
     .byte $f0,$ed,$03,$f4
     .byte $f0,$ef,$03,$fc
     .byte $f0,$ed,$43,$04
     .byte $00,$f1,$03,$f8
     .byte $00,$f3,$03,$00
+.endif
 
 ; base 2 blue soldier flying (frame 2)
 sprite_8b:
+.ifdef Probotector
+    .byte $07
+    .byte $f2,$f5,$00,$f4
+    .byte $f2,$f7,$00,$fc
+    .byte $f2,$f5,$40,$04
+    .byte $02,$f9,$00,$f8
+    .byte $02,$fb,$00,$00
+    .byte $0f,$b0,$00,$f6
+    .byte $12,$b2,$00,$fe
+.else
     .byte $07
     .byte $f2,$f5,$03,$f4
     .byte $f2,$f7,$03,$fc
@@ -5593,133 +6244,247 @@ sprite_8b:
     .byte $02,$fb,$03,$00
     .byte $12,$b0,$03,$f7
     .byte $12,$b2,$03,$00
+.endif
 
 ; base boss level 4 base 2 red soldier
 sprite_8c:
+.ifdef Probotector
+    .byte $04
+    .byte $f0,$c6,$00,$01
+    .byte $80
+    .addr base_2_soldier_part
+.else
     .byte $05
     .byte $f0,$fc,$02,$08
     .byte $80
     .addr base_2_soldier_part
+.endif
 
 ; base boss level 4 base 2 red soldier
 sprite_8d:
+.ifdef Probotector
+    .byte $05
+    .byte $f5,$f0,$00,$00
+    .byte $80
+    .addr base_2_soldier_bottom
+.else
     .byte $05
     .byte $f8,$a6,$02,$04
     .byte $80
     .addr base_2_soldier_bottom
+.endif
 
 ; base boss level 4 base 2 red soldier
 sprite_8e:
+.ifdef Probotector
+    .byte $03
+    .byte $f4,$f4,$00,$f8
+    .byte $80
+    .addr base_2_soldier_bottom_2
+.else
     .byte $04
     .byte $ff,$c4,$02,$00
     .byte $80
     .addr base_2_soldier_bottom_2
+.endif
 
 ; base boss level 4 base 2 red soldier facing player
+.ifdef Probotector
+; Probotector uses sprite_88 instead separately defining sprite_8f
+.else
 sprite_8f:
     .byte $05
     .byte $00,$c6,$02,$f4
     .byte $80
     .addr blue_soldier_facing_out
+.endif
 
 ; base boss level 4 base 2 red soldier facing player with weapon
 sprite_90:
+.ifdef Probotector
+    .byte $04
+    .byte $f4,$df,$00,$f9
+    .byte $f5,$e1,$00,$00
+    .byte $05,$e3,$00,$f8
+    .byte $05,$e3,$40,$00
+.else
     .byte $04
     .byte $f0,$c8,$42,$f9
     .byte $f0,$c8,$02,$00
     .byte $00,$ca,$02,$f8
     .byte $00,$cc,$02,$00
+.endif
 
 ; indoor boss defeated elevator with player on top
 sprite_91:
+.ifdef Probotector
+    .byte $08
+    .byte $0e,$fd,$02,$f4
+    .byte $0e,$fd,$02,$fc
+    .byte $0e,$fd,$02,$04
+    .byte $80
+    .addr player_facing_side
+.else
     .byte $08
     .byte $0c,$fd,$02,$f4
     .byte $0c,$fd,$02,$fc
     .byte $0c,$fd,$02,$04
     .byte $80
     .addr player_facing_side
+.endif
 
 ; l bullet indoor level shot from
 ;  * <= 10% horizontal portion of the playable screen
 ;  * >= 90% horizontal portion of the playable screen
+; same as sprite_83
 sprite_92:
     .byte $01
     .byte $f8,$a0,$02,$fc
 
 ; jumping man
 sprite_93:
+.ifdef Probotector
+    .byte $03
+    .byte $f0,$a8,$01,$01
+    .byte $f5,$aa,$01,$fb
+    .byte $05,$ac,$01,$fb
+.else
     .byte $04
     .byte $eb,$ce,$01,$ff
     .byte $ec,$a8,$03,$fb
     .byte $fc,$aa,$03,$f6
     .byte $fb,$ac,$03,$fe
+.endif
 
 ; jumping man
 sprite_94:
+.ifdef Probotector
+    .byte $04
+    .byte $ef,$a8,$01,$01
+    .byte $f4,$ae,$01,$f9
+    .byte $00,$b2,$01,$00
+    .byte $04,$b0,$01,$f8
+.else
     .byte $04
     .byte $ed,$ae,$01,$fe
     .byte $ed,$b0,$03,$fb
     .byte $fd,$b2,$03,$f7
     .byte $fd,$b4,$03,$ff
+.endif
 
 ; jumping man
 sprite_95:
+.ifdef Probotector
+    .byte $04
+    .byte $f0,$a8,$01,$01
+    .byte $f5,$b4,$01,$f9
+    .byte $00,$b8,$01,$01
+    .byte $05,$b6,$01,$f9
+.else
     .byte $04
     .byte $ed,$b6,$01,$ff
     .byte $ed,$b8,$03,$fb
     .byte $fd,$ba,$03,$f4
     .byte $fd,$bc,$03,$fc
+.endif
 
 ; indoor soldier hit by bullet sprite
 ; indoor soldier, jumping man, grenade launcher, group of four soldiers firing at player
 sprite_96:
+.ifdef Probotector
+    .byte $03
+    .byte $f0,$ba,$01,$f8
+    .byte $f0,$ba,$41,$00
+    .byte $00,$bc,$01,$fc
+.else
     .byte $04
     .byte $eb,$da,$01,$ff
     .byte $ed,$c0,$03,$fc
     .byte $fd,$c2,$43,$f9
     .byte $fd,$c2,$03,$00
+.endif
 
 ; jumping man in air
 sprite_97:
+.ifdef Probotector
+    .byte $03
+    .byte $eb,$d2,$01,$03
+    .byte $f2,$d0,$01,$fb
+    .byte $02,$d4,$01,$fb
+.else
     .byte $05
     .byte $e8,$d0,$01,$fa
     .byte $e8,$d2,$03,$fc
     .byte $f8,$d4,$03,$f4
     .byte $f8,$d6,$03,$fc
     .byte $f8,$d8,$03,$04
+.endif
 
 ; jumping man facing player
 sprite_98:
+.ifdef Probotector
+    .byte $03
+    .byte $fb,$c2,$01,$ff
+    .byte $fc,$c0,$01,$f8
+    .byte $0b,$ce,$01,$fc
+.else
     .byte $03
     .byte $f0,$da,$01,$ff
     .byte $fc,$dc,$03,$fb
     .byte $00,$de,$03,$03
+.endif
 
 ; small indoor rolling grenade
 sprite_99:
+.ifdef Probotector
+    .byte $02
+    .byte $fe,$e0,$03,$f8
+    .byte $fe,$e0,$43,$00
+.else
     .byte $02
     .byte $fe,$e0,$01,$f8
     .byte $fe,$e0,$41,$00
+.endif
 
 ; closer indoor rolling grenade
 sprite_9a:
+.ifdef Probotector
+    .byte $02
+    .byte $fe,$e2,$03,$f8
+    .byte $fe,$e2,$43,$00
+.else
     .byte $02
     .byte $fe,$e2,$01,$f8
     .byte $fe,$e2,$41,$00
+.endif
 
 ; even closer indoor rolling grenade
 sprite_9b:
+.ifdef Probotector
+    .byte $03
+    .byte $fd,$e4,$03,$f4
+    .byte $fd,$e6,$03,$fc
+    .byte $fd,$e4,$43,$04
+.else
     .byte $03
     .byte $fd,$e4,$01,$f4
     .byte $fd,$e6,$01,$fc
     .byte $fd,$e4,$41,$04
+.endif
 
 ; closest indoor rolling grenade
 sprite_9c:
+.ifdef Probotector
+    .byte $03
+    .byte $fc,$e8,$03,$f4
+    .byte $fc,$ea,$43,$fc
+    .byte $fc,$e8,$43,$04
+.else
     .byte $03
     .byte $fc,$e8,$01,$f4
     .byte $fc,$ea,$41,$fc
     .byte $fc,$e8,$41,$04
+.endif
 
 ; indoor base enemy kill explosion (frame 1)
 sprite_9d:
@@ -5739,50 +6504,97 @@ sprite_9f:
 
 ; indoor hand grenade
 sprite_a0:
+.ifdef Probotector
+    .byte $02
+    .byte $f8,$ec,$03,$f8
+    .byte $f8,$ee,$03,$00
+.else
     .byte $02
     .byte $f8,$ec,$01,$f8
     .byte $f8,$ee,$01,$00
+.endif
 
 ; indoor hand grenade
 sprite_a1:
+.ifdef Probotector
+    .byte $01
+    .byte $f8,$f0,$03,$fd
+.else
     .byte $01
     .byte $f8,$f0,$01,$fd
+.endif
 
 ; indoor hand grenade
 sprite_a2:
+.ifdef Probotector
+    .byte $fe,$f2,$03
+.else
     .byte $fe,$f2,$01
+.endif
 
 ; indoor hand grenade
 sprite_a3:
+.ifdef Probotector
+    .byte $01
+    .byte $f8,$f4,$03,$fb
+.else
     .byte $01
     .byte $f8,$f4,$01,$fb
+.endif
 
 ; indoor hand grenade
 sprite_a4:
+.ifdef Probotector
+    .byte $01
+    .byte $f8,$f6,$03,$fd
+.else
     .byte $01
     .byte $f8,$f6,$01,$fd
+.endif
 
 ; indoor hand grenade
 sprite_a5:
+.ifdef Probotector
+    .byte $01
+    .byte $f8,$f8,$03,$fd
+.else
     .byte $01
     .byte $f8,$f8,$01,$fd
+.endif
 
 ; indoor hand grenade
 sprite_a6:
+.ifdef Probotector
+    .byte $fe,$fa,$03
+.else
     .byte $fe,$fa,$01
+.endif
 
 ; indoor hand grenade
 sprite_a7:
+.ifdef Probotector
+    .byte $01
+    .byte $f8,$fc,$03,$fd
+.else
     .byte $01
     .byte $f8,$fc,$01,$fd
+.endif
 
 ; indoor hand grenade
 sprite_a8:
+.ifdef Probotector
+    .byte $fe,$c4,$03
+.else
     .byte $fe,$c4,$01
+.endif
 
 ; indoor hand grenade
 sprite_a9:
+.ifdef Probotector
+    .byte $fe,$c6,$03,$00
+.else
     .byte $fe,$c6,$01,$00
+.endif
 
 ; falcon (player select icon)
 sprite_aa:
@@ -5791,7 +6603,30 @@ sprite_aa:
     .byte $f8,$d0,$01,$00
 
 ; Bill and Lance's hair and shirt
+; For Probotector - red splash behind Probotector title
 sprite_ab:
+.ifdef Probotector
+    .byte $13
+    .byte $e3,$de,$00,$c0
+    .byte $d4,$e0,$00,$cf
+    .byte $d1,$e2,$00,$de
+    .byte $d7,$e4,$00,$e6
+    .byte $d4,$e0,$00,$f3
+    .byte $d3,$e6,$00,$1e
+    .byte $d3,$e6,$00,$40
+    .byte $d4,$e0,$00,$48
+    .byte $e0,$e8,$00,$5e
+    .byte $e9,$ea,$00,$65
+    .byte $f9,$ec,$00,$63
+    .byte $00,$f0,$00,$38
+    .byte $f0,$ee,$00,$28
+    .byte $00,$fc,$00,$f6
+    .byte $08,$fa,$00,$e7
+    .byte $0d,$f8,$00,$df
+    .byte $0c,$f6,$00,$d0
+    .byte $0d,$f4,$00,$c8
+    .byte $00,$f2,$00,$ab
+.else
     .byte $16
     .byte $00,$da,$01,$00
     .byte $00,$de,$01,$08
@@ -5815,6 +6650,7 @@ sprite_ab:
     .byte $24,$fa,$00,$1d
     .byte $34,$f2,$00,$0d
     .byte $34,$fc,$00,$1d
+.endif
 
 ; alien's lair bundle (crustacean-like alien)
 sprite_ac:
@@ -5915,9 +6751,26 @@ sprite_b6:
 
 ; energy zone boss giant armored soldier
 sprite_b7:
+.ifdef Probotector
+    .byte $13
+.else
     .byte $16
+.endif
 
 giant_soldier_top:
+.ifdef Probotector
+    .byte $e7,$b0,$03,$e5
+    .byte $e3,$b2,$03,$ed
+    .byte $d8,$a8,$02,$f3
+    .byte $d8,$aa,$02,$fb
+    .byte $d8,$ac,$02,$03
+    .byte $e8,$b4,$02,$f4
+    .byte $d2,$ae,$02,$0b
+    .byte $de,$ba,$03,$0c
+    .byte $ee,$bc,$03,$0b
+    .byte $e8,$b6,$02,$fc
+    .byte $e8,$b8,$02,$04
+.else
     .byte $d8,$dc,$02,$f0
     .byte $d8,$de,$02,$f8
     .byte $d8,$e0,$02,$00
@@ -5930,8 +6783,19 @@ giant_soldier_top:
     .byte $e7,$a8,$03,$06
     .byte $e7,$aa,$03,$0e
     .byte $f7,$b4,$03,$0b
+.endif
 
 giant_soldier_bottom:
+.ifdef Probotector
+    .byte $f8,$c0,$03,$f4
+    .byte $fb,$be,$03,$ef
+    .byte $08,$c6,$03,$f3
+    .byte $0b,$c4,$03,$eb
+    .byte $f8,$c2,$03,$02
+    .byte $08,$c8,$03,$02
+    .byte $04,$ca,$03,$0a
+    .byte $08,$cc,$03,$0d
+.else
     .byte $f8,$ac,$03,$e8
     .byte $f8,$ae,$03,$f0
     .byte $f8,$b0,$03,$f8
@@ -5942,9 +6806,28 @@ giant_soldier_bottom:
     .byte $08,$be,$03,$00
     .byte $08,$c0,$03,$08
     .byte $08,$c2,$03,$10
+.endif
 
 ; energy zone boss giant armored soldier (legs together)
 sprite_b9:
+.ifdef Probotector
+    .byte $0f
+    .byte $e8,$b0,$03,$e5
+    .byte $e4,$b2,$03,$ed
+    .byte $d9,$a8,$02,$f3
+    .byte $d9,$aa,$02,$fb
+    .byte $d9,$ac,$02,$03
+    .byte $e9,$b4,$02,$f4
+    .byte $d3,$ae,$02,$0b
+    .byte $df,$ba,$03,$0c
+    .byte $ef,$bc,$03,$0b
+    .byte $e9,$b6,$02,$fc
+    .byte $e9,$b8,$02,$04
+    .byte $f8,$ce,$03,$f8
+    .byte $f8,$d0,$03,$00
+    .byte $08,$d2,$03,$fb
+    .byte $08,$d4,$03,$03
+.else
     .byte $12
     .byte $f9,$d8,$03,$f0
     .byte $f9,$da,$03,$f8
@@ -5964,9 +6847,25 @@ sprite_b9:
     .byte $e9,$a8,$03,$06
     .byte $e9,$aa,$03,$0e
     .byte $f9,$b4,$03,$0b
+.endif
 
 ; energy zone boss giant armored soldier (running, jumping)
 sprite_ba:
+.ifdef Probotector
+    .byte $13
+    .byte $e8,$09,$02,$fc
+    .byte $e8,$0b,$02,$04
+    .byte $f8,$9d,$03,$ec
+    .byte $f8,$9f,$03,$f4
+    .byte $f8,$d7,$03,$fc
+    .byte $f8,$d9,$03,$04
+    .byte $fc,$db,$03,$07
+    .byte $08,$dd,$03,$f0
+    .byte $08,$fd,$03,$f8
+    .byte $09,$ff,$03,$05
+    .byte $80
+    .addr giant_soldier_top
+.else
     .byte $15
     .byte $f8,$ca,$03,$e8
     .byte $f8,$cc,$03,$f0
@@ -5980,6 +6879,7 @@ sprite_ba:
     .byte $08,$d2,$03,$00
     .byte $80
     .addr giant_soldier_top
+.endif
 
 ; energy zone boss projectile (spiked disk)
 sprite_bb:
@@ -5995,6 +6895,16 @@ sprite_bc:
 
 ; mounted soldier (basquez)
 sprite_bd:
+.ifdef Probotector
+    .byte $07
+    .byte $f4,$ee,$01,$f0
+    .byte $f4,$f0,$01,$f8
+    .byte $f4,$f2,$01,$00
+    .byte $f4,$f4,$01,$08
+    .byte $04,$f6,$01,$f8
+    .byte $04,$f8,$01,$00
+    .byte $04,$fa,$01,$08
+.else
     .byte $07
     .byte $f4,$ee,$03,$f0
     .byte $f4,$f2,$03,$f8
@@ -6003,9 +6913,20 @@ sprite_bd:
     .byte $04,$f8,$00,$00
     .byte $f4,$f6,$01,$00
     .byte $f4,$fa,$01,$08
+.endif
 
 ; mounted soldier (basquez)
 sprite_be:
+.ifdef Probotector
+    .byte $07
+    .byte $f4,$ee,$01,$f2
+    .byte $f4,$f0,$01,$fa
+    .byte $f4,$f2,$01,$02
+    .byte $f4,$f4,$01,$0a
+    .byte $04,$f6,$01,$fa
+    .byte $04,$f8,$01,$02
+    .byte $04,$fa,$01,$0a
+.else
     .byte $07
     .byte $f4,$ee,$03,$f2
     .byte $f4,$f2,$03,$fa
@@ -6014,6 +6935,7 @@ sprite_be:
     .byte $04,$f8,$00,$01
     .byte $f4,$f6,$01,$01
     .byte $f4,$fa,$01,$09
+.endif
 
 ; energy zone wall fire
 sprite_bf:
@@ -6037,6 +6959,23 @@ sprite_c2:
 
 ; energy zone boss giant armored soldier (throwing)
 sprite_c3:
+.ifdef Probotector
+    .byte $14
+    .byte $df,$d6,$03,$e0
+    .byte $d7,$d8,$03,$e8
+    .byte $df,$dc,$03,$ee
+    .byte $e8,$e8,$03,$01
+    .byte $e8,$ea,$03,$09
+    .byte $f4,$06,$03,$04
+    .byte $cf,$da,$02,$ee
+    .byte $d8,$de,$02,$f6
+    .byte $d8,$e0,$02,$fe
+    .byte $d8,$e2,$02,$06
+    .byte $e8,$e4,$02,$f5
+    .byte $e8,$e6,$02,$fd
+    .byte $80
+    .addr giant_soldier_bottom
+.else
     .byte $13
     .byte $d8,$9d,$02,$f0
     .byte $d8,$d7,$02,$f8
@@ -6049,6 +6988,7 @@ sprite_c3:
     .byte $e8,$dd,$03,$00
     .byte $80
     .addr giant_soldier_bottom
+.endif
 
 ; snow field ground separator
 sprite_c4:
@@ -6057,41 +6997,78 @@ sprite_c4:
 
 ; green helicopter ending scene (frame 1)
 sprite_c5:
+.ifdef Probotector
+    .byte $01
+    .byte $f8,$d6,$00,$fd
+.else
     .byte $02
     .byte $f8,$a8,$00,$f8
     .byte $f8,$aa,$00,$00
+.endif
 
 ; green helicopter ending scene (frame 2)
 sprite_c6:
+.ifdef Probotector
+    .byte $02
+    .byte $f8,$d8,$00,$f8
+    .byte $f8,$da,$00,$00
+.else
     .byte $03
     .byte $f8,$ac,$00,$f8
     .byte $f8,$ae,$00,$00
     .byte $f8,$a6,$01,$07
+.endif
 
 ; green helicopter ending scene (frame 3)
 sprite_c7:
+.ifdef Probotector
+    .byte $01
+    .byte $f8,$dc,$00,$fc
+.else
     .byte $02
     .byte $f8,$b0,$00,$f8
     .byte $f8,$b2,$00,$00
+.endif
 
 ; green helicopter ending scene (frame 4)
 sprite_c8:
+.ifdef Probotector
+    .byte $02
+    .byte $f8,$de,$00,$f8
+    .byte $f8,$e0,$00,$00
+.else
     .byte $03
     .byte $f8,$b4,$00,$f8
     .byte $f8,$b6,$00,$00
     .byte $f8,$a6,$01,$05
+.endif
 
 ; green helicopter facing forward (frame 1)
 sprite_c9:
+.ifdef Probotector
+    .byte $03
+    .byte $ef,$e2,$00,$f6
+    .byte $f8,$e4,$00,$fc
+    .byte $f9,$e6,$00,$04
+.else
     .byte $05
     .byte $f8,$b8,$00,$f3
     .byte $f8,$ba,$00,$fb
     .byte $f8,$bc,$00,$03
     .byte $03,$a6,$01,$fb
     .byte $03,$a6,$01,$05
+.endif
 
 ; green helicopter facing forward (frame 2)
 sprite_ca:
+.ifdef Probotector
+    .byte $05
+    .byte $ef,$e8,$00,$f1
+    .byte $f3,$ea,$00,$f9
+    .byte $f6,$ec,$00,$01
+    .byte $fe,$ee,$00,$08
+    .byte $06,$f0,$00,$00
+.else
     .byte $07
     .byte $f0,$be,$40,$08
     .byte $f0,$c0,$40,$00
@@ -6100,9 +7077,19 @@ sprite_ca:
     .byte $00,$c6,$40,$08
     .byte $00,$c8,$40,$00
     .byte $00,$ca,$40,$f8
+.endif
 
 ; green helicopter facing forward (frame 3)
 sprite_cb:
+.ifdef Probotector
+    .byte $06
+    .byte $ee,$f2,$00,$ed
+    .byte $f2,$f4,$00,$f5
+    .byte $f5,$f6,$00,$fd
+    .byte $f2,$f8,$00,$05
+    .byte $02,$fa,$00,$03
+    .byte $02,$fc,$00,$0b
+.else
     .byte $0a
     .byte $f0,$cc,$00,$e8
     .byte $f0,$ce,$00,$f0
@@ -6114,7 +7101,10 @@ sprite_cb:
     .byte $00,$da,$00,$00
     .byte $04,$a6,$01,$f8
     .byte $04,$a6,$01,$07
+.endif
 
+.ifdef Probotector
+.else
 ; green helicopter facing forward (frame 4)
 sprite_cc:
     .byte $09
@@ -6155,15 +7145,28 @@ sprite_ce:
     .byte $00,$e8,$40,$04
     .byte $00,$ea,$40,$fc
     .byte $00,$ec,$40,$f4
+.endif
 
 ; ending sequence mountains
 sprite_cf:
+.ifdef Probotector
+sprite_cc:
+sprite_cd:
+sprite_ce:
+    .byte $05
+    .byte $00,$81,$03,$00
+    .byte $00,$83,$03,$08
+    .byte $00,$83,$03,$10
+    .byte $00,$83,$03,$18
+    .byte $00,$85,$03,$20
+.else
     .byte $05
     .byte $00,$63,$03,$00
     .byte $00,$65,$03,$08
     .byte $00,$65,$03,$10
     .byte $00,$65,$03,$18
     .byte $00,$89,$03,$20
+.endif
 
 ; unused #$21b bytes out of #$4,000 bytes total (96.71% full)
 ; unused 539 bytes out of 16,384 bytes total (96.71% full)

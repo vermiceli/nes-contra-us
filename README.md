@@ -27,6 +27,14 @@ Falcon](https://www.romhacking.net/hacks/2701/) project.
 ```
 # Building
 
+In addition to _Contra_ (US), this repo can also build the _Probotector_ rom.
+To keep instructions simple, the section below only contains instructions for
+building _Contra_ (US).
+
+If you are interested in building a _Probotector_ rom file, first read this
+section to understand what is needed, then follow the instructions in the
+section titled _Probotector_.
+
 ## Prerequisites
   * This repo does not include all assets (graphics data and audio data)
   necessary for assembling the ROM. An existing copy of the game is required.
@@ -43,11 +51,11 @@ There are 3 build scripts in this repository. All of them do the same thing.  To
 build the resulting .nes rom file, simply execute the appropriate build script
 based on your environment.
 
-```
-.\build.ps1 <-- Windows
-.\build.bat <-- Windows (no PowerShell)
-./build.sh <-- Unix
-```
+| Environment             | Command       |
+|-------------------------|---------------|
+| Windows                 | `.\build.ps1` |
+| Windows (no PowerShell) | `.\build.bat` |
+| Mac/Unix/Linux          | `./build.sh`  |
 
 * `build.ps1` - PowerShell script recommended for building on Windows machines.
   Some users have reported needing to run the script as admin to access the
@@ -215,6 +223,36 @@ When all of this was done, the project could assemble and be byte-for-byte
 exactly as the _Contra_ (US) ROM.  However, this was just the prerequisite to
 documenting the codebase.  Every label had to be given an appropriate name, and
 each line of assembly had to be documented.
+
+# Probotector
+This repo can also produce a _Probotector_ rom file.  _Probotector_ is the
+PAL-specific variation of the _Contra_ (US) game.  It is mostly identical except
+different sprites.  For a full list of differences, see the document
+`docs/Probotector.md`.
+
+## Building
+
+First read the section above for building _Contra_ (US) in general.  The process
+is very similar.  Place a _Probotector_ rom in the root folder with the name
+`baserom.nes`.  It should have a MD5 hash of `7127F616C13B58087481DD9E93AEB2FF`.
+
+Then, depending on your environment, run one of the following commands.
+
+| Environment             | Command                         |
+|-------------------------|---------------------------------|
+| Windows                 | `.\build.ps1 -Game Probotector` |
+| Windows (no PowerShell) | `.\build.bat Probotector`       |
+| Mac/Unix/Linux          | `./build.sh Probotector`        |
+
+Notes of caution, especially for people building both _Contra_ (US) and
+_Probotector_.
+
+1.  Be sure you have the correct `baserom.nes` for the game you are building.
+Otherwise, the generated rom will be incorrect.
+2.  If you have _Contra_ (US) assets in the `/src/assets/` folder and are
+building _Probotector_, or vice versa, the build scripts will delete the graphic
+asset data and re-extract it from the `baserom.nes`. This prevents accidentally
+using the wrong game's assets in the result rom.
 
 # Build Details
 

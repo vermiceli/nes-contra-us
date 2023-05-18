@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.1
+; Contra US Disassembly - v1.2
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 6 contains compressed graphics data, data for short text sequences like
 ; level names and menu options.  Bank 6 also contains the code for the players'
@@ -97,24 +97,42 @@ short_text_pointer_table:
 ; the two bytes after $fd specify the PPU address
 ; "STAGE" text
 text_stage:
-    .byte $22,$0c,$53,$54,$41,$47,$45,$00,$00,$fe
+    .byte $22,$0c
+    .byte $53,$54,$41,$47,$45,$00,$00,$fe
 
 ; "GAME OVER" text
 text_game_over:
-    .byte $22,$2a,$47,$41,$4d,$45,$00,$4f,$56,$45,$52,$fe
+.ifdef Probotector
+    .byte $22,$0a
+.else
+    .byte $22,$2a
+.endif
+    .byte $47,$41,$4d,$45,$00,$4f,$56,$45,$52,$fe
 
 ; "GAME OVER" text
 text_game_over2:
-    .byte $20,$c2,$47,$41,$4d,$45,$00,$4f,$56,$45,$52,$fe
+    .byte $20,$c2
+    .byte $47,$41,$4d,$45,$00,$4f,$56,$45,$52,$fe
 
 ; "GAME OVER" text
 text_game_over3:
-    .byte $20,$d2,$47,$41,$4d,$45,$00,$4f,$56,$45,$52,$fe
+    .byte $20,$d2
+    .byte $47,$41,$4d,$45,$00,$4f,$56,$45,$52,$fe
 
 ; "CONTINUE" text
 text_continue:
-    .byte $22,$8c,$43,$4f,$4e,$54,$49,$4e,$55,$45,$fd
-    .byte $22,$cc                                     ; change to PPU address $22cc and read next text (text_end)
+.ifdef Probotector
+    .byte $22,$6c
+.else
+    .byte $22,$8c
+.endif
+    .byte $43,$4f,$4e,$54,$49,$4e,$55,$45,$fd
+
+.ifdef Probotector
+    .byte $22,$ac  ; change to PPU address $22ac and read next text (text_end)
+.else
+    .byte $22,$cc  ; change to PPU address $22ac and read next text (text_end)
+.endif
 
 ; "END" text, written when writing previous text text_continue
 text_end:
@@ -122,15 +140,26 @@ text_end:
 
 ; "PLAY SELECT" text
 text_play_select:
-    .byte $22,$8a,$50,$4c,$41,$59,$00,$53,$45,$4c,$45,$43,$54,$fe
+    .byte $22,$8a
+    .byte $50,$4c,$41,$59,$00,$53,$45,$4c,$45,$43,$54,$fe
 
 ; "1 PLAYER" text
 text_1_player:
-    .byte $22,$87,$31,$00,$50,$4c,$41,$59,$45,$52,$fe
+.ifdef Probotector
+    .byte $22,$6d
+.else
+    .byte $22,$87
+.endif
+    .byte $31,$00,$50,$4c,$41,$59,$45,$52,$fe
 
 ; "2 PLAYERS" text
 text_2_players:
-    .byte $22,$c7,$32,$00,$50,$4c,$41,$59,$45,$52,$53,$fe
+.ifdef Probotector
+    .byte $22,$ad
+.else
+    .byte $22,$c7
+.endif
+    .byte $32,$00,$50,$4c,$41,$59,$45,$52,$53,$fe
 
 ; "REST" text (PPU address $20c2)
 text_rest:
@@ -158,21 +187,37 @@ text_2p:
 ; CPU address $b333
 ; PPU address $3f00 (start of palette data)
 transition_screen_palettes:
-    .byte $3f,$00                                                ; PPU address $3f00 - palette address start
-    .byte COLOR_BLACK_0f                                         ; universal background color
-    .byte COLOR_LT_GRAY_10,COLOR_LT_OLIVE_28,COLOR_MED_RED_16    ; background palette 0
+.ifdef Probotector
+    .byte $3f,$00                                                     ; PPU address $3f00 - palette address start
+    .byte COLOR_BLACK_0f                                              ; universal background color
+    .byte COLOR_LT_GRAY_10    ,COLOR_LT_ORANGE_27,COLOR_MED_RED_16    ; background palette 0
     .byte $0f
-    .byte COLOR_WHITE_30  ,COLOR_LT_GRAY_10 ,COLOR_MED_PINK_15   ; background palette 1
+    .byte COLOR_PALE_VIOLET_32,COLOR_LT_VIOLET_22,COLOR_MED_VIOLET_12 ; background palette 1
     .byte $0f
-    .byte COLOR_LT_GRAY_10,COLOR_LT_OLIVE_28,COLOR_PALE_OLIVE_38 ; background palette 2
+    .byte COLOR_DARK_VIOLET_02,COLOR_LT_VIOLET_22,COLOR_MED_VIOLET_12 ; background palette 2
     .byte $0f
-    .byte COLOR_BLACK_0f  ,COLOR_BLACK_0f   ,COLOR_BLACK_0f      ; background palette 3 (black, black, black)
+    .byte COLOR_MED_RED_16    ,COLOR_BLACK_0f    ,COLOR_BLACK_0f      ; background palette 3 (red, black, black)
+.else
+    .byte $3f,$00                                                     ; PPU address $3f00 - palette address start
+    .byte COLOR_BLACK_0f                                              ; universal background color
+    .byte COLOR_LT_GRAY_10,COLOR_LT_OLIVE_28,COLOR_MED_RED_16         ; background palette 0
+    .byte $0f
+    .byte COLOR_WHITE_30  ,COLOR_LT_GRAY_10 ,COLOR_MED_PINK_15        ; background palette 1
+    .byte $0f
+    .byte COLOR_LT_GRAY_10,COLOR_LT_OLIVE_28,COLOR_PALE_OLIVE_38      ; background palette 2
+    .byte $0f
+    .byte COLOR_BLACK_0f  ,COLOR_BLACK_0f   ,COLOR_BLACK_0f           ; background palette 3 (black, black, black)
+.endif
 
 ; sprite palettes for intro guys (#$11 bytes)
 ; loaded along with transition_screen_palettes
 intro_sprite_palettes:
     .byte $0f
+.ifdef Probotector
+    .byte COLOR_WHITE_20,COLOR_LT_ORANGE_27 ,COLOR_MED_RED_16      ; sprite palette 0
+.else
     .byte COLOR_WHITE_30,COLOR_LT_GRAY_10,COLOR_DARK_GRAY_00       ; sprite palette 0
+.endif
     .byte $0f
     .byte COLOR_WHITE_30,COLOR_PALE_OLIVE_38,COLOR_LT_OLIVE_28     ; sprite palette 1
     .byte $0f
@@ -216,16 +261,29 @@ text_alien_lair:
 ; background palettes for intro screen (when Bill and Lance appear) (#$13 bytes)
 ; PPU address $3f00
 intro_background_palette2:
-    .byte $3f,$00                                                ; PPU address $3f00
-    .byte COLOR_BLACK_0f                                         ; universal background color
-    .byte COLOR_LT_GRAY_10,COLOR_LT_OLIVE_28,COLOR_MED_RED_16    ; background palette 0
+.ifdef Probotector
+    .byte $3f,$00                                                        ; PPU address $3f00
+    .byte COLOR_BLACK_0f                                                 ; universal background color
+    .byte COLOR_LT_GRAY_10,COLOR_LT_ORANGE_27,COLOR_MED_RED_16           ; background palette 0
     .byte $0f
-    .byte COLOR_WHITE_30  ,COLOR_LT_GRAY_10 ,COLOR_MED_PINK_15   ; background palette 1
+    .byte COLOR_PALE_VIOLET_32  ,COLOR_LT_VIOLET_22 ,COLOR_MED_VIOLET_12 ; background palette 1
     .byte $0f
-    .byte COLOR_LT_GRAY_10,COLOR_LT_OLIVE_28,COLOR_PALE_OLIVE_38 ; background palette 2
+    .byte COLOR_DARK_VIOLET_02,COLOR_LT_VIOLET_22,COLOR_MED_VIOLET_12    ; background palette 2
     .byte $0f
-    .byte COLOR_WHITE_30  ,COLOR_PALE_RED_36,COLOR_LT_RED_26     ; background palette 3
+    .byte COLOR_MED_RED_16  ,COLOR_BLACK_0f,COLOR_BLACK_0f               ; background palette 3
     .byte $fe
+.else
+    .byte $3f,$00                                                        ; PPU address $3f00
+    .byte COLOR_BLACK_0f                                                 ; universal background color
+    .byte COLOR_LT_GRAY_10,COLOR_LT_OLIVE_28,COLOR_MED_RED_16            ; background palette 0
+    .byte $0f
+    .byte COLOR_WHITE_30  ,COLOR_LT_GRAY_10 ,COLOR_MED_PINK_15           ; background palette 1
+    .byte $0f
+    .byte COLOR_LT_GRAY_10,COLOR_LT_OLIVE_28,COLOR_PALE_OLIVE_38         ; background palette 2
+    .byte $0f
+    .byte COLOR_WHITE_30  ,COLOR_PALE_RED_36,COLOR_LT_RED_26             ; background palette 3
+    .byte $fe
+.endif
 
 ; check to see if the player is trying to fire a bullet (B button pressed)
 ; ensure player in valid state to fire a bullet, e.g. not being electrocuted
@@ -654,16 +712,29 @@ bullet_initial_pos_ptr_tbl:
 ; byte #$01 - x offset from player position
 ; byte #$02 - y offset from player position
 bullet_initial_pos_00:
-    .byte $05,$e5 ;  $05 -1b Up
-    .byte $0d,$f0 ;  $0d -10 Up-Right
-    .byte $10,$fb ;  $10 -05 Right
-    .byte $0d,$06 ;  $0d  06 Down-Right
-    .byte $10,$09 ;  $10  09 Prone Facing Right
-    .byte $f0,$09 ; -$10  09 Prone Facing Left
-    .byte $f3,$06 ; -$0d  06 Down-Left
-    .byte $f0,$fb ; -$10 -05 Left
-    .byte $f3,$f0 ; -$0d -10 Up-Left
-    .byte $fb,$e5 ; -$05 -1b Down (impossible)
+.ifdef Probotector
+    .byte $03,$e5  ;  $05 -1b Up
+    .byte $0d,$f0  ;  $0d -10 Up-Right
+    .byte $07,$fb  ;  $10 -05 Right
+    .byte $0a,$03  ;  $0d  06 Down-Right
+    .byte $10,$09  ;  $10  09 Prone Facing Right
+    .byte $f0,$09  ; -$10  09 Prone Facing Left
+    .byte $f6,$03  ; -$0d  06 Down-Left
+    .byte $f3,$fb  ; -$10 -05 Left
+    .byte $f3,$f0  ; -$0d -10 Up-Left
+    .byte $fd,$e5  ; -$05 -1b Down (impossible)
+.else
+    .byte $05,$e5  ;  $05 -1b Up
+    .byte $0d,$f0  ;  $0d -10 Up-Right
+    .byte $10,$fb  ;  $10 -05 Right
+    .byte $0d,$06  ;  $0d  06 Down-Right
+    .byte $10,$09  ;  $10  09 Prone Facing Right
+    .byte $f0,$09  ; -$10  09 Prone Facing Left
+    .byte $f3,$06  ; -$0d  06 Down-Left
+    .byte $f0,$fb  ; -$10 -05 Left
+    .byte $f3,$f0  ; -$0d -10 Up-Left
+    .byte $fb,$e5  ; -$05 -1b Down (impossible)
+.endif
 
 ; initial bullet offset - outdoor - jumping (#$18 bytes)
 ; byte #$01 - x offset from player position
@@ -1279,7 +1350,7 @@ player_bullet_routine_indoor_01_ptr_tbl:
     .addr player_shared_indoor_bullet_routine_01 ; CPU address $ba7c
     .addr player_bullet_collision_routine        ; CPU address $bc1e
 
-; pointer table for M (#42 * #$3 = #$6 bytes)
+; pointer table for M (#$2 * #$3 = #$6 bytes)
 player_bullet_routine_indoor_02_ptr_tbl:
     .addr inc_player_bullet_routine_far_2        ; CPU address $ba2f
     .addr player_shared_indoor_bullet_routine_01 ; CPU address $ba7c
@@ -1803,7 +1874,7 @@ set_indoor_l_bullet_sprite:
 @cutoff_found:
     lda l_bullet_indoor_sprite_code_tbl,y
     sta PLAYER_BULLET_SPRITE_CODE,x
-    lda #$40                              ; #40 specifies to flip l bullet sprite horizontally
+    lda #$40                              ; #$40 specifies to flip l bullet sprite horizontally
     cpy #$04                              ; see if bullet x position is past midpoint of screen
     bcc @continue                         ; if on left half of screen flip l bullet sprite horizontally
     lda #$00                              ; on right half of screen, do not flip l bullet sprite horizontally

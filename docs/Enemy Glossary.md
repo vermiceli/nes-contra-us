@@ -854,7 +854,8 @@ These 4 enemy types are very similar. They differ in the direction they fire
 
 ### 13 - Giant Boss Soldier
 
-* Other Names: Gordea, Giant Boss Robot, Giant Armored Soldier, Boss Giant
+* Other Names: Gordea, JJ, Jumping Joey, Giant Boss Robot, Giant Armored
+  Soldier, Boss Giant
 
 No attributes exist for this enemy.
 

@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.1
+; Contra US Disassembly - v1.2
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 5 mostly contains compressed graphic data.  The rest of bank 5 is the
 ; code and lookup tables for automated input for the 3 demo (attract) levels.
@@ -18,7 +18,7 @@
 .byte $05 ; The PRG ROM bank number (5)
 
 ; compressed graphics data - Code 05 (#$A60 bytes)
-; character when immobile, prone, weapon zeppelin
+; Level 1 bridge, mountain, and water tiles
 ; writes to same PPU addresses as graphic_data_07 and graphic_data_0b
 ; pattern table data - writes addresses
 ; * [$09a0-$0a80)
@@ -53,6 +53,7 @@ graphic_data_0b:
 
 ; compressed graphics data - Code 19 (#$1e5 bytes)
 ; left pattern table data - writes addresses [$0680-$08c0)
+; player killed sprite tiles: recoil from hit and lying on ground
 ; CPU address $a31b
 graphic_data_19:
     .incbin "assets/graphic_data/graphic_data_19.bin"
@@ -64,7 +65,7 @@ graphic_data_1a:
     .incbin "assets/graphic_data/graphic_data_1a.bin"
 
 ; compressed graphics data - Code 14 (#$5cb bytes)
-; Turrets, Gray and Red
+; rotating gun and red turret
 ; right pattern table data - writes addresses [$1600-$1bd0)
 ; CPU address $a814
 graphic_data_14:

@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.1
+; Contra US Disassembly - v1.2
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 7 is the core of the game's programming. Reset, NMI, and IRQ vectors are
 ; in this bank and is the entry point to the game.  Bank 7 is always loaded in
@@ -713,34 +713,63 @@ game_routine_00:
     jsr load_intro_graphics         ; load the graphic data (pattern, nametable, and palette) to ppu, as well as palette data to cpu
     ldy #$00                        ; y = #$00
     sty KONAMI_CODE_NUM_CORRECT     ; initialize konami check to #$0 (see konami_input_check)
+.ifdef Probotector
+    sty HORIZONTAL_SCROLL           ; initialize the horizontal scroll offset to #$00
+    ldy #$02
+    sty DELAY_TIME_HIGH_BYTE        ; initialize delay high byte to #$02 (used for various delays)
+    lda #$b0                        ; %1011 0000 (set nametable to $2000)
+    sta PPUCTRL_SETTINGS            ; store PPUCTRL settings for next update of PPUCTRL
+    jmp inc_routine_index_set_timer ; move to game_routine_01
+.else
     iny
-    sty HORIZONTAL_SCROLL           ; initialize the horizontal scroll offset to #$1
+    sty HORIZONTAL_SCROLL           ; initialize the horizontal scroll offset to #$01
     iny
     sty DELAY_TIME_HIGH_BYTE        ; initialize delay high byte to #$02 (used for various delays)
     lda #$b1                        ; %1011 0001 (set nametable to $2400)
     sta PPUCTRL_SETTINGS            ; store PPUCTRL settings for next update of PPUCTRL
-    jmp inc_routine_index_set_timer
+    jmp inc_routine_index_set_timer ; move to game_routine_01
+.endif
 
 ; table for y positions of intro screen cursor
 ; same table is used for "CONTINUE"/"END" screen during game over
 player_select_cursor_pos:
+.ifdef Probotector
+    .byte $9a,$aa
+.else
     .byte $a2,$b2
+.endif
 
 ; The 2nd game routine game_routine_pointer_table
 ; run once per frame for multiple frames while scrolling to right until intro screen is shown
 ; when scrolling complete, plays intro "explosion" sound and loads player select menu
 game_routine_01:
-    jsr konami_input_check
+    jsr konami_input_check                   ; check if current input is part of Konami code (30-lives code)
+                                             ; if completed input successfully, sets KONAMI_CODE_STATUS to #$01
+.ifdef Probotector
+    ldx GAME_ROUTINE_INIT_FLAG               ; see if current game_routine has initialized
+    bne game_routine_01_scroll_complete      ; no scrolling animation is done for Probotector
+                                             ; skip to complete if sound has played and routine is 'initialized'
+    jsr load_intro_palette2_play_intro_sound
+    lda #$26                                 ; a = #$26 (game intro tune)
+    jsr play_sound                           ; play sound_26 (game intro tune)
+    inc GAME_ROUTINE_INIT_FLAG               ; mark game routine as initialized
+    rts                                      ; exit
+.else
     lda HORIZONTAL_SCROLL                    ; load horizontal component of the PPUSCROLL [#$0 - #$ff]
     beq game_routine_01_scroll_complete      ; if scroll complete, show Bill and Lance and play sound
     inc HORIZONTAL_SCROLL                    ; add 1 to the horizontal scroll offset
     bne game_routine_01_exit                 ; if scrolling animation isn't complete, continue scrolling next frame
     jsr load_intro_palette2_play_intro_sound ; scrolling complete, load 2nd intro background palette and play explosion sound
+.endif
 
 ; write the text "PLAY SELECT", "1 PLAYER", player select cursor, etc
 ; move to next game_routine once timer elapses
 game_routine_01_scroll_complete:
+.ifdef Probotector
+    lda #$58                       ; a = #$58 (x position of cursor in intro)
+.else
     lda #$2c                       ; a = #$2c (x position of cursor in intro)
+.endif
     sta SPRITE_X_POS               ; store x position of cursor for player select (first sprite)
     lda #$aa                       ; sprite_aa: player selector cursor (yellow falcon)
     sta CPU_SPRITE_BUFFER          ; store sprite number in CPU buffer
@@ -751,10 +780,17 @@ game_routine_01_scroll_complete:
     sta SPRITE_ATTR                ; reset sprite effect for player
     lda #$ab                       ; sprite_ab: Bill and Lance's hair and shirt
     sta CPU_SPRITE_BUFFER+1        ; store next sprite to load
+.ifdef Probotector
+    lda #$80                       ; a = #$80 (x position for sprite_ab)
+    sta SPRITE_X_POS+1             ; store x position for sprite_ab
+    lda #$5f                       ; a = #$5f (y position for sprite_ab)
+    sta SPRITE_Y_POS+1             ; store y position for sprite_ab
+.else
     lda #$b3                       ; a = #$b3 (x position for sprite_ab)
     sta SPRITE_X_POS+1             ; store x position for sprite_ab
     lda #$77                       ; a = #$77 (y position for sprite_ab)
     sta SPRITE_Y_POS+1             ; store y position for sprite_ab
+.endif
     jsr decrement_delay_timer      ; decrease delay and check if it reaches 0
     bne game_routine_01_exit       ; timer not complete, wait
     jmp increment_game_routine     ; timer delay complete, increase game_routine to game_routine_02
@@ -1052,9 +1088,15 @@ load_intro_palette2_play_intro_sound:
     lda #$a4
     sta INTRO_THEME_DELAY                     ; set intro theme delay timer to #$a4 (~5 seconds)
     lda #$04                                  ; set background palettes for when Bill and Lance on screen (intro_background_palette2)
+.ifdef Probotector
+    jmp load_bank_6_write_text_palette_to_mem ; write the palette data to CPU_GRAPHICS_BUFFER in CPU memory
+                                              ; sound already played in game_routine_01 for Probotector
+                                              ; so no play_sound call
+.else
     jsr load_bank_6_write_text_palette_to_mem ; write the palette data to CPU_GRAPHICS_BUFFER in CPU memory
-    lda #$26                                  ; play intro explosion sound
-    jmp play_sound
+    lda #$26                                  ; a = #$26 (game intro tune)
+    jmp play_sound                            ; play sound_26 (game intro tune)
+.endif
 
 ; delay INTRO_THEME_DELAY on odd frames
 dec_intro_theme_delay:
@@ -2082,11 +2124,11 @@ ending_graphic_data:
 graphic_data_ptr_tbl:
     ; reset both PPU nametables to zeros
     ; bank 7 (not bank 0)
-    .addr blank_nametables ; $cb36
+    .addr blank_nametables ; CPU address $cb36
     .byte $00              ; bank 7 not bank 0
 
     ; bank 4 - intro, level title, game over screen pattern table
-    .addr graphic_data_01
+    .addr graphic_data_01 ; CPU address $c953
     .byte $04             ; bank where data located
 
     ; bank 2 - intro screen nametable
@@ -2101,8 +2143,8 @@ graphic_data_ptr_tbl:
     .addr graphic_data_04
     .byte $04             ; bank where data located
 
-    ; bank 5
-    .addr graphic_data_05
+    ; bank 5 - level 1 bridge, mountain, and water tiles
+    .addr graphic_data_05 ; CPU address $8001
     .byte $05             ; bank where data located
 
     ; bank 4 - most Base graphics
@@ -2158,20 +2200,20 @@ graphic_data_ptr_tbl:
     .addr graphic_data_12
     .byte $04             ; bank where data located
 
-    ; bank 4 ; bank where data located
-    .addr graphic_data_13
+    ; bank 4 - player top-half aiming up and aiming straight, also contains the laser sprites
+    .addr graphic_data_13 ; CPU address $87a1
     .byte $04             ; bank where data located
 
-    ; bank 5
-    .addr graphic_data_14
+    ; bank 5 - rotating gun and red turret
+    .addr graphic_data_14 ; CPU address $a814
     .byte $05             ; bank where data located
 
     ; bank 6
     .addr graphic_data_15
     .byte $06             ; bank where data located
 
-    ; bank 6
-    .addr graphic_data_16
+    ; bank 6 - weapon box
+    .addr graphic_data_16 ; CPU address $b15c
     .byte $06             ; bank where data located
 
     ; bank 5
@@ -2182,12 +2224,12 @@ graphic_data_ptr_tbl:
     .addr graphic_data_18
     .byte $05             ; bank where data located
 
-    ; bank 5
-    .addr graphic_data_19
+    ; bank 5 - player killed sprite tiles: recoil from hit and lying on ground
+    .addr graphic_data_19 ; CPU address $a31b
     .byte $05             ; bank where data located
 
-    ; bank 5
-    .addr graphic_data_1a
+    ; bank 5 - soldier pattern table tiles
+    .addr graphic_data_1a ; CPU address $a500
     .byte $05             ; bank where data located
 
 ; CPU address $c9a2
@@ -3351,12 +3393,12 @@ check_for_pause:
     lda DEMO_MODE             ; #$00 not in demo mode, #$01 demo mode on
     ora $26
     ora PPU_READY             ; #$00 when PPU is ready, > #$00 otherwise
-    bne pause_exit            ; if in demo, PPU isn't ready, or $26 > 0, then exit
+    bne pause_exit_00         ; if in demo, PPU isn't ready, or $26 > 0, then exit
     lda CONTROLLER_STATE_DIFF ; controller 1 buttons pressed
     ldy PAUSE_STATE           ; #$01 for paused, #$00 for not paused
     bne @game_paused          ; if game paused, jump
     and #$10                  ; keep bits ...x .... (check for start button)
-    beq pause_exit            ; exit if start button isn't pressed
+    beq pause_exit_00         ; exit if start button isn't pressed
     lda #$01                  ; a = #$01
     sta PAUSE_STATE           ; #$01 for paused, #$00 for not paused
     lda #$54                  ; a = #$54 (54 = game pausing jingle sound)
@@ -3367,11 +3409,19 @@ check_for_pause:
 @game_paused:
     jsr draw_player_bullet_sprites                 ; draw half of the bullets in alternating frames
     jsr load_bank_2_set_players_paused_sprite_attr ; continue animating player sprite attributes while paused (electrocuted, invincible, etc.)
+.ifdef Probotector
+    jsr pause_exit                                 ; !(HUH) probably cut out code from the Japanese version
+.endif
     lda CONTROLLER_STATE_DIFF                      ; controller 1 buttons pressed
     and #$10                                       ; keep bits ...x .... (check for start button)
-    beq pause_exit                                 ; exit if start button isn't pressed
+    beq pause_exit_00                              ; exit if start button isn't pressed
     lda #$00                                       ; a = #$00
     sta PAUSE_STATE                                ; set game state to not paused
+
+pause_exit_00:
+.ifdef Probotector
+    rts
+.endif
 
 pause_exit:
     rts
@@ -3619,8 +3669,13 @@ lvl_alt_collision_and_palette_tbl:
     .byte $00,$ff,$ff,$16,$17,$18,$17,$11,$12,$13,$16,$00,$01,$22,$21 ; level 2
     .byte $07,$ff,$ff,$27,$54,$55,$54,$0b,$25,$26,$27,$00,$01,$22,$07 ; level 3
     .byte $00,$ff,$ff,$1e,$1f,$20,$1f,$19,$1a,$1c,$1e,$00,$01,$22,$2b ; level 4
+.ifdef Probotector
+    .byte $20,$f0,$f0,$42,$42,$42,$42,$3d,$3e,$40,$42,$00,$01,$22,$07 ; level 5
+    .byte $0c,$de,$de,$3a,$3b,$3a,$3c,$39,$39,$04,$3a,$00,$01,$22,$07 ; level 6
+.else
     .byte $20,$f0,$f0,$42,$42,$42,$42,$3d,$3e,$40,$42,$00,$01,$22,$06 ; level 5
     .byte $0c,$de,$de,$3a,$3b,$3a,$3c,$39,$39,$04,$3a,$00,$01,$22,$56 ; level 6
+.endif
     .byte $0e,$f1,$f1,$5a,$5f,$5a,$5b,$45,$46,$59,$5f,$00,$01,$22,$07 ; level 7
     .byte $05,$b6,$b6,$4b,$50,$4b,$50,$48,$49,$4a,$4b,$00,$01,$43,$44 ; level 8
     .byte $00,$00,$00,$67,$68,$69,$68,$25,$65,$66,$67,$6d,$6c,$22,$64 ; ending animation
@@ -3633,14 +3688,24 @@ game_palette_ptr_tbl:
 ; palettes ($6e * $03 = $14a bytes)
 ; CPU Address $d227
 game_palettes:
+.ifdef Probotector
+    .byte COLOR_WHITE_20            ,COLOR_DARK_GRAY_00         ,COLOR_BLACK_0f
+    .byte COLOR_PALE_VIOLET_32      ,COLOR_MED_VIOLET_12        ,COLOR_BLACK_0f
+.else
     .byte COLOR_PALE_ORANGE_37      ,COLOR_MED_VIOLET_12        ,COLOR_BLACK_0f
     .byte COLOR_PALE_RED_36         ,COLOR_MED_RED_16           ,COLOR_BLACK_0f
+.endif
     .byte COLOR_MED_FOREST_GREEN_19 ,COLOR_LT_FOREST_GREEN_29   ,COLOR_DARK_OLIVE_08
     .byte COLOR_LT_OLIVE_28         ,COLOR_MED_OLIVE_18         ,COLOR_DARK_OLIVE_08
     .byte COLOR_MED_RED_16          ,COLOR_WHITE_30             ,COLOR_LT_GRAY_10
     .byte COLOR_MED_BLUE_11         ,COLOR_LT_BLUE_21           ,COLOR_WHITE_30
+.ifdef Probotector
+    .byte COLOR_PALE_GREEN_3a       ,COLOR_MED_BLUE_GREEN_1b    ,COLOR_BLACK_0f
+    .byte COLOR_PALE_RED_36         ,COLOR_MED_RED_16          ,COLOR_BLACK_0f
+.else
     .byte COLOR_MED_RED_16          ,COLOR_WHITE_20             ,COLOR_DARK_GRAY_00
     .byte COLOR_WHITE_20            ,COLOR_DARK_GRAY_00         ,COLOR_BLACK_0f
+.endif
     .byte COLOR_MED_BLUE_11         ,COLOR_WHITE_30             ,COLOR_LT_BLUE_21
     .byte COLOR_LT_GRAY_10          ,COLOR_DARK_GRAY_00         ,COLOR_DARK_FOREST_GREEN_09
     .byte COLOR_DARK_GRAY_00        ,COLOR_DARK_TEAL_0c         ,COLOR_WHITE_20
@@ -3666,7 +3731,11 @@ game_palettes:
     .byte COLOR_WHITE_20            ,COLOR_MED_OLIVE_18         ,COLOR_DARK_RED_06
     .byte COLOR_WHITE_20            ,COLOR_MED_OLIVE_18         ,COLOR_MED_RED_16
     .byte COLOR_WHITE_20            ,COLOR_MED_OLIVE_18         ,COLOR_LT_RED_26
+.ifdef Probotector
+    .byte COLOR_WHITE_20            ,COLOR_LT_VIOLET_22         ,COLOR_DARK_TEAL_0c
+.else
     .byte COLOR_WHITE_20            ,COLOR_LT_VIOLET_22         ,COLOR_DARK_VIOLET_02
+.endif
     .byte COLOR_WHITE_20            ,COLOR_LT_RED_26            ,COLOR_MED_RED_16
     .byte COLOR_DARK_BLUE_01        ,COLOR_WHITE_30             ,COLOR_LT_GRAY_10
     .byte COLOR_PALE_RED_36         ,COLOR_DARK_RED_06          ,COLOR_DARK_VIOLET_02
@@ -3675,8 +3744,13 @@ game_palettes:
     .byte COLOR_DARK_PINK_05        ,COLOR_MED_OLIVE_18         ,COLOR_DARK_OLIVE_08
     .byte COLOR_PALE_RED_36         ,COLOR_DARK_RED_06          ,COLOR_LT_VIOLET_22
     .byte COLOR_PALE_RED_36         ,COLOR_DARK_RED_06          ,COLOR_PALE_VIOLET_32
+.ifdef Probotector
+    .byte COLOR_PALE_RED_36         ,COLOR_MED_RED_16           ,COLOR_BLACK_0f
+    .byte COLOR_WHITE_20            ,COLOR_LT_VIOLET_22         ,COLOR_DARK_TEAL_0c
+.else
     .byte COLOR_WHITE_20            ,COLOR_MED_BLUE_GREEN_1b    ,COLOR_BLACK_0f
     .byte COLOR_WHITE_20            ,COLOR_LT_VIOLET_22         ,COLOR_MED_TEAL_1c
+.endif
     .byte COLOR_LT_GRAY_10          ,COLOR_DARK_GRAY_00         ,COLOR_DARK_TEAL_0c
     .byte COLOR_DARK_GRAY_00        ,COLOR_DARK_RED_06          ,COLOR_WHITE_20
     .byte COLOR_PALE_OLIVE_38       ,COLOR_DARK_FOREST_GREEN_09 ,COLOR_DARK_RED_06
@@ -3719,7 +3793,11 @@ game_palettes:
     .byte COLOR_DARK_GRAY_00        ,COLOR_DARK_GRAY_00         ,COLOR_DARK_GRAY_00
     .byte COLOR_MED_PINK_15         ,COLOR_MED_OLIVE_18         ,COLOR_DARK_OLIVE_08
     .byte COLOR_PALE_PINK_35        ,COLOR_MED_OLIVE_18         ,COLOR_DARK_OLIVE_08
+.ifdef Probotector
+    .byte COLOR_PALE_GREEN_3a       ,COLOR_MED_BLUE_GREEN_1b    ,COLOR_BLACK_0f
+.else
     .byte COLOR_WHITE_20            ,COLOR_MED_VIOLET_12        ,COLOR_MED_ORANGE_17
+.endif
     .byte COLOR_MED_PINK_15         ,COLOR_MED_BLUE_GREEN_1b    ,COLOR_DARK_BLUE_GREEN_0b
     .byte COLOR_BLACK_0f            ,COLOR_MED_BLUE_GREEN_1b    ,COLOR_DARK_BLUE_GREEN_0b
     .byte COLOR_LT_MAGENTA_24       ,COLOR_MED_PURPLE_13        ,COLOR_DARK_PURPLE_03
@@ -3727,7 +3805,11 @@ game_palettes:
     .byte COLOR_MED_ORANGE_17       ,COLOR_DARK_RED_06          ,COLOR_BLACK_0f
     .byte COLOR_DARK_RED_06         ,COLOR_WHITE_30             ,COLOR_LT_GRAY_10
     .byte COLOR_LT_RED_26           ,COLOR_WHITE_30             ,COLOR_LT_GRAY_10
+.ifdef Probotector
+    .byte COLOR_WHITE_20            ,COLOR_MED_VIOLET_12        ,COLOR_MED_ORANGE_17
+.else
     .byte COLOR_DARK_GRAY_00        ,COLOR_DARK_GRAY_00         ,COLOR_DARK_GRAY_00
+.endif
     .byte COLOR_WHITE_20            ,COLOR_LT_ORANGE_27         ,COLOR_MED_ORANGE_17
     .byte COLOR_LT_GRAY_10          ,COLOR_LT_RED_26            ,COLOR_DARK_RED_06
     .byte COLOR_LT_GRAY_10          ,COLOR_MED_RED_16           ,COLOR_DARK_ORANGE_07
@@ -3742,7 +3824,11 @@ game_palettes:
     .byte COLOR_LT_RED_26           ,COLOR_MED_OLIVE_18         ,COLOR_DARK_ORANGE_07
     .byte COLOR_MED_RED_16          ,COLOR_MED_OLIVE_18         ,COLOR_DARK_ORANGE_07
     .byte COLOR_MED_RED_16          ,COLOR_DARK_GRAY_00         ,COLOR_DARK_GRAY_00
+.ifdef Probotector
+    .byte COLOR_PALE_BLUE_GREEN_3b  ,COLOR_MED_BLUE_GREEN_1b    ,COLOR_DARK_BLUE_GREEN_0b
+.else
     .byte COLOR_DARK_BLUE_GREEN_0b  ,COLOR_MED_BLUE_GREEN_1b    ,COLOR_PALE_BLUE_GREEN_3b
+.endif
 
 ; executed for indoor and outdoor levels
 set_frame_scroll_draw_player_bullets:
@@ -7976,6 +8062,10 @@ destroy_all_enemies:
     cmp #$03                        ; see if flying capsule (weapon zeppelin)
     beq @continue                   ; skip to next enemy when enemy is flying capsule
     lda ENEMY_HP,x                  ; load enemy hp
+.ifdef Probotector
+    beq @continue                   ; !(WHY?) exit if enemy HP is already #$00, not sure of game play changes
+                                    ; to have such a change between versions
+.endif
     cmp #$f0                        ; f0 = no hit
     beq @continue                   ; skip to next enemy when enemy hp is #$f0
     jsr set_destroyed_enemy_routine ; regular enemy, set it to use its destroy routine

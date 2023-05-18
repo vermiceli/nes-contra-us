@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.1
+; Contra US Disassembly - v1.2
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 4 mostly contains compressed graphic data. The rest of bank 4 is the code
 ; for the ending scene animation and the ending credits, including the ending
@@ -49,6 +49,7 @@ graphic_data_04:
 
 ; compressed graphics data - code 13 (#$cb bytes)
 ; left pattern table data - writes addresses [$08c0-$09a0)
+; player top-half aiming up and aiming straight, also contains the laser sprites
 ; CPU address $87a1
 graphic_data_13:
     .incbin "assets/graphic_data/graphic_data_13.bin"
@@ -73,7 +74,7 @@ graphic_data_06:
     .incbin "assets/graphic_data/graphic_data_06.bin"
 
 ; compressed graphics data - code 10 (#$343 bytes)
-; horizontal flip
+; horizontal flip, different location in right pattern table
 ; CPU address $a003
 graphic_data_10:
     .byte $00,$16
@@ -242,8 +243,12 @@ end_game_sequence_00:
     iny
     dex
     bpl @set_ending_sprite_animations
+.ifdef Probotector
+                                      ; don't play helicopter sound for Probotector, ending animation uses jet
+.else
     lda #$21                          ; a = #$21 (sound_21)
     jsr play_sound                    ; play helicopter rotors sound
+.endif
     inc END_LEVEL_ROUTINE_INDEX       ; increment ending scene index (end_game_sequence_ptr_tbl)
     rts
 
@@ -365,6 +370,19 @@ ending_sequence_explosion_tbl:
 
 ; table for helicopter sprite codes for animation (#$20 bytes)
 ; each byte is a sprite code, e.g. sprite_c5, sprite_c6, etc.
+.ifdef Probotector
+helicopter_sprite_anim_tbl:
+    .byte $c5,$c5,$c5,$c5,$c5,$c5,$c5,$c5,$c5,$c6,$c7,$c8,$c9,$ca,$cb,$cb
+    .byte $cb,$cb,$cb,$cb,$cb,$cb,$cb,$cb,$cb,$cb,$cb,$cb,$cb,$cb,$cb,$cb
+
+; pattern table tile codes and palette codes - after destruction (#$43 bytes)
+destroyed_island_tile_tbl:
+    .byte $01,$0e,$04,$22,$29,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    .byte $00,$00,$00,$22,$49,$00,$00,$00,$00,$00,$00,$00,$00,$00,$71,$72
+    .byte $73,$00,$00,$22,$69,$6f,$00,$00,$71,$00,$6f,$75,$7c,$75,$7e,$7f
+    .byte $75,$74,$7d,$23,$da,$aa,$aa,$aa,$aa,$aa,$aa,$aa,$aa,$aa,$aa,$aa
+    .byte $aa,$aa,$aa
+.else
 helicopter_sprite_anim_tbl:
     .byte $c5,$c6,$c7,$c5,$c6,$c7,$c5,$c6,$c7,$c5,$c8,$c9,$ca,$cb,$cc,$cd
     .byte $ce,$cc,$cd,$ce,$cc,$cd,$ce,$cc,$cd,$ce,$cc,$cd,$ce,$cc,$cd,$ce
@@ -376,6 +394,7 @@ destroyed_island_tile_tbl:
     .byte $72,$00,$00,$22,$69,$7c,$00,$00,$70,$00,$7c,$74,$7e,$74,$80,$81
     .byte $74,$73,$7f,$23,$da,$aa,$aa,$aa,$aa,$aa,$aa,$aa,$aa,$aa,$aa,$aa
     .byte $aa,$aa,$aa
+.endif
 
 ; tables for ending scene sprites (#$a * #$3 = #$1e bytes)
 ; byte 0: delay
@@ -739,9 +758,15 @@ ending_credits_16:
 ending_credits_17:
     .byte $06,$0b,$4e,$40,$53,$41,$54,$4f
 
+.ifdef Probotector
+; AC TEAM
+ending_credits_18:
+    .byte $07,$0b,$41,$43,$00,$54,$45,$41,$4d
+.else
 ; AC CONTRA TEAM
 ending_credits_18:
     .byte $0e,$0b,$41,$43,$00,$43,$4f,$4e,$54,$52,$41,$00,$54,$45,$41,$4d
+.endif
 
 ; PRESENTED BY
 ending_credits_1c:

@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.1
+; Contra US Disassembly - v1.2
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 3 starts with the data that specifies which pattern table tiles comprises
 ; super-tiles along with the color palettes.  This bank also has the routines
@@ -978,10 +978,23 @@ level_8_supertile_data:
     .byte $00,$00,$01,$03,$00,$00,$11,$13,$9d,$9d,$2e,$2f,$ad,$ad,$90,$3f
     .byte $00,$00,$00,$00,$00,$00,$00,$00,$9d,$9d,$9d,$9d,$ad,$ad,$ad,$ad
     .byte $ef,$63,$f0,$61,$72,$73,$70,$71,$02,$03,$02,$03,$12,$13,$12,$13
-    .byte $ef,$63,$f0,$61,$72,$73,$70,$71,$f1,$43,$f2,$fd,$52,$53,$50,$fe
-    .byte $00,$00,$00,$00,$00,$00,$00,$00,$f1,$43,$fc,$fd,$52,$53,$50,$fe
+.ifdef Probotector
+    ; Probotector's super-tiles match the Japanese version of the game
+    .byte $ef,$63,$f0,$61,$72,$73,$70,$71,$f1,$43,$f2,$86,$52,$53,$50,$96 ; alien guardian wall shells
+    .byte $00,$00,$00,$00,$00,$00,$00,$00,$f1,$43,$fc,$86,$52,$53,$50,$96 ; alien guardian wall shells
+.else
+    ; Contra modified the shells to be more decrepit
+    .byte $ef,$63,$f0,$61,$72,$73,$70,$71,$f1,$43,$f2,$fd,$52,$53,$50,$fe ; alien guardian wall shells
+    .byte $00,$00,$00,$00,$00,$00,$00,$00,$f1,$43,$fc,$fd,$52,$53,$50,$fe ; alien guardian wall shells
+.endif
     .byte $00,$ac,$8e,$8f,$00,$9c,$9e,$9f,$00,$a9,$ae,$af,$00,$ac,$8c,$8d
-    .byte $00,$00,$f0,$61,$00,$00,$70,$71,$02,$03,$f2,$fd,$12,$13,$50,$fe
+.ifdef Probotector
+    ; Probotector's super-tiles match the Japanese version of the game
+    .byte $00,$00,$f0,$61,$00,$00,$70,$71,$02,$03,$f2,$41,$12,$13,$50,$51 ; alien guardian wall shells
+.else
+    ; Contra modified the shells to be more decrepit
+    .byte $00,$00,$f0,$61,$00,$00,$70,$71,$02,$03,$f2,$fd,$12,$13,$50,$fe ; alien guardian wall shells
+.endif
     .byte $00,$00,$f0,$61,$00,$00,$70,$71,$00,$00,$f2,$41,$00,$00,$50,$51
     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$fc,$41,$00,$00,$50,$51
     .byte $8e,$8f,$8e,$8f,$9e,$9f,$9e,$9f,$9c,$9c,$ae,$af,$00,$a9,$8c,$8d

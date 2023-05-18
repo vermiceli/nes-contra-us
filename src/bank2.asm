@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.1
+; Contra US Disassembly - v1.2
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 2 starts with RLE-encoded level data (graphic super tiles for the level
 ; screens).  It then contains compressed tile data and alternate tile data and
@@ -798,16 +798,28 @@ set_player_paused_sprite_attr:
 @invincibility_check:
     ldy INVINCIBILITY_TIMER,x
     beq @set_player_recoil_and_bg_priority ; jump if not invincible
-    lda #$04                               ; a = #$04
+    lda #$04                               ; a = #$04 (sprite code palette override bit)
 
 @continue2:
-    sta $00                     ; store sprite code for player in $00
-    lda FRAME_COUNTER           ; load frame counter
+    sta $00                          ; store sprite code for player in $00
+.ifdef Probotector
+    lda probotector_sprite_palette,X ; player 2 sprite palette alternates between red and gray
+                                     ; instead of red and blue like player 1 (and like player 2 in Contra)
+    tay                              ; transfer sprite palette to y
+    lda FRAME_COUNTER                ; load frame counter
     eor player_effect_xor_tbl,x
-    ldy #$04
-    and $00
-    beq @continue3              ; branch if sprite attribute is still #$00
-    ldy #$05                    ; y = #$05 (override sprite code palette with palette 1)
+.else
+    lda FRAME_COUNTER                ; load frame counter
+    eor player_effect_xor_tbl,x
+    ldy #$04                         ; sprite palette #$00 (red and blue)
+.endif
+    and $00                          ; see if sprite code palette override is set
+    beq @continue3                   ; branch if sprite attribute is still #$00
+.ifdef Probotector
+    ldy #$06                         ; y = #$06 (override sprite code palette with palette 2)
+.else
+    ldy #$05                         ; y = #$05 (override sprite code palette with palette 1)
+.endif
 
 @continue3:
     tya ; transfer sprite attribute to a
@@ -842,6 +854,13 @@ sprite_attr_start_tbl:
 ; second byte is player 2 effect xor value
 player_effect_xor_tbl:
     .byte $00,$ff
+
+.ifdef Probotector
+; first byte is player 1
+; second byte is player 2
+probotector_sprite_palette:
+    .byte $04,$05
+.endif
 
 set_player_sprite:
     lda PLAYER_WATER_STATE,x

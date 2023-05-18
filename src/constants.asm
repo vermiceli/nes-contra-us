@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.1
+; Contra US Disassembly - v1.2
 ; https://github.com/vermiceli/nes-contra-us
 ; constants.asm contains the list of constants with meaningful names for the
 ; memory addresses used by the game. It also contains constants for the various
@@ -9,7 +9,7 @@ GAME_MODE                      = $18   ; 0 for normal, 1 for demo, 3 for intro
 GAME_ROUTINE_INDEX             = $18   ; which part of the game routine to execute (see game_routine_pointer_table)
 GAME_END_ROUTINE_INDEX         = $19   ; which part of the ending sequence to execute (see game_end_routine_tbl)
 GAME_ROUTINE_INIT_FLAG         = $19   ; used to determine if the current game_routine has initialized, used in game_routine_02 and game_routine_03
-FRAME_COUNTER                  = $1a   ; the frame counter loops from #$00 to #$ff increments once per frame
+FRAME_COUNTER                  = $1a   ; the frame counter loops from #$00 to #$ff increments once per frame. Also known as the global timer
 NMI_CHECK                      = $1b   ; set to #$01 at start of nmi and #$00 at end
                                        ; used to track if nmi occurred during game loop
                                        ; bit 7 is set when inside play_sound, i.e. init_sound_code_vars
