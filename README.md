@@ -67,6 +67,11 @@ based on your environment.
 * `build.sh` - bash script to be used in unix environments, or on Windows
   environments with bash support (Git bash, WSL, etc.)
 
+### Video Instructions
+If you prefer video build instructions, @jdsilva has published a video on
+YouTube called
+[Contra ROM Compiling Tutorial](https://www.youtube.com/watch?v=Sa1O3S5YK5U)
+
 ## Documentation
 
 Supplemental materials have been added that help explain interesting features of
