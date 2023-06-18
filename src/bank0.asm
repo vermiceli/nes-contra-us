@@ -9539,10 +9539,11 @@ alien_mouth_routine_ptr_tbl:
     .addr enemy_routine_remove_enemy   ; CPU address $e806 from bank 7
 
 ; set mouth hp and draw open mouth super-tile
-; alien mouth hp = (#$02 * GAME_COMPLETION_COUNT) + (PLAYER_WEAPON_STRENGTH + #$03)
+; alien mouth hp = (#$02 * GAME_COMPLETION_COUNT) + (PLAYER_WEAPON_STRENGTH + #$04)
 alien_mouth_routine_00:
     lda PLAYER_WEAPON_STRENGTH      ; load player's weapon strength
-    adc #$03                        ; add #$03 to player weapon strength
+    adc #$03                        ; add #$04 to player weapon strength (carry is always set here)
+                                    ; because the carry flag is set from the cmp #$10 check before to run `exec_level_enemy_routine`
     sta $08                         ; store PLAYER_WEAPON_STRENGTH + #$03 in $08
     lda GAME_COMPLETION_COUNT       ; load the number of times the game has been completed
     asl                             ; double the number of times the game has been completed
@@ -9919,12 +9920,14 @@ alien_spider_set_ground_vel_and_routine:
     lda #$04                   ; a = #$04
     jmp set_enemy_routine_to_a ; set routine to alien_spider_routine_03
 
-; alien spider hp = weapon strength + completion count + 1
+; alien spider hp = weapon strength + completion count + 2
+; 
 set_alien_spider_hp_sprite_attr:
     lda PLAYER_WEAPON_STRENGTH  ; load player weapon strength
     adc GAME_COMPLETION_COUNT   ; add with the number of times the game has been completed
     adc #$01                    ; add #$01
-    sta ENEMY_HP,x              ; set enemy hp (weapon strength + completion count + 1)
+    sta ENEMY_HP,x              ; set enemy hp (weapon strength + completion count + 2)
+                                ; 2 because the carry flag is set from the cmp #$10 check before to run `exec_level_enemy_routine`
     lda #$60                    ; a = #$60
     sta ENEMY_ANIMATION_DELAY,x ; set enemy animation frame delay counter
     lda ENEMY_Y_POS,x           ; load enemy y position on screen

@@ -4062,13 +4062,12 @@ set_player_weapon_strength:
     rts
 
 ; table for weapon strength code (#$05 bytes)
-; Regular = Weak
-; M = Strong
-; F = Medium
-; S = Very Strong
-; L = Strong
 weapon_strength:
-    .byte $00,$02,$01,$03,$02
+    .byte $00 ; Regular = Weak
+    .byte $02 ; M = Strong
+    .byte $01 ; F = Medium
+    .byte $03 ; S = Very Strong
+    .byte $02 ; L = Strong
 
 ; run logic based on players current state
 ; #$00 falling into level

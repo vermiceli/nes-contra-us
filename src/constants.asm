@@ -32,7 +32,8 @@ DELAY_TIME_HIGH_BYTE           = $2b   ; the high byte of the delay
 LEVEL_ROUTINE_INDEX            = $2c   ; the index into level_routine_ptr_tbl of the routine to run
 END_LEVEL_ROUTINE_INDEX        = $2d   ; offset into either end_level_sequence_ptr_tbl or end_game_sequence_ptr_tbl
 DEMO_FIRE_DELAY_TIMER          = $2e   ; the number of frames to delay before starting to fire when demoing
-PLAYER_WEAPON_STRENGTH         = $2f   ; the damage strength of the player's current weapon (see weapon_strength) bits 0-2 of P1_CURRENT_WEAPON,x
+PLAYER_WEAPON_STRENGTH         = $2f   ; the damage strength of the player's current weapon (see weapon_strength) based on bits 0-2 of P1_CURRENT_WEAPON,x
+                                       ; Default = #$00, M = #$02, F = #$01, S = #$03, L = #$02
 CURRENT_LEVEL                  = $30   ; #$00-#$09, #$00 to #$07 represent levels 1 through 8. #$9 is interpreted as game over sequence
 GAME_COMPLETION_COUNT          = $31   ; the number of times the game has been completed (final boss defeated)
 P1_NUM_LIVES                   = $32   ; P1 number of lives, #$00 is last life, on game over stays #$00, but P1_GAME_OVER_STATUS becomes #$01
