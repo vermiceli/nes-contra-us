@@ -169,6 +169,10 @@ heart can be.
 (PLAYER_WEAPON_STRENGTH * 16) + 55 + (GAME_COMPLETION_COUNT * 16)
 ```
 
+Note if `PLAYER_WEAPON_STRENGTH * 16` is larger than 255, then the results will
+wrap around. So sometimes the HP is actually lower than a previous playthrough
+where `GAME_COMPLETION_COUNT` was lower.  This occurs every 16 loops.
+
 | Completion Count | Result (hex) | Result (decimal) |
 |------------------|--------------|------------------|
 | 0                | #$67         | 103              |
@@ -177,5 +181,13 @@ heart can be.
 | 3                | #$97         | 151              |
 | 4                | #$a0         | 160              |
 | 5                | #$a0         | 160              |
+| ...              | ...          | ...              |
+| 15               | #$a0         | 160              |
+| 16               | #$67         | 103              |
+| 17               | #$77         | 119              |
+| 18               | #$87         | 135              |
+| 19               | #$97         | 151              |
+| 20               | #$a0         | 160              |
+| 21               | #$a0         | 160              |
 
 All sample results assume the player's `PLAYER_WEAPON_STRENGTH` is 3 (S weapon).

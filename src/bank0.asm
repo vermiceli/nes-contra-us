@@ -8938,14 +8938,14 @@ alien_guardian_routine_00:
 set_guardian_and_heart_enemy_hp:
     jsr set_game_completion_10x ; $07 = #$10 * GAME_COMPLETION_COUNT
     lda PLAYER_WEAPON_STRENGTH  ; load player's weapon strength
-    jsr mv_low_nibble_to_high   ; move low nibble into high nibble, setting low nibble to all 0
+    jsr mv_low_nibble_to_high   ; move low nibble into high nibble, setting low nibble to all 0, i.e. PLAYER_WEAPON_STRENGTH * #$10
     clc                         ; clear carry in preparation for addition
     adc #$37                    ; add #$37 to a
-    bcs @set_max_hp
-    adc $07
-    bcs @set_max_hp
-    cmp #$a0
-    bcc @set_enemy_hp
+    bcs @set_max_hp             ; if this caused an overflow set HP to #$a0
+    adc $07                     ; no overflow occurred, add (#$10 * GAME_COMPLETION_COUNT)
+    bcs @set_max_hp             ; if this caused an overflow set HP to #$a0
+    cmp #$a0                    ; see if sum is larger than #$a0
+    bcc @set_enemy_hp           ; branch if sum is smaller than #$a0 to set sum to result; otherwise use max HP of #$a0
 
 @set_max_hp:
     lda #$a0 ; a = #$a0 (max hp)
@@ -9921,7 +9921,6 @@ alien_spider_set_ground_vel_and_routine:
     jmp set_enemy_routine_to_a ; set routine to alien_spider_routine_03
 
 ; alien spider hp = weapon strength + completion count + 2
-; 
 set_alien_spider_hp_sprite_attr:
     lda PLAYER_WEAPON_STRENGTH  ; load player weapon strength
     adc GAME_COMPLETION_COUNT   ; add with the number of times the game has been completed
