@@ -77,7 +77,7 @@ graphic_data_06:
 ; horizontal flip, different location in right pattern table
 ; CPU address $a003
 graphic_data_10:
-    .byte $00,$16
+    .byte $00,$16 ; PPU write address
 
 ; compressed graphics data - code 0a (#$341 bytes)
 ; right pattern table data - writes addresses [$1100-$1520)
@@ -105,7 +105,9 @@ graphic_data_12:
     .incbin "assets/graphic_data/graphic_data_12.bin"
 
 ; compressed graphics data - code 01 (#$e8c bytes)
-; pattern table for intro, level title, game over screens
+; Used for intro screen, level title screens, and game over screens.
+; Contains Contra logo, Bill and Lance (both sprite and pattern)
+; all the letters and numbers, as well as falcon selector cursor tiles.
 ; used by graphic_data_02 nametable data
 ; pattern table data - writes addresses [$0ce0-$1f80)
 ; last #$80 bytes of pattern table not used
@@ -508,7 +510,7 @@ load_credits_line_text:
     stx GRAPHICS_BUFFER_OFFSET        ; update graphics buffer offset
     ldx #$43                          ; x = #$43
     lda #$20                          ; a = #$20
-    jsr advance_graphic_read_addr     ; advance read address ($00-$01) a bytes
+    jsr advance_graphic_read_addr     ; advance 2-byte read address $43 by #$20 bytes
 
 game_end_routine_exit_2:
     rts

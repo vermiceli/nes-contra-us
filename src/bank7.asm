@@ -1976,10 +1976,10 @@ continue_shift_score:
     bne shift_and_check_digit_carry
     rts
 
-; advance read address ($00,x - $01,x) by a bytes
-; increment 2-byte read address in $00,$01 by 1
-; uses x register as offset from $00
-; a is the amount to add to the base address
+; advance 2-byte read address $00,x by a bytes
+; input
+;  * a - the amount to add to the graphic read address
+;  * x - the absolute index offset from $00 where the 2-byte read address exists, i.e. $00,x
 advance_graphic_read_addr:
     clc       ; clear the carry bit
     adc $00,x ; set a to the value at $00,x plus a
@@ -2250,6 +2250,7 @@ write_graphic_data_to_ppu:
     lda graphic_data_ptr_tbl+2,x ; load byte that stores bank number as well as whether or not to horizontally flip
     and #$80                     ; %1000 0000 (check the msb), if msb is 1, then block will be flipped horizontally
     sta $04                      ; store whether or not flip the entire graphic data horizontally into $04
+                                 ; #$80 = flip, #$00 = no flip
     lda graphic_data_ptr_tbl+2,x ; re-read the bank number to load the graphics from
     and #$07                     ; clear out the flip horizontal bit (only care about the last 3 bits which specify the bank number)
     tay                          ; store the bank number where data is in Y
@@ -2270,15 +2271,18 @@ begin_ppu_graphics_block_write:
     dey                         ; move to low byte
     lda ($00),y                 ; read low byte from ROM location specified by $00 and $01
     sta PPUADDR                 ; set low byte of PPU address location to write to
-    lda #$02                    ; a = #$02
+    lda #$02                    ; a = #$02 (input to advance_graphic_read_addr, used to skip 2-byte PPU address)
     ldx $04                     ; load horizontal flip bit
-    bpl init_graphic_data_index ; if set, then skip doubling
-    asl                         ; double a to be #$04 to skip 4 bytes
+    bpl init_graphic_data_index ; #$00 = no flip, #$80 = flip, if positive don't double since no horizontal flip
+    asl                         ; $04 = #$80 so flipping horizontally, double a to be #$04 to skip 2 additional bytes
+                                ; this skips the real PPU address as well as the PPU address specified in the referenced graphic data
+                                ; for example, graphic_data_10 has PPU address of $1600 and is flipped from graphic_data_0a
+                                ; must skip the 2 bytes at the start of graphic_data_0a
 
 ; increment the next address to use for the PPU
 init_graphic_data_index:
     ldx #$00
-    jsr advance_graphic_read_addr ; advance past the PPU address and start reading graphic data data
+    jsr advance_graphic_read_addr ; advance past the PPU address and start reading graphic data
 
 ; reads the next graphics byte compression sequence and writes it to the PPU
 ; multiple times depending on the number of repetitions specified
@@ -2290,26 +2294,28 @@ write_graphic_data_sequences_to_ppu:
     cmp #$7f                       ; used to specify the PPU write address should change to the address specified in the next 2 bytes)
     beq change_ppu_write_address
     tay                            ; store number of repetitions in Y
-    bpl write_graphic_byte_a_times ; if msb of graphic byte is 1 (> #$7f), write the following byte multiple times
-    and #$7f                       ; clear bit 7
-    sta $02                        ; store positive portion in $02
-    ldy #$01                       ; prepare to read next n graphic bytes
+    bpl write_graphic_byte_a_times ; if byte is < #$7f, write the following byte multiple times
+    and #$7f                       ; byte is < #$7f, clear bit 7
+    sta $02                        ; store positive portion in $02, this is the number of bytes to write to PPU
+    ldy #$01                       ; skip past size byte, prepare to read next n graphic bytes
 
 ; writes the next n bytes of the graphic compression sequence to the PPU, starting at offset Y
-; where n is the value in $02
+; input
+;  * $02 - the number of bytes to write
+;  * y - the graphic data read offset
 write_next_n_sequence_bytes:
     lda ($00),y                        ; read graphic byte
     ldx $04                            ; load graphic data horizontal flip bit value
-    bpl write_repetition_sequence_byte ; if not flipping graphic byte, go to write_repetition_sequence_byte
-    jsr horizontal_flip_graphic_byte
+    bpl write_repetition_sequence_byte ; branch if not flipping graphic byte
+    jsr horizontal_flip_graphic_byte   ; flipping horizontally, flip data before writing to PPU
 
 ; writes value of a to the PPU
 ; then determines if done with n bytes of graphic data
 write_repetition_sequence_byte:
     sta PPUDATA                           ; write graphic byte to PPU
-    cpy $02                               ; see if Y has incremented to the positive portion of repetition byte
-    beq advance_graphic_read_addr_n_bytes ; advance offset past already-written bytes
-    iny                                   ; have not written $02 times, repeat
+    cpy $02                               ; see if written all n repetitions
+    beq advance_graphic_read_addr_n_bytes ; written all n bytes, update base graphic read address
+    iny                                   ; have not written $02 times, write next byte
     bne write_next_n_sequence_bytes       ; loop $02 times
 
 ; advances the address of the current graphic byte offset by n bytes
@@ -2320,8 +2326,8 @@ advance_graphic_read_addr_n_bytes:
     adc $02  ; set A to the number of bytes to skip (they've already been written to the PPU)
 
 advance_ppu_write_addr:
-    ldx #$00
-    jsr advance_graphic_read_addr
+    ldx #$00                                ; specifies that the 2-byte graphic read address is located at $00
+    jsr advance_graphic_read_addr           ; advance graphic read address by a bytes
     jmp write_graphic_data_sequences_to_ppu
 
 ; write the next graphic byte to the PPU A times ($02)
@@ -2366,9 +2372,9 @@ horizontal_flip_graphic_byte:
 
 ; changes the PPU address where the graphic data bytes are written to
 change_ppu_write_address:
-    lda #$01                           ; load the low byte of second nametable address (#$00)
-    ldx #$00                           ; load the high byte of the second nametable address (#$24)
-    jsr advance_graphic_read_addr
+    lda #$01                           ; specifies to increment graphic read address by 1 byte
+    ldx #$00                           ; specifies that the 2-byte graphic read address is located at $00
+    jsr advance_graphic_read_addr      ; increment 2-byte graphic read address at $00 by 1 byte
     jmp begin_ppu_graphics_block_write ; start populating nametable with zeros
 
 ; handle when entire graphic data code has been read
@@ -2843,10 +2849,10 @@ set_alt_graphics_cpu_buffer:
     beq alt_graphics_loading_complete
     lda #$20                          ; a = #$20
     ldx #$6e                          ; x = #$6e
-    jsr advance_graphic_read_addr     ; advance address 6e-6f by 20 bytes
+    jsr advance_graphic_read_addr     ; advance 2-byte read address $6e by #$20 bytes
     lda #$20                          ; a = #$20
     ldx #$6c                          ; x = #$6c
-    jmp advance_graphic_read_addr     ; advance address 6c-6d by 20 bytes
+    jmp advance_graphic_read_addr     ; advance 2-byte read address $6c by #$20 bytes
 
 alt_graphics_loading_complete:
     lda #$00                          ; a = #$00
@@ -4347,8 +4353,13 @@ calc_player_x_vel:
     cmp @lvl_boss_max_x_scroll_tbl,y    ; compare player x position to the maximum x position for boss screen
     bcs @exit                           ; exit if can't move past x position
 
+; !(BUG?) for vertical waterfall level.  Player y velocity has already been applied this frame
+; this allows for the platform skip technique that speedrunners utilize by carefully controlling PLAYER_JUMP_COEFFICIENT
+; note that when facing left, this bug does not apply because @player_negative_x_vel doesn't check scroll
+; since you can't scroll left in Contra
 @set_scroll_apply_x_vel:
     jsr set_frame_scroll_if_appropriate ; set FRAME_SCROLL and PLAYER_FRAME_SCROLL if player is causing screen to scroll
+                                        ; note this is called for the vertical level as well
     jmp @apply_vel_to_player_x_pos
 
 ; table for maximum x position on boss screen to allow player to walk ($08 bytes)
@@ -4489,8 +4500,8 @@ set_jump_status_and_y_velocity:
     sta PLAYER_ANIMATION_FRAME_INDEX,x
     lda LEVEL_LOCATION_TYPE            ; 0 = outdoor; 1 = indoor
     lsr
-    lda #$fb                           ; a = #$fb
-    ldy #$f0                           ; y = #$f0
+    lda #$fb                           ; a = #$fb (-5)
+    ldy #$f0                           ; y = #$f0 (.94)
     bcc @set_y_velocity                ; branch if outdoor level (use y velocity -5.94)
     lda #$fc                           ; indoor level, (y velocity -4.56), set fast velocity to #$fc (-4)
     ldy #$90                           ; set fractional y velocity to #$90 (.56)
@@ -4694,8 +4705,10 @@ handle_jump:
     lda LEVEL_SCROLLING_TYPE            ; 0 = horizontal, indoor/base; 1 = vertical
     beq @set_y_pos                      ; branch if horizontal level to to set the y position based on velocity
     jsr set_frame_scroll_if_appropriate ; vertical level, set FRAME_SCROLL and PLAYER_FRAME_SCROLL if player is causing screen to scroll
+                                        ; when scrolling occurs player y velocity sets scroll amount and player y position is unchanged
     bcs @set_jump_status_from_input     ; branch if vertical FRAME_SCROLL was set
 
+; no vertical scroll, apply velocity to player position
 @set_y_pos:
     jsr player_jumping_set_y_pos ; set player y position based on PLAYER_JUMP_COEFFICIENT and velocity
 
@@ -4761,7 +4774,7 @@ update_indoor_electrocution:
 indoor_transition_set_pos:
     lda #$05                            ; a = #$05
     sta PLAYER_SPRITE_SEQUENCE,x        ; player animation frame
-    lda PLAYER_JUMP_COEFFICIENT,x       ; load player's jump modifier (alters height of jump)
+    lda PLAYER_JUMP_COEFFICIENT,x       ; not used as player's jump modifier in indoor levels, instead
                                         ; used when animating walking into screen for indoor levels to keep track of overflows
                                         ; to adjust y position
     clc                                 ; clear carry in preparation for addition
@@ -5045,7 +5058,6 @@ get_player_bg_collision_code:
 @exit:
     rts
 
-
 ; increments y fractional velocity by #$23 (applying gravity) and then sets y position
 ; based on y velocity and PLAYER_JUMP_COEFFICIENT
 apply_gravity_set_y_pos:
@@ -5055,12 +5067,12 @@ apply_gravity_set_y_pos:
 player_jumping_set_y_pos:
     lda PLAYER_Y_FAST_VELOCITY,x ; load player's fast y velocity
     asl                          ; shift negative bit to carry flag
-    lda #$00                     ; player falling down, or not falling (0 velocity)
+    lda #$00                     ; player falling downward, or not falling (0 velocity)
     bcc @continue                ; branch if player is moving down (down or #$00 y velocity)
     lda #$ff                     ; player moving up
 
 @continue:
-    sta $08                       ; store either #$00 or #$ff in $08
+    sta $08                       ; store either #$00 (falling down or not falling) or #$ff (moving up) in $08
     lda PLAYER_JUMP_COEFFICIENT,x ; load player's jump modifier (alters height of jump)
     clc                           ; clear carry in preparation for addition
     adc PLAYER_Y_FRACT_VELOCITY,x ; add to player's fractional y velocity
@@ -5073,11 +5085,11 @@ player_jumping_set_y_pos:
     sta PLAYER_HIDDEN,x           ; set whether to draw player sprite, not sure how this is really supposed to be used
     rts
 
-; increments y fractional velocity by #$23 (applying gravity)
+; apply gravity by incrementing y fractional velocity by #$23 (.1367 in decimal)
 apply_gravity:
     clc
     lda PLAYER_Y_FRACT_VELOCITY,x ; load player's y fractional velocity
-    adc #$23                      ; add #$23 to y fractional velocity
+    adc #$23                      ; add #$23 to y fractional velocity (.1367 decimal)
     sta PLAYER_Y_FRACT_VELOCITY,x ; update player's y fractional velocity
     lda PLAYER_Y_FAST_VELOCITY,x  ; load player's fast y velocity
     adc #$00                      ; add carry into high byte (any overflow when adding to fractional y velocity)
@@ -5166,15 +5178,16 @@ set_frame_scroll_if_appropriate:
 horizontal_scroll_point_tbl:
     .byte $80,$80,$b0
 
-; sets FRAME_SCROLL if needed on vertical level
+; sets FRAME_SCROLL if needed on vertical level (going up)
 ; sees if player is jumping up and high enough to cause scrolling
 ; if so sets FRAME_SCROLL to the right value based on Y velocity and PLAYER_JUMP_COEFFICIENT
+; instead of moving player sprite based on velocity, moves scroll based on velocity
 ; output
-;  * carry flag - #$01 set when scroll initiated, #$00 when scroll not initiated
+;  * carry flag - set when scroll initiated, clear when scroll not initiated
 set_vertical_level_frame_scroll:
     lda SPRITE_Y_POS,x            ; load player y position
     cmp #$50                      ; compare to #$50
-    bcs @exit                     ; exit if player y position > #$50, i.e. far down the screen
+    bcs @exit                     ; exit if player y position >= #$50, i.e. far down the screen
                                   ; once player is above #$50, scrolling up is initiated
     lda PLAYER_Y_FAST_VELOCITY,x  ; load player's y fast velocity byte
     bpl @exit                     ; exit if player falling down
@@ -5183,17 +5196,18 @@ set_vertical_level_frame_scroll:
     lda PLAYER_JUMP_COEFFICIENT,x ; player is jumping up, load player's jump modifier (alters height of jump)
     clc                           ; clear carry in preparation for addition
     adc PLAYER_Y_FRACT_VELOCITY,x ; add the player's fractional velocity to the jump modifier
-    sta PLAYER_JUMP_COEFFICIENT,x ; update player's jump modifier (alters height of jump)
+    sta PLAYER_JUMP_COEFFICIENT,x ; update player's jump modifier (randomizes height of jump)
     lda SPRITE_Y_POS,x            ; re-load player y position
-    adc PLAYER_Y_FAST_VELOCITY,x  ; add player y fast velocity
+    adc PLAYER_Y_FAST_VELOCITY,x  ; add (or subtract) player y fast velocity
+                                  ; (with any possible carry from the fractional velocity)
     sta $08                       ; store sum in $08
     lda SPRITE_Y_POS,x            ; re-load player y position
     sec                           ; set carry flag in preparation for subtraction
-    sbc $08                       ; subtract one frame of distance of the jump
+    sbc $08                       ; subtract calculated position to get scroll distance
     sta FRAME_SCROLL              ; store scroll amount
     lda #$01                      ; a = #$01
     sta PLAYER_FRAME_SCROLL,x     ; set player scroll amount for player causing scroll
-    sec                           ; set carry flag
+    sec                           ; set carry flag so calling method knows frame scroll happened
     rts
 
 @exit:

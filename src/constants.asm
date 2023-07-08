@@ -127,6 +127,7 @@ PLAYER_STATE                    = $90 ; #$00 falling into level (only run once t
                                       ; $91 is for p2, if p2 not playing, set to #$00
 INDOOR_TRANSITION_X_ACCUM       = $92 ; a variable to store INDOOR_TRANSITION_X_FRACT_VEL being added to itself to account for overflow before adding to player x velocity when moving between screens on indoor/base levels
 PLAYER_JUMP_COEFFICIENT         = $94 ; related to jump height (used by speed runners to jump higher) (https://www.youtube.com/watch?v=K7MjxHvWof8 and https://www.youtube.com/watch?v=yrnW9yQXa9I)
+                                      ; used to keep track of fractional y velocity on vertical levels for overflowing fractional velocity. It isn't cleared between jumps
                                       ; also used when walking into screen for indoor screen changes to keep track of overflow of animation y fractional velocity
                                       ; $95 is for player 2
 INDOOR_TRANSITION_X_FRACT_VEL   = $96 ; indoor animation transition when walking into screen x fractional velocity

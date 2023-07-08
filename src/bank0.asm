@@ -7434,8 +7434,8 @@ fire_beam_not_firing_sprite_tbl:
 
 ; pointer table for boss robot (#$a * #$2 = #$14 bytes)
 boss_giant_soldier_routine_ptr_tbl:
-    .addr boss_giant_soldier_routine_00 ; CPU address $ab93
-    .addr boss_giant_soldier_routine_01 ; CPU address $abb3
+    .addr boss_giant_soldier_routine_00 ; CPU address $ab93 - set hp sprite, y position and animation delay
+    .addr boss_giant_soldier_routine_01 ; CPU address $abb3 - wait for animation delay
     .addr boss_giant_soldier_routine_02 ; CPU address $abbf
     .addr boss_giant_soldier_routine_03 ; CPU address $ac7b
     .addr boss_giant_soldier_routine_04 ; CPU address $acd4
@@ -7445,7 +7445,7 @@ boss_giant_soldier_routine_ptr_tbl:
     .addr boss_giant_soldier_routine_08 ; CPU address $ad9b
     .addr boss_giant_soldier_routine_09 ; CPU address $adad
 
-; boss robot - pointer 0
+; boss robot - pointer 0 - set hp sprite, y position and animation delay
 boss_giant_soldier_routine_00:
 .ifdef Probotector
     stx ENEMY_CURRENT_SLOT              ; backup current enemy slot number
@@ -7471,7 +7471,7 @@ boss_giant_soldier_routine_00:
     sta ENEMY_ANIMATION_DELAY,x         ; set enemy animation frame delay counter
     bne giant_soldier_adv_enemy_routine
 
-; boss robot - pointer 1
+; boss robot - pointer 1 - wait for delay
 boss_giant_soldier_routine_01:
     jsr update_enemy_pos                ; apply velocities and scrolling adjust
     dec ENEMY_ANIMATION_DELAY,x         ; decrement enemy animation frame delay counter
@@ -7609,7 +7609,7 @@ set_giant_soldier_palette:
     and #$07          ; keep bits .... .xxx
     cmp #$03          ; only update palette every #$04 frames
     bne @exit
-    lda ENEMY_HP,x    ; every #$04 frames, check palette, load chance enemy hp
+    lda ENEMY_HP,x    ; every #$04 frames, check palette, load enemy hp
     cmp #$20          ; normal palette if hp >= #$20
     bcs @exit
     ldy #$51          ; palette #$01 (palette for medium damage)

@@ -72,6 +72,8 @@ used for this enemy type.
 | #$04              | level 3 dragon boss fire ball                 | sprite_79 | #$01    | #$02           |
 | #$05 (snow field) | #$00 override (see `enemy_bullet_routine_01`) | sprite_07 | #$02    | #$00           |
 
+Bullet types #$01 and #$02 are sometimes colloquially referred to as tomatoes.
+
 ### 02 - Pill Box Sensor
 
 * Other Names: Weapon Box
@@ -281,7 +283,7 @@ There are 3 enemies that are specific to Level 1 - Jungle.
 
 ### 10 - Bomb Turret
 
-* Other Names: Blaster Cannon, Repeater Cannon, Destroi
+* Other Names: Blaster Cannon, Repeater Cannon, Destroi, Dikembe turret
 
 One of 2 cannons on the Jungle level boss defense wall.  Shoots projectiles that
 fall in an arching motion.
@@ -299,7 +301,7 @@ turret and matches the black background.
 
 ### 11 - Plated Door
 
-* Other Names: Wall Plated Door, Boss Wall Plated Door
+* Other Names: Wall Plated Door, Boss Wall Plated Door, Dikembe
 
 The target shot on the Jungle level boss defense wall.  When shown it causes
 a quick siren sound to play.  It does not fire back and has an initial health of
@@ -854,10 +856,23 @@ These 4 enemy types are very similar. They differ in the direction they fire
 
 ### 13 - Giant Boss Soldier
 
-* Other Names: Gordea, JJ, Jumping Joey, Giant Boss Robot, Giant Armored
-  Soldier, Boss Giant
+* Other Names: Gordea, JJ, Jumping Joey, Jumping Jack Flash, Giant Boss Robot,
+  Giant Armored Soldier, Boss Giant
 
-No attributes exist for this enemy.
+No attributes exist for this enemy.  His health is calculated based on player's
+`PLAYER_WEAPON_STRENGTH` value.  The formula is below
+
+```
+(PLAYER_WEAPON_STRENGTH * #$08) + #$40
+```
+
+| Weapon  | Strength |
+|---------|----------|
+| Default | 0        |
+| M       | 2        |
+| F       | 1        |
+| S       | 3        |
+| L       | 2        |
 
 #### Logic
 
@@ -869,6 +884,7 @@ No attributes exist for this enemy.
   * y position of door when opening
 * `ENEMY_VAR_3` - delay timer between sections of the door before opening
 * `ENEMY_VAR_4` - number of consecutive thrown saucers
+* `ENEMY_HP` - (`PLAYER_WEAPON_STRENGTH` * #$08) + #$40
 
 ### 14 - Spiked Projectile
 
@@ -1044,7 +1060,7 @@ randomly be generated on the left side.
 
 ### 10 - Emperor Demon Dragon God Java
 
-* Other Names: Alien Guardian, Red Falcon (formerly)
+* Other Names: Alien Guardian, Red Falcon (formerly), Alien Mini-Boss
 
 Worm-like alien who generates bundles (enemy type #$11).
 
@@ -1098,7 +1114,7 @@ They are no attributes for this enemy type.
 
 ### 13 - Poisonous Insect Gel
 
-* Other Names: White Sentient Blob, White Blob
+* Other Names: White Sentient Blob, White Blob, Cottonball, Cotton Ball
 
 They are no attributes for this enemy type.
 
