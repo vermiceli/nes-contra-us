@@ -370,7 +370,7 @@ addresses in NES like Object Attribute Memory (OAM).
 
 # Palette
 The NES supports 4 palettes for the nametables (background) and 4 palettes for
-sprites.  A palette is a set of 3 colors. For nametables, one palette is shared
+sprites.  A palette is a set of 4 colors. For nametables, one palette is shared
 for each square 16x16 set of 4 pattern table tiles.  For sprites, each tile in a
 sprite has its own palette.
 
@@ -388,7 +388,8 @@ level header starting at byte offset 15 (see `LEVEL_PALETTE_INDEX`).  Each of
 the next 8 bytes specify an entry into `game_palettes`. The first 4 bytes are
 the nametable palette colors, and the next 4 bytes are the sprite palette
 colors. Each entry in `game_palettes` specifies the 3 colors that make up the
-palette.
+palette.  Each palette always starts with a black color #$0f.  Combined this
+is how the 4 colors of each palette are determined.
 
 ## Fade-In Effect
 _Contra_ supports a fade in effect for nametable palettes.  This effect is used
@@ -448,17 +449,33 @@ compression algorithm known as
 
 The idea of this algorithm is that the graphics data will have long "runs" of
 repeated information.  So instead of specifying the same byte over and over, it
-can be encoded so that the number of repetitions is specified.  Essentially,
-instead of
- * #$00 #$00 #$00 #$00 #$00 #$00 #$00 #$00 #$00
-It can be represented like
- * #$89 #$00
+can be encoded so that the number of repetitions is specified.  In addition,
+_Contra_'s algorithm specifies when a run of bytes isn't the same.  Below is
+an example that can help clarify.
+
+Below is an example of un-compressed graphics data
+```
+#$00 #$00 #$00 #00 #$00 #$00 #$0e #$1f #$07 #$04 #$c0
+```
+
+When compressed, it becomes
+
+```
+#$06 #$00 #$85 #$0e #$1f #$07 #$0f #$c0 #$ff
+```
+
+The special codes in this sequence are #$06, #$85, and #$ff
+
+#$06 means the next byte #$00 is repeated 6 times.  Since the next code has bit
+7 set, #$85 means to write the next 5 bytes to the PPU.  Finally, #$ff means the
+sequence is complete.
 
 Interestingly, this algorithm is implemented twice in _Contra_: once for pattern
 table tiles (`write_graphic_data_to_ppu` and once again for super-tile
-screen indexes (`load_supertiles_screen_indexes`).
+screen indexes (`load_supertiles_screen_indexes`).  Each implementation is
+slightly different.
 
-## Pattern Table Decompression
+## graphic_data_xx Decompression
 The graphic data is loaded from ROM directly to the PPU.  Not only is the
 graphic data compressed, it also includes command bytes that specify where in
 the PPU to write the data to.  This section outlines how the data is read and
@@ -474,15 +491,77 @@ starting at PPU address $0680 (pattern table).
 After the first two bytes are read, the following algorithm reads the graphics
 data section.  When reading the graphic data, if the most significant bit of the
 graphic data byte is set, i.e 1, then the byte is treated as a command byte.
-There are 3 command byte types
+There are 4 command byte types, evaluated in the following order
 
   * #$ff - specifies the end of graphic data
-  * #$7f - tells the algorithm to change PPU write address to the next 2 bytes
-    specified.
-  * bit 7 set - any byte larger than #$7f, or alternatively, any byte that has
-    its most significant bit set to 1 is treated as a RLE command to write the
-    next byte of data multiple times to the PPU.  This excludes #$ff, which
-    always means end of graphic data
+  * #$7f - command byte specifies to change PPU write address to the next 2
+    bytes specified.
+  * less than #$7f - or alternatively, any command byte that has its most
+    significant bit clear is treated as a RLE command to write the subsequent
+    byte to the PPU multiple times.  The number of times to repeatedly write the
+    next byte is specified by the command byte value.
+  * greater than #$7f - or alternatively, any command byte that has its most
+    significant bit set is (but not #$ff) is interpreted as a command to write
+    the next string of bytes to the PPU.  The number of bytes to write to the
+    PPU is specified by bits 0-6 of the command byte.
+
+Below is some pseudocode for decompressing a graphics section and writing it to
+the PPU.  Note that due to the implementation, you can only flip graphics data
+horizontally when that data only writes to a single PPU address location.
+
+```
+parse_ppu_address() {
+  byte b = read_next_byte();
+  write_to_PPUADDR(b);
+  b = read_next_byte();
+  write_to_PPUADDR(b);
+
+  if(flip_horizontally) {
+    read_next_byte();
+    read_next_byte();
+  }
+}
+
+while(true) {
+  parse_ppu_address();
+  byte b = read_next_byte();
+  if(b == 0xff) {
+    // finished decompressing graphics data
+    return;
+  }
+
+  while(true) {
+    if(b == 0x7f) {
+      // finished reading one section of compressed graphic
+      // next bytes are new PPU address
+      break;
+    }
+
+    if(b < 0x7f) {
+      // write same byte multiple times
+      byte numberOfRepetitions = b;
+      for (byte i = 0; i < numberOfRepetitions; i++) {
+        if(flip_horizontally) {
+          b = flip_horizontally(b);
+        }
+
+        write_to_PPUDATA(b);
+      }
+    } else if(b > 0x7f) {
+      // write next numberOfBytesToWrite bytes directly to PPU
+      byte numberOfBytesToWrite = b & 0x7f;
+      for (byte i = 0; i < numberOfBytesToWrite; i++) {
+        byte d = read_next_byte();
+        if(flip_horizontally) {
+          d = flip_horizontally(d);
+        }
+
+        write_to_PPUDATA(d);
+      }
+    }
+  }
+}
+```
 
 Level section data not encoded exactly the same way
 `level_1_supertiles_screen_ptr_table`

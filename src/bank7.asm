@@ -2293,25 +2293,26 @@ write_graphic_data_sequences_to_ppu:
     beq end_graphic_code           ; loaded entire graphics data, restore previously loaded bank, re-init PPU
     cmp #$7f                       ; used to specify the PPU write address should change to the address specified in the next 2 bytes)
     beq change_ppu_write_address
-    tay                            ; store number of repetitions in Y
-    bpl write_graphic_byte_a_times ; if byte is < #$7f, write the following byte multiple times
-    and #$7f                       ; byte is < #$7f, clear bit 7
+    tay                            ; store command code byte in y
+    bpl write_graphic_byte_a_times ; branch if byte is < #$7f to write the next byte multiple times (RLE-command)
+    and #$7f                       ; byte has bit 7 set (negative), code is writing a string of bytes
+                                   ; clear bit 7 to get number of bytes to write from compressed data
     sta $02                        ; store positive portion in $02, this is the number of bytes to write to PPU
     ldy #$01                       ; skip past size byte, prepare to read next n graphic bytes
 
-; writes the next n bytes of the graphic compression sequence to the PPU, starting at offset Y
+; writes the next n bytes of the compressed graphic data to the PPU, starting at offset Y
 ; input
-;  * $02 - the number of bytes to write
+;  * $02 - the number of bytes to write (n)
 ;  * y - the graphic data read offset
 write_next_n_sequence_bytes:
-    lda ($00),y                        ; read graphic byte
-    ldx $04                            ; load graphic data horizontal flip bit value
-    bpl write_repetition_sequence_byte ; branch if not flipping graphic byte
-    jsr horizontal_flip_graphic_byte   ; flipping horizontally, flip data before writing to PPU
+    lda ($00),y                      ; read graphic byte
+    ldx $04                          ; load graphic data horizontal flip bit value
+    bpl @write_byte_to_ppu           ; branch if not flipping graphic byte
+    jsr horizontal_flip_graphic_byte ; flipping horizontally, flip data before writing to PPU
 
 ; writes value of a to the PPU
-; then determines if done with n bytes of graphic data
-write_repetition_sequence_byte:
+; then determines if done with the n-length byte sequence of graphic data
+@write_byte_to_ppu:
     sta PPUDATA                           ; write graphic byte to PPU
     cpy $02                               ; see if written all n repetitions
     beq advance_graphic_read_addr_n_bytes ; written all n bytes, update base graphic read address
@@ -2320,10 +2321,12 @@ write_repetition_sequence_byte:
 
 ; advances the address of the current graphic byte offset by n bytes
 ; where n is the value in $02 + #$1
+; the #$01 is necessary to skip passed the command byte
 advance_graphic_read_addr_n_bytes:
-    lda #$01
+    lda #$01 ; advancing graphic byte read address by 1 (size of repetition string)
     clc      ; clear carry in preparation for addition
-    adc $02  ; set A to the number of bytes to skip (they've already been written to the PPU)
+    adc $02  ; skip over the bytes just written the PPU
+             ; a now has the number of bytes to skip
 
 advance_ppu_write_addr:
     ldx #$00                                ; specifies that the 2-byte graphic read address is located at $00
