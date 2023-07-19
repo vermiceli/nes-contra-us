@@ -131,15 +131,15 @@ PLAYER_JUMP_COEFFICIENT         = $94 ; related to jump height (used by speed ru
                                       ; also used when walking into screen for indoor screen changes to keep track of overflow of animation y fractional velocity
                                       ; $95 is for player 2
 INDOOR_TRANSITION_X_FRACT_VEL   = $96 ; indoor animation transition when walking into screen x fractional velocity
-                                      ; $98 is for player 2
+                                      ; $97 is for player 2
+PLAYER_X_VELOCITY               = $98 ; the player's fast x velocity (#$00, #$01, or #$ff)
+                                      ; $99 is for p2
 INDOOR_TRANSITION_Y_FRACT_VEL   = $9a ; indoor animation transition when walking into screen y fractional velocity
                                       ; $9b is for player 2
 INDOOR_TRANSITION_Y_FAST_VEL    = $9c ; indoor animation transition when walking into screen y fast velocity
                                       ; $9d is for player 2
 PLAYER_ANIM_FRAME_TIMER         = $9e ; value that is incremented every frame when player is walking, used to wait #$08 frames before incrementing PLAYER_ANIMATION_FRAME_INDEX for animating player walking
                                       ; $9f is for player 2
-PLAYER_X_VELOCITY               = $98 ; the player's fast x velocity (#$00, #$01, or #$ff)
-                                      ; $99 is for p2
 PLAYER_JUMP_STATUS              = $a0 ; the status of the player jump (facing direction); similar to EDGE_FALL_CODE
                                       ; high nibble is for facing direction
                                       ; bit 7 - set when jumping left
@@ -197,6 +197,9 @@ PLAYER_RECOIL_TIMER             = $ce ; how many frames to be pushed back/down f
                                       ; $cf is for player 2
 INDOOR_PLAYER_ADV_FLAG          = $d0 ; whether or not the player is walking into screen when advancing between screens on indoor levels, used for animating player
                                       ; $d1 is for player 2
+PLAYER_SPECIAL_SPRITE_TIMER     = $d2 ; used to track animation for player death animation
+                                      ; outdoor is a timer that increments once player hit, ever #$08 frames updates to next animation frame until #$04
+                                      ; also used to track jumping curl animation (loops from #$00-#$04)
 PLAYER_FAST_X_VEL_BOOST         = $d4 ; the x fast velocity boost from landing on a non-dangerous enemy, e.g. moving cart or floating rock in vertical level
 PLAYER_SPRITE_CODE              = $d6 ; sprite code of the player
                                       ; $d7 is for player 2
@@ -205,9 +208,6 @@ PLAYER_SPRITE_FLIP              = $d8 ; stores player sprite horizontal (bit 6) 
 PLAYER_BG_FLAG_EDGE_DETECT      = $da ; bit 7 specifies the player's sprite attribute for background priority, allows player to walk behind opaque background (OAM byte 2 bit 5)
                                       ; 0 (clear) sprite in foreground, 1 (set) sprite is background
                                       ; bit 0 allows the player to keep walking horizontally off a ledge without falling
-PLAYER_SPECIAL_SPRITE_TIMER     = $d2 ; used to track animation for player death animation
-                                      ; outdoor is a timer that increments once player hit, ever #$08 frames updates to next animation frame until #$04
-                                      ; also used to track jumping curl animation (loops from #$00-#$04)
 PLAYER_GAME_OVER_BIT_FIELD      = $df ; combination of both players game over status
                                       ; #$00 = p1 not game over, p2 game over (or not playing), #$01 = p1 game over, p2 not game over, #$02 = p1 nor p2 are in game over
 SOUND_TABLE_PTR                 = $ec ; low byte of address pointing of index into sound_table_00 offset INIT_SOUND_CODE
@@ -234,6 +234,8 @@ SOUND_CMD_LOW_ADDR          = $0112 ; low byte of address to current sound comma
 SOUND_CMD_HIGH_ADDR         = $0118 ; high byte of address to current sound command in sound_xx data. #$06 slots, one per sound slot
 SOUND_VOL_ENV               = $011e ; either an offset into pulse_volume_ptr_tbl (c.f. LVL_PULSE_VOL_INDEX) which specifies the volume for the frame
                                     ; or a specific volume to use. when bit 7 is set, then the volume will auto decrescendo
+SOUND_CURRENT_SLOT          = $0120 ; the current sound slot [#$00-#$05]
+PERCUSSION_INDEX_BACKUP     = $0121 ; backup location for percussion_tbl index to restore after call to play_sound
 INIT_SOUND_CODE             = $0122 ; the sound code to load; sound codes greater than #$5a are dmc sounds
 SOUND_CHNL_REG_OFFSET       = $0123 ; sound channel configuration register offset, i.e. #$00 for first pulse channel, #$04 for second, #$08 for triangle, #$0c for noise
 SOUND_FLAGS                 = $0124 ; sound channel flags
@@ -250,8 +252,6 @@ SOUND_FLAGS                 = $0124 ; sound channel flags
 LVL_PULSE_VOL_INDEX         = $012a ; index into lvl_x_pulse_volume_xx to read
 PULSE_VOL_DURATION          = $012a ; the number of video frames to decrement the volume for, before stopping decrescendo and keeping final volume
 PAUSE_STATE_01              = $012f ; whether or not the game is paused, used for sound logic
-SOUND_CURRENT_SLOT          = $0120 ; the current sound slot [#$00-#$05]
-PERCUSSION_INDEX_BACKUP     = $0121 ; backup location for percussion_tbl index to restore after call to play_sound
 DECRESCENDO_END_PAUSE       = $0130 ; number of video frames before end of sound command in which the decrescendo will resume
                                     ; $0131 is for pulse channel 2
 SOUND_PITCH_ADJ             = $0132 ; the amount added to the sound byte low nibble before loading the correct note_period_tbl values
