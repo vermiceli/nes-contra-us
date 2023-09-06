@@ -755,7 +755,7 @@ level_6_palette_data:
 level_6_nametable_update_palette_data:
     .byte $aa,$aa,$aa,$55,$55,$00,$00
 
-; namespace animation tiles codes - level 7 (#$c * #$5 = #$3c bytes)
+; nametable animation tiles codes - level 7 (#$c * #$5 = #$3c bytes)
 ; first byte is number of groups of length 2 to update of data being written
 ; e.g. byte 0 (#$83) means to draw three rows of two tiles each
 ; $0c $0d store the ppu write address

@@ -86,7 +86,8 @@ PPU_WRITE_ADDRESS_LOW_BYTE      = $62 ; used to populate the PPU write address i
 PPU_WRITE_ADDRESS_HIGH_BYTE     = $63 ; used to populate the PPU write address in the CPU_GRAPHICS_BUFFER
 LEVEL_SCREEN_NUMBER             = $64 ; the screen number of the current level (how many screens into the level)
 LEVEL_SCREEN_SCROLL_OFFSET      = $65 ; the number of pixels into LEVEL_SCREEN_NUMBER the level has scrolled. Goes from $00-$ff for each screen (256 pixels)
-                                      ; for horizontal levels, this is how many pixels scrolled to the right, for vertical levels, this is how many pixels up scrolled
+                                      ; for horizontal levels, this is how many pixels scrolled to the right
+                                      ; for vertical levels, this is how many pixels up scrolled, note this value is equal to #$f0 - VERTICAL_SCROLL
                                       ; for indoor levels, after defeating a wall, increases from #$00 to #03
 ATTRIBUTE_TBL_WRITE_LOW_BYTE    = $66 ; the low byte of the attribute table write address to write to (always #$c0, never read)
 ATTRIBUTE_TBL_WRITE_HIGH_BYTE   = $67 ; the high byte of the attribute table write address to write to
@@ -220,8 +221,8 @@ CONTROLLER_STATE_DIFF           = $f5 ; stores the difference between the contro
 CTRL_KNOWN_GOOD                 = $f9 ; used in input-reading code to know the last known valid read of controller input (similar to CONTROLLER_STATE)
 VERTICAL_SCROLL                 = $fc ; the number of pixels to vertically scroll down
                                       ; (y component of PPUSCROLL) (see level_vert_scroll_and_song for initial values)
-                                      ; outdoor levels are always #$e0 (224 pixels or 28 tiles down), indoor/base are always #$e8 (232 or 29 tiles down)
-                                      ; waterfall level starts at #$00 and decrements as players move up screen (wrapping)
+                                      ; horizontal levels are always #$e0 (224 pixels or 28 tiles down), indoor/base are always #$e8 (232 or 29 tiles down)
+                                      ; waterfall level (vertical level) starts at #$00 and decrements as players move up screen (wrapping)
 HORIZONTAL_SCROLL               = $fd ; the horizontal scroll component of the PPUSCROLL, [#$0 - #$ff]
 PPUMASK_SETTINGS                = $fe ; used to store value of PPUMASK before writing to PPU
 PPUCTRL_SETTINGS                = $ff ; used to set PPUCTRL value for next frame

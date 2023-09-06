@@ -4679,8 +4679,8 @@ handle_jump:
     clc                          ; clear carry in preparation for addition
     adc VERTICAL_SCROLL          ; add vertical scroll offset
     and #$0f                     ; keep bits .... xxxx
-    cmp #$08                     ; see if result ends in #$08
-    bcs @apply_gravity           ; branch to check collision every #$08 pixels
+    cmp #$08                     ; seeing if result is less than #$08
+    bcs @apply_gravity           ; branch to check collision only when result is less than #$08
 
 @check_collision:
     jsr get_player_bg_collision_code ; get player background collision code
@@ -4698,9 +4698,9 @@ handle_jump:
     tay                           ; set y position for bg collision check
     lda SPRITE_X_POS,x            ; load x position for bg collision check
     jsr get_bg_collision          ; determine player background collision code at position (a,y)
-    bpl @apply_gravity            ; branch if not empty collision code (floor, water, solid)
-    lda #$00                      ; a = #$00
-    sta PLAYER_Y_FAST_VELOCITY,x
+    bpl @apply_gravity            ; branch if not solid collision
+    lda #$00                      ; solid collision above player, set Y velocity to #$00
+    sta PLAYER_Y_FAST_VELOCITY,x  ; gravity will then pull the player down
     sta PLAYER_Y_FRACT_VELOCITY,x
 
 @apply_gravity:
@@ -5899,10 +5899,11 @@ load_column_of_tiles_to_cpu_buffer:
 ;   - looped through until all tiles for a single column have been written
 ;   - ultimately is called 4 times for each super-tile because each time renders only 1 column of pattern table tiles for the super-tile
 ; * updates the in-memory background collision (BG_COLLISION_DATA) information (set_tile_collision)
-; Y is the LEVEL_SCREEN_SUPERTILES offset (level_X_supertiles_screen_XX)
-; $03 is the column offset of the super-tile to write to CPU_GRAPHICS_BUFFER block (currently drawing column)
 ; #$37 super-tiles per screen for horizontal levels
 ; #$40 super-tiles per screen for vertical levels
+; input
+;  * y - is the LEVEL_SCREEN_SUPERTILES offset (level_X_supertiles_screen_XX)
+;  * $03 - is the column offset of the super-tile to write to CPU_GRAPHICS_BUFFER block (currently drawing column)
 ; CPU address #$df48
 load_level_supertile_data:
     lda #$00                       ; initialize LEVEL_SUPERTILE_DATA_PTR read offset
@@ -5983,7 +5984,7 @@ set_vert_lvl_super_tiles:
     and #$03                        ; keep bits .... ..xx
     asl
     asl
-    sta $02
+    sta $02                         ; byte offset into the super-tile
     lda PPU_WRITE_TILE_OFFSET
     and #$1c                        ; keep bits ...x xx..
     asl
@@ -6000,13 +6001,14 @@ set_vert_lvl_super_tiles:
 @set_supertile_tiles:
     lda #$00                       ; a = #$00
     sta $08
-    lda LEVEL_SCREEN_SUPERTILES,y  ; read byte specifying which super-tile to load (level_X_supertiles_screen_XX)
+    lda LEVEL_SCREEN_SUPERTILES,y  ; read byte specifying which super-tile to load
+                                   ; decompressed level_X_supertiles_screen_XX data
     asl
     asl
     rol $08
     asl
     rol $08
-    asl
+    asl                            ; 4 total asl instructions since each super-tile is #$10 bytes
     rol $08
     adc LEVEL_SUPERTILE_DATA_PTR   ; (bank 3 pointer)
     sta $00
@@ -6164,8 +6166,8 @@ write_row_attribute_to_cpu_memory:
 
 ; determine tile collision code (0-3) for the pattern table tile updates BG_COLLISION_DATA
 ; input
-;  * a - namespace tile code from the super-tile
-;  * y - level namespace tile offset (level_X_SUPERTILE_data offset)
+;  * a - nametable tile code from the super-tile
+;  * y - level nametable tile offset (level_X_SUPERTILE_data offset)
 ; tile code 0 is always set to collision code 0
 set_tile_collision:
     sty $14                         ; store super-tile tile data read offset in $14 (LEVEL_SUPERTILE_DATA_PTR offset)
@@ -6173,15 +6175,16 @@ set_tile_collision:
     bne tile_collision_exit         ; exit if $11 is set
     tay                             ; move the pattern table tile code to Y
     beq set_collision_code_0        ; tile index is #$00, set to collision code 0 (empty)
+                                    ; tile index #$00 is always collision code #$0
     cmp COLLISION_CODE_1_TILE_INDEX ; compare against collision code 1 tile index
-    bcs collision_code_0_check      ; pattern table tile is not collision code 1, check to see if collision code 0
+    bcs collision_code_0_check      ; branch if pattern table tile is not collision code 1, check to see if collision code 0
     lda #$01                        ; set collision code to 1 (floor)
     bne collision_continue          ; continue
 
 ; check if empty collision code
 collision_code_0_check:
     cmp COLLISION_CODE_0_TILE_INDEX
-    bcs collision_code_2_check      ; tile index is greater than collision code 2 limit, check if collision code 03
+    bcs collision_code_2_check      ; tile index is greater than collision code 0 limit, check if collision code 2
 
 set_collision_code_0:
     lda #$00               ; set collision code to 0 (empty)
@@ -6208,7 +6211,7 @@ collision_continue:
     asl
     asl
     asl
-    asl                          ; shift the tile code (2 bits) all the way to the left 2 bits
+    asl                          ; shift the collision code (2 bits) all the way to the left 2 bits
     sta $15                      ; store modified collision code for super-tile into $15
     ldy $12                      ; load BG_COLLISION_DATA write offset
     lda BG_COLLISION_DATA,y      ; load existing collision byte (each byte contains collision data for 2 super-tiles)
@@ -6221,7 +6224,7 @@ set_collision_tile_col_2:
     asl
     asl
     asl
-    asl                          ; shift the tile code (2 bits) all the way to the bits 5 and 4 (..xx ....)
+    asl                          ; shift the collision code (2 bits) all the way to the bits 5 and 4 (..xx ....)
     sta $15                      ; store shifted collision code for super-tile into $15
     ldy $12                      ; load BG_COLLISION_DATA write offset
     lda BG_COLLISION_DATA,y      ; load existing collision byte (each byte contains collision data for 2 super-tiles)
@@ -6232,7 +6235,7 @@ set_collision_tile_col_3:
     dey                          ; see if second column by subtracting stored write offset
     bne set_collision_tile_col_4 ; if not the second column, branch to see if 4th
     asl
-    asl                          ; shift the tile code (2 bits) to the bits 2 and 2 (.... xx..)
+    asl                          ; shift the collision code (2 bits) to the bits 2 and 2 (.... xx..)
     sta $15                      ; store collision code for super-tile into $15
     ldy $12                      ; load BG_COLLISION_DATA write offset
     lda BG_COLLISION_DATA,y      ; load existing collision byte (each byte contains collision data for 2 super-tiles)
@@ -6537,6 +6540,7 @@ load_next_next_supertiles_screen_indexes:
     adc #$02                           ; add #$02 to load screen in the future
     bne load_supertiles_screen_indexes ; decompress and load super-tile indexes into LEVEL_SCREEN_SUPERTILES
 
+; load the super tile indexes for the upcoming screen into memory at LEVEL_SCREEN_SUPERTILES
 load_next_supertiles_screen_indexes:
     lda LEVEL_SCREEN_NUMBER            ; load current screen number within the level
     clc                                ; clear carry in preparation for addition

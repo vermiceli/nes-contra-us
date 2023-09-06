@@ -436,7 +436,7 @@ game_end_routine_04:
     bne game_end_routine_exit ; exit if not the 8th frame (scroll every 8 frames)
     inc VERTICAL_SCROLL       ; vertical scroll offset
     lda VERTICAL_SCROLL
-    cmp #$f0                  ; see if the view window needs to be set back to $2000 (scroll reached bottom of $2800 namespace)
+    cmp #$f0                  ; see if the view window needs to be set back to $2000 (scroll reached bottom of $2800 nametable)
     bne @continue             ; branch if no need to reset base nametable write address and vertical scroll
     lda #$20                  ; initialize PPU write address to #$200 and set/reset VERTICAL_SCROLL
     sta $44                   ; write nametable address high byte for PPU address #$2000

@@ -4251,7 +4251,7 @@ draw_player_hud_sprites:
     stx $04
     rts
 
-; table for hud sprites (#$10 bytes)
+; table for hud sprites, references pattern table tiles (#$10 bytes)
 ; medals for number of lives or
 ; GAME
 ; OVER
@@ -4272,7 +4272,7 @@ set_x_adv_OAMDMA_addr:
 adv_OAMDMA_addr:
     txa      ; move current write offset to a
     clc      ; clear carry in preparation for addition
-    adc #$c4 ; add #$c4 to current write offset ()
+    adc #$c4 ; add #$c4 to current write offset
     tax      ; move new offset back to x
     rts
 
