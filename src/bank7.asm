@@ -3651,6 +3651,7 @@ set_ending_palette_animation:
     bne set_a_to_palette_2
 
 ; number of palettes to cycle through per level (LEVEL_PALETTE_CYCLE)
+; CPU address $d181
 lvl_palette_animation_count:
     .byte $04,$04,$03,$04,$04,$04,$04,$04,$04
 
@@ -8920,7 +8921,7 @@ find_far_segment_for_a:
     tya ; move far_segment_code_tbl into a
     rts
 
-; table for ?? (#$7 bytes)
+; table for segment based on distance (#$7 bytes)
 far_segment_code_tbl:
     .byte $ff,$94,$8c,$84,$7c,$74,$6c
 

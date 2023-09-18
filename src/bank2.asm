@@ -726,7 +726,7 @@ level_2_4_boss_supertiles_screen_01:
 ; nametable data - writes addresses [$2000-$2400)
 ; "1 PLAYER"
 ; "2 PLAYERS"
-; "TM AND C 1988"
+; "TM AND © 1988"
 ; "KONAMI INDUSTRY"
 ; "CO.,LTD"
 ; "LICENSED BY"
@@ -1708,6 +1708,7 @@ exe_soldier_generation:
     jsr run_routine_from_tbl_below ; run routine a in the following table (soldier_generation_ptr_tbl)
 
 ; pointer table for soldier generation (#$3 * #$2 = #$6 bytes)
+; CPU address $b537
 soldier_generation_ptr_tbl:
     .addr soldier_generation_00 ; CPU address $b53d
     .addr soldier_generation_01 ; CPU address $b581

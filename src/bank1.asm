@@ -22,6 +22,7 @@
 
 ; pointer table for music of level 1 (#$8 * #$2 = #$10 bytes)
 ; related to pulse channel config registers
+; CPU address $8001
 pulse_volume_ptr_tbl:
     .addr lvl_1_pulse_volume_00 ; CPU address $91dd
     .addr lvl_1_pulse_volume_01 ; CPU address $91e5
@@ -269,6 +270,7 @@ handle_sound_code:
 ; set new PULSE_VOLUME,x byte from lvl_x_pulse_volume_xx based on LVL_PULSE_VOL_INDEX,x and set pulse 1 and 2 configuration (volume)
 ; based on newly loaded PULSE_VOLUME,x, UNKNOWN_SOUND_01, and SOUND_CFG_HIGH,x
 ; called for simple sound commands as well
+; CPU address $8154
 ; input
 ;  * x - sound channel offset
 lvl_config_pulse:
@@ -413,6 +415,7 @@ handle_sound_code_exit_01:
 ; This mode is used for pulse channels only
 ; read sound byte and if not [#$fd-#$ff] interpret_sound_byte otherwise sound_cmd_routine_03
 ; SOUND_FLAGS,x is odd, indicating initial sound code byte was < #$30
+; CPU address $81e7
 read_low_sound_cmd:
     lda ($e0),y               ; read sound_xx byte at current offset
     cmp #$fd                  ; compare to #$fd
@@ -598,6 +601,7 @@ play_percussive_sound:
 
 ; contains sound codes to play the intro theme (#$08 bytes)
 ; related to music tracks instruments
+; CPU address $82cd
 ;  * sound_02 - percussive tick (bass drum/tom drum)
 ;  * sound_25 - game intro tune song noise explosion
 ;  * sound_5a - dmc sample (high hat)

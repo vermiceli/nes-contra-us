@@ -120,6 +120,7 @@ run_game_end_routine:
     jsr run_routine_from_tbl_below ; run routine a in the following table (game_end_routine_tbl)
 
 ; pointer table for ending (6 * 2 = c bytes)
+; CPU address $b8be
 game_end_routine_tbl:
     .addr game_end_routine_00 ; CPU address $b8ca (fade away)
     .addr game_end_routine_01 ; CPU address $b8d3 (screen melt and init for game_end_routine_02)
@@ -212,6 +213,7 @@ game_end_routine_03:
 
 ; pointer table for ending scenes (#$03 * #$02 = #06 bytes)
 ; analogous to end_level_sequence_ptr_tbl, but for end of game
+; CPU address $b949
 end_game_sequence_ptr_tbl:
     .addr end_game_sequence_00 ; CPU address $b94f
     .addr end_game_sequence_01 ; CPU address $b98f
@@ -665,7 +667,7 @@ ending_credits_00:
 ; $5a = Z
 ; $87 = !
 ; $b0 = ,
-; $c3 = ?
+; $c3 = ©
 ; $f7 = '
 ; ending credits text data
 ; byte 0: number of bytes to process after byte 1

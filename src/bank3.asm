@@ -1225,6 +1225,7 @@ run_end_level_sequence_routine:
     jsr run_routine_from_tbl_below ; run routine a in the following table (end_level_sequence_ptr_tbl)
 
 ; pointer table for end of level sequences (#$3 * #$2 = #$6 bytes)
+; CPU address $be09
 end_level_sequence_ptr_tbl:
     .addr end_level_sequence_00 ; CPU address $be0f
     .addr end_level_sequence_01 ; CPU address $be3c
@@ -1262,6 +1263,7 @@ end_level_sequence_00:
     lda #$20                  ; a = #$20
     jmp set_delay_adv_routine ; set LEVEL_END_DELAY_TIMER to #$20 and advance to end_level_sequence_01
 
+; CPU address $be3c
 end_level_sequence_01:
     lda LEVEL_END_DELAY_TIMER ; load level ending sequence delay timer
     beq @continue             ; continue if elapsed

@@ -9525,6 +9525,7 @@ alien_fetus_get_aim_timer:
     rts
 
 ; table for delay amount between re-aiming alien fetus toward player (#$e bytes)
+; CPU address $b7e8
 alien_fetus_aim_timer_tbl:
     .byte $16,$0f,$08,$13,$3a,$06,$21
     .byte $3a,$1d,$14,$12,$28,$48,$ff
