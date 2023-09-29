@@ -5,10 +5,9 @@
 ; palette colors.
 
 BANK_NUMBER                    = $8000
-GAME_MODE                      = $18   ; 0 for normal, 1 for demo, 3 for intro
 GAME_ROUTINE_INDEX             = $18   ; which part of the game routine to execute (see game_routine_pointer_table)
-GAME_END_ROUTINE_INDEX         = $19   ; which part of the ending sequence to execute (see game_end_routine_tbl)
-GAME_ROUTINE_INIT_FLAG         = $19   ; used to determine if the current game_routine has initialized, used in game_routine_02 and game_routine_03
+GAME_END_ROUTINE_INDEX         = $19   ; used after beating the game to know which part of the ending sequence to execute for sequencing the animations, credits, restart, etc. (see game_end_routine_tbl)
+GAME_ROUTINE_INIT_FLAG         = $19   ; (same address as above) used to determine if the current game_routine has been initialized, used in game_routine_02 and game_routine_03
 FRAME_COUNTER                  = $1a   ; the frame counter loops from #$00 to #$ff increments once per frame. Also known as the global timer
 NMI_CHECK                      = $1b   ; set to #$01 at start of nmi and #$00 at end
                                        ; used to track if nmi occurred during game loop

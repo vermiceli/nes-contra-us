@@ -233,7 +233,7 @@ vertical_blank_entry:
     lda PPUSTATUS            ; read PPU status with bit layout -> VSO- ----
     bpl vertical_blank_entry ; ensure still in VBLANK
     lda #$00                 ; clear accumulator
-    sta GAME_MODE            ; set the game mode to normal #$00 (not demo)
+    sta GAME_ROUTINE_INDEX   ; set the game routine index so that game is in game_routine_00
     jsr clear_ppu            ; initialize PPU
     ldx #$ff
     txs                      ; initialize stack pointer location to $01ff, stack range is from $01ff down to $0100 (descending stack)

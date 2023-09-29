@@ -542,7 +542,7 @@ game_end_routine_05:
     lda #$00                    ; a = #$00
     sta GRAPHICS_BUFFER_MODE    ; set GRAPHICS_BUFFER_MODE to #$00 to prepare writing text to screen (write_text_palette_to_mem)
     sta CURRENT_LEVEL           ; set current level to #$00
-    dec GAME_MODE               ; reset game mode to normal (not demo, not intro)
+    dec GAME_ROUTINE_INDEX      ; set game routine to be game_routine_05 to start the first level
     rts
 
 ; pointer table for ending credits text (#$49 * #$2 = #$90 bytes)
