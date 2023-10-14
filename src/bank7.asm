@@ -234,6 +234,7 @@ vertical_blank_entry:
     bpl vertical_blank_entry ; ensure still in VBLANK
     lda #$00                 ; clear accumulator
     sta GAME_ROUTINE_INDEX   ; set the game routine index so that game is in game_routine_00
+                             ; unnecessary because clear_memory below will also set the value to #$00
     jsr clear_ppu            ; initialize PPU
     ldx #$ff
     txs                      ; initialize stack pointer location to $01ff, stack range is from $01ff down to $0100 (descending stack)
@@ -1046,9 +1047,10 @@ dec_theme_delay_check_user_input:
     beq timer_exit                           ; if neither start nor select pressed, exit to continue animation
     jsr reset_delay_timer                    ; reset 2-byte delay timer to #$0240
     ldx GAME_ROUTINE_INDEX
-    cpx #$01                                 ; check if displaying a demo (in game_routine_02)
-    bne stop_demo_load_player_select_UI      ; not in player select UI, stop demo and show player select UI
-    ldx HORIZONTAL_SCROLL                    ; load horizontal component of the PPUSCROLL [#$0 - #$ff]
+    cpx #$01                                 ; check if showing intro animation scroll (in game_routine_01)
+    bne stop_demo_load_player_select_UI      ; branch if not in game_routine_01 (scrolling intro screen) to stop demo and show player select UI
+    ldx HORIZONTAL_SCROLL                    ; player pressed start, skip scrolling animation and load player select UI
+                                             ; load horizontal component of the PPUSCROLL [#$0 - #$ff]
     bne load_intro_palette2_play_intro_sound ; if intro animation scroll wasn't complete, load graphics palette and play intro theme
     and #$20                                 ; see if select button is pressed
     bne player_mode_change                   ; if select was pressed, update the cursor to point to either 1 PLAYER or 2 PLAYERS
@@ -1067,8 +1069,7 @@ player_mode_change:
 timer_exit:
     rts
 
-; user has pressed start or select while intro scrolling
-; skip scrolling animation and load player select UI
+; user has pressed start or select while a demo was playing
 stop_demo_load_player_select_UI:
     lda #$00
     sta GRAPHICS_BUFFER_MODE

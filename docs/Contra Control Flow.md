@@ -48,6 +48,15 @@ the game (if the player has made a selection), or show a demo level.
     (`dec_theme_delay_check_user_input`)
     * The timer resets if select is pressed
 
+While outside of the `game_routine_01` method, the `exe_game_routine` method
+will call `dec_theme_delay_check_user_input` for game routine `game_routine_00`,
+`game_routine_01`, and `game_routine_02`.  For `game_routine_01` this method
+will
+
+  * decrement timer used to wait for intro theme to play
+  * check whether the player has pressed the start button and if so stop the
+    intro scrolling animation and show player select UI
+
 ## game_routine_02
   * Load demo level and plays the level
   * Stop level when demo timer elapsed and loads next level to demo (only
