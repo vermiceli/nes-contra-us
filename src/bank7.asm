@@ -9148,7 +9148,7 @@ enemy_prop_00:
 
 ; indoor/base level enemies
 enemy_prop_01:
-    .byte $0b,$32,$01,$00 ; weapon zeppelin (03)
+    .byte $0b,$32,$01,$00 ; flying capsule/weapon zeppelin (03)
     .byte $8f,$22,$08,$00 ; rotating gun (04)
     .byte $83,$10,$01,$00 ; running man (05)
     .byte $83,$30,$01,$00 ; rifle man (06)
@@ -9427,7 +9427,7 @@ turret_man_routine_ptr_tbl:
     .addr enemy_routine_remove_enemy   ; CPU address $e806
 
 turret_man_routine_00:
-    lda #$bd                             ; a = #$bd
+    lda #$bd                             ; a = #$bd (sprite_bd)
     sta ENEMY_SPRITES,x                  ; write enemy sprite code to CPU buffer
     lda ENEMY_ATTRIBUTES,x               ; load enemy attributes
     asl

@@ -718,11 +718,11 @@ flying_capsule_vel_tbl:
 
 ; weapon zeppelin - pointer 2
 flying_capsule_routine_01:
-    lda #$4d                     ; a = #$4d
+    lda #$4d                     ; a = #$4d (sprite_4d)
     sta ENEMY_SPRITES,x          ; write enemy sprite code to CPU buffer
     lda LEVEL_SCROLLING_TYPE     ; 0 = horizontal, indoor/base; 1 = vertical
-    bne @continue
-    ldy #$01                     ; y = #$01
+    bne @continue                ; branch if indoor level
+    ldy #$01                     ; outdoor level; y = #$01
     jsr set_flying_capsule_y_vel
     jmp @update_enemy_pos
 
