@@ -116,7 +116,7 @@ screen to the other in a wave-like pattern.
 
 **ENEMY HP**: 1
 
-* ![sprite_4d](sprite_library/contra_sprites/sprite_4d.png?raw=true "sprite_4d")
+![sprite_4d](sprite_library/contra_sprites/sprite_4d.png?raw=true "sprite_4d")
 
 #### Attributes
 
@@ -159,8 +159,6 @@ Other Names: Running Man
 
 A soldier that can move to attack
 
-**ENEMY HP**: 1
-
 ![sprite_26](sprite_library/contra_sprites/sprite_26.png?raw=true "sprite_26")
 ![sprite_27](sprite_library/contra_sprites/sprite_27.png?raw=true "sprite_27")
 ![sprite_28](sprite_library/contra_sprites/sprite_28.png?raw=true "sprite_28")
@@ -170,6 +168,8 @@ A soldier that can move to attack
 ![sprite_3e](sprite_library/contra_sprites/sprite_3e.png?raw=true "sprite_3e")
 ![sprite_3f](sprite_library/contra_sprites/sprite_3f.png?raw=true "sprite_3f")
 ![sprite_40](sprite_library/contra_sprites/sprite_40.png?raw=true "sprite_40")
+
+**ENEMY HP**: 1
 
 #### Attributes
 
@@ -205,8 +205,6 @@ Other Names: Ledder, Rifle Man
 
 Stand in place and can fire in any direction
 
-**ENEMY HP**: 1
-
 ![sprite_40](sprite_library/contra_sprites/sprite_40.png?raw=true "sprite_40")
 ![sprite_29](sprite_library/contra_sprites/sprite_29.png?raw=true "sprite_29")
 ![sprite_2c](sprite_library/contra_sprites/sprite_2c.png?raw=true "sprite_2c")
@@ -215,6 +213,8 @@ Stand in place and can fire in any direction
 ![sprite_44](sprite_library/contra_sprites/sprite_44.png?raw=true "sprite_44")
 ![sprite_45](sprite_library/contra_sprites/sprite_45.png?raw=true "sprite_45")
 ![sprite_46](sprite_library/contra_sprites/sprite_46.png?raw=true "sprite_46")
+
+**ENEMY HP**: 1
 
 #### Attributes
 
@@ -288,9 +288,9 @@ screen.  These enemies generate a single mortar shot, but once the mortar shot
 reaches its vertical apex, 3 other mortar shots are generated.  The original
 mortar shot becomes an explosion.
 
-**ENEMY HP**: n/a
-
 ![sprite_20](sprite_library/contra_sprites/sprite_20.png?raw=true "sprite_20")
+
+**ENEMY HP**: n/a
 
 #### Attributes
 
@@ -345,6 +345,10 @@ Other Names: Turret Man, Mounted Soldier
 
 Other Names: Turret Man Bullet
 
+![sprite_1f](sprite_library/contra_sprites/sprite_1f.png?raw=true "sprite_1f")
+
+**ENEMY HP**: n/a
+
 ## Level 1 - Jungle
 
 There are 3 enemies that are specific to Level 1 - Jungle.
@@ -355,6 +359,8 @@ Other Names: Blaster Cannon, Repeater Cannon, Destroi, Dikembe turret
 
 One of 2 cannons on the Jungle level boss defense wall.  Shoots projectiles that
 fall in an arching motion.
+
+**ENEMY HP**: 16
 
 #### Attributes
 
@@ -375,12 +381,16 @@ The target shot on the Jungle level boss defense wall.  When shown it causes
 a quick siren sound to play.  It does not fire back and has an initial health of
 0x20 the first time you play the game.
 
+**ENEMY HP**: 32
+
 No attributes exist for this enemy.
 
 ### 12 - Exploding Bridge
 
 There are two bridges throughout level 1 that explode as the players cross them.
 The bridge is 4 super-tiles wide and explodes as the players cross it.
+
+**ENEMY HP**: n/a
 
 They are no attributes for this enemy type.
 
@@ -411,9 +421,32 @@ Other Names: Garmakilma, Boss Fire Eye
 
 Boss for level 2.
 
+![sprite_5d](sprite_library/contra_sprites/sprite_5d.png?raw=true "sprite_5d")
+![sprite_5e](sprite_library/contra_sprites/sprite_5e.png?raw=true "sprite_5e")
+![sprite_5f](sprite_library/contra_sprites/sprite_5f.png?raw=true "sprite_5f")
+![sprite_60](sprite_library/contra_sprites/sprite_60.png?raw=true "sprite_60")
+![sprite_61](sprite_library/contra_sprites/sprite_61.png?raw=true "sprite_61")
+![sprite_62](sprite_library/contra_sprites/sprite_62.png?raw=true "sprite_62")
+
+**ENEMY HP**: 16
+
+#### Logic
+
+Uses `ENEMY_VAR_1` to track HP.  `ENEMY_HP` is set to 1 so that the enemy
+destroyed routine can play a metal ting sound (`sound_16`) every collision.
+
+* `ENEMY_VAR_1` - Boss Eye's real HP
+
 ### 11 - Roller
 
 Other Names: Darr, Rolling Grenade
+
+![sprite_99](sprite_library/contra_sprites/sprite_99.png?raw=true "sprite_99")
+![sprite_9a](sprite_library/contra_sprites/sprite_9a.png?raw=true "sprite_9a")
+![sprite_9b](sprite_library/contra_sprites/sprite_9b.png?raw=true "sprite_9b")
+![sprite_9c](sprite_library/contra_sprites/sprite_9c.png?raw=true "sprite_9c")
+
+**ENEMY HP**: 5
 
 ### 12 - Grenade
 
@@ -421,6 +454,19 @@ Other Names: Hand Grenade
 
 Grenades are thrown by indoor soldiers (15) and grenade launchers (17) on indoor
 levels.
+
+![sprite_a0](sprite_library/contra_sprites/sprite_a0.png?raw=true "sprite_a0")
+![sprite_a1](sprite_library/contra_sprites/sprite_a1.png?raw=true "sprite_a1")
+![sprite_a2](sprite_library/contra_sprites/sprite_a2.png?raw=true "sprite_a2")
+![sprite_a3](sprite_library/contra_sprites/sprite_a3.png?raw=true "sprite_a3")
+![sprite_a4](sprite_library/contra_sprites/sprite_a4.png?raw=true "sprite_a4")
+![sprite_a5](sprite_library/contra_sprites/sprite_a5.png?raw=true "sprite_a5")
+![sprite_a6](sprite_library/contra_sprites/sprite_a6.png?raw=true "sprite_a6")
+![sprite_a7](sprite_library/contra_sprites/sprite_a7.png?raw=true "sprite_a7")
+![sprite_a8](sprite_library/contra_sprites/sprite_a8.png?raw=true "sprite_a8")
+![sprite_a9](sprite_library/contra_sprites/sprite_a9.png?raw=true "sprite_a9")
+
+**ENEMY HP**: n/a
 
 No attributes exist for this enemy.
 
@@ -437,6 +483,8 @@ No attributes exist for this enemy.
 ### 13 - Wall Turret
 
 Similar to #$08 Wall Cannon. Exists only in the indoor (base) levels.
+
+**ENEMY HP**: 4
 
 #### Attributes
 
@@ -459,6 +507,8 @@ allows advancement to next screen by disabling the electric fence.  These
 enemies have an delay before opening. Before opening, they are not able to be
 attacked.  Cores can be 'plated', meaning there is a protective wall that must
 be destroyed before you can attack the core directly.
+
+**ENEMY HP**: 8 or 16 (big core)
 
 #### Attributes
 
@@ -484,6 +534,12 @@ Other Names: Running Soldier, Running Guy
 
 Runs from one side of the screen to the other
 
+![sprite_93](sprite_library/contra_sprites/sprite_93.png?raw=true "sprite_93")
+![sprite_94](sprite_library/contra_sprites/sprite_94.png?raw=true "sprite_94")
+![sprite_95](sprite_library/contra_sprites/sprite_95.png?raw=true "sprite_95")
+
+**ENEMY HP**: 1
+
 #### Attributes
 
 * `... ..xx.` - weapon type (00 = shoot, 01 = grenades, 10 and 11 = drop
@@ -495,6 +551,12 @@ Runs from one side of the screen to the other
 Other Names: Jumping Guy, Jumping Guy
 
 Travels across the screen while jumping
+
+![sprite_97](sprite_library/contra_sprites/sprite_97.png?raw=true "sprite_97")
+![sprite_98](sprite_library/contra_sprites/sprite_98.png?raw=true "sprite_98")
+![sprite_93](sprite_library/contra_sprites/sprite_93.png?raw=true "sprite_93")
+
+**ENEMY HP**: 1
 
 #### Attributes
 
@@ -512,6 +574,13 @@ Travels across the screen while jumping
 Other Names: Seeking Guy
 
 Launches bomb grenades at user
+
+![sprite_93](sprite_library/contra_sprites/sprite_93.png?raw=true "sprite_93")
+![sprite_94](sprite_library/contra_sprites/sprite_94.png?raw=true "sprite_94")
+![sprite_95](sprite_library/contra_sprites/sprite_95.png?raw=true "sprite_95")
+![sprite_96](sprite_library/contra_sprites/sprite_96.png?raw=true "sprite_96")
+
+**ENEMY HP**: 1
 
 #### Attributes
 
@@ -532,6 +601,13 @@ Always created in groups of 4 that act as one enemy.  All 4 soldiers come in
 from one side of the screen, stop in middle to fire at the player, then split up
 into 2 groups going in opposite directions.  Then the 2 groups fire again at the
 player, and finally they walk off screen.
+
+![sprite_93](sprite_library/contra_sprites/sprite_93.png?raw=true "sprite_93")
+![sprite_94](sprite_library/contra_sprites/sprite_94.png?raw=true "sprite_94")
+![sprite_95](sprite_library/contra_sprites/sprite_95.png?raw=true "sprite_95")
+![sprite_96](sprite_library/contra_sprites/sprite_96.png?raw=true "sprite_96")
+
+**ENEMY HP**: 1
 
 #### Attributes
 
@@ -556,6 +632,8 @@ screen number.  Is able to generate #$04 different enemy types.
  * #$17 - Grenade Launcher
  * #$18 - Group of Four Soldiers
 
+**ENEMY HP**: n/a
+
 #### Attributes
 
 * `.... ...x` - level number, 0 = level 2, 1 = level 4
@@ -569,6 +647,8 @@ screen number.  Is able to generate #$04 different enemy types.
 
 Creates roller enemies (#$11).
 
+**ENEMY HP**: n/a
+
 #### Attributes
 
 * `.... .xxx` - offset into `roller_gen_init_tbl`
@@ -580,6 +660,10 @@ Creates roller enemies (#$11).
 Other Names: Sphere Projectile, Eye Projectile, Ring of Fire
 
 Fire ring emitted from #$10 Boss Eye (Garmakilma).
+
+![sprite_64](sprite_library/contra_sprites/sprite_64.png?raw=true "sprite_64")
+
+**ENEMY HP**: 2
 
 ### 1C - Godomuga
 

@@ -2757,14 +2757,18 @@ boss_eye_attack_delay_tbl:
 boss_eye_sprite_code_tbl:
     .byte $5d,$5e,$5f,$5e,$60,$61,$62,$61
 
+; 'enemy destroyed routine', called every time the boss eye is hit since his
+; ENEMY_HP is 1.  Real HP stored in ENEMY_VAR_1.  This is used to play a metal
+; ting sound (sound_16) every time the player hits the enemy and reset ENEMY_HP
+; to 1 unless boss eye destroyed. If destroyed, advance to boss_defeated_routine
 boss_eye_routine_03:
-    dec ENEMY_VAR_1,x
-    beq boss_eye_adv_routine
-    lda ENEMY_VAR_1,x
-    cmp #$01
-    bne @continue
+    dec ENEMY_VAR_1,x           ; decrement boss eye's actual HP
+    beq boss_eye_adv_routine    ; advance to boss_defeated_routine if boss destroyed
+    lda ENEMY_VAR_1,x           ; boss not destroyed, load enemy's actual HP
+    cmp #$01                    ; see if only 1 HP
+    bne @continue               ; branch if greater than 1 HP remaining
     lda #$52                    ; a = #$52
-    sta ENEMY_SCORE_COLLISION,x
+    sta ENEMY_SCORE_COLLISION,x ; update score (collision code doesn't change)
 
 @continue:
     lda #$16                    ; a = #$16 (sound_16)
