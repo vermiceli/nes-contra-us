@@ -5519,7 +5519,7 @@ boss_gemini_routine_02:
     tay                                ; transfer random number between 0 and 3 to offset register
     lda boss_gemini_attack_delay_tbl,y ; load random attack delay
     sec                                ; set carry flag in preparation for subtraction
-    sbc $08                            ; subtract multiplied weapon strength from attack delay. the strong the weapon, the shorter the attack delay
+    sbc $08                            ; subtract multiplied weapon strength from attack delay. the stronger the weapon, the shorter the attack delay
     sta ENEMY_ATTACK_DELAY,x           ; set delay between attacks
     lda #$1d                           ; a = #$1d (#$1d = spinning bubbles)
     jsr generate_enemy_a               ; generate #$1d enemy (spinning bubbles)
@@ -5594,7 +5594,7 @@ boss_gemini_routine_02:
 ; ENEMY_FRAME is #$00, #$01, or #$02, but if ENEMY_VAR_3 is #$01, then #$03 is added so
 ; ENEMY_VAR_3 = #$00 -> sprite_68, sprite_69, sprite_6a
 ; ENEMY_VAR_3 = #$01 -> sprite_68, sprite_6b, sprite_6c (hit by bullet, or almost dead, red brain)
-; sprite_68, sprite_69, sprite_6b, sprite_6c
+; sprite_68, sprite_69, sprite_6a, sprite_6b, sprite_6c
 boss_gemini_sprite_tbl:
     .byte $68,$69,$6a ; ENEMY_VAR_3 is #$00
     .byte $68,$6b,$6c ; ENEMY_VAR_3 is #$01

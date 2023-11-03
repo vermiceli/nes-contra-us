@@ -669,6 +669,14 @@ Fire ring emitted from #$10 Boss Eye (Garmakilma).
 
 Other Names: Boss Gemini, Boss Metal Helmet
 
+![sprite_68](sprite_library/contra_sprites/sprite_68.png?raw=true "sprite_68")
+![sprite_69](sprite_library/contra_sprites/sprite_69.png?raw=true "sprite_69")
+![sprite_6a](sprite_library/contra_sprites/sprite_6a.png?raw=true "sprite_6a")
+![sprite_6b](sprite_library/contra_sprites/sprite_6b.png?raw=true "sprite_6b")
+![sprite_6c](sprite_library/contra_sprites/sprite_6c.png?raw=true "sprite_6c")
+
+**ENEMY HP**: 10
+
 No attributes exist for this enemy.
 
 #### Logic
@@ -682,12 +690,12 @@ not for anything with the y velocity, but rather to control speed of x movement
 and keep track of x distance from initial position respectively.
 
 * `ENEMY_FRAME` - offset into `boss_gemini_sprite_tbl`, which contains the exact
-  sprite code: `sprite_68`, `sprite_69`, `sprite_6b`, `sprite_6c`.
+  sprite code: `sprite_68`, `sprite_69`, `sprite_6a`, `sprite_6b`, `sprite_6c`.
 * `ENEMY_VAR_1` - initial x position
 * `ENEMY_VAR_2` - timer after being hit - #$10 down to #$00
 * `ENEMY_VAR_3` - whether or not the boss gemini's health is low (less than
   #$07).  Used to show a red brain instead of a green one.
-* `ENEMY_VAR_4` - actual representation of ENEMY_HP
+* `ENEMY_VAR_4` - actual representation of ENEMY_HP, initialized to #$0a
 * `ENEMY_X_VELOCITY_FRACT` - always #$80 (.50).  Used with
   `ENEMY_Y_VELOCITY_FRACT` to move gemini by 1 every #$02 frames
 * `ENEMY_X_VELOCITY_FAST` - x direction of boss gemini
@@ -713,6 +721,15 @@ Red and blue molecule-like orbs that are created by #$1c Boss Gemini (Godomuga).
 They seek the player for a determined amount of time. If after set number of
 seeks (#$13), then the bubble pair will continue in last direction.
 
+![sprite_6d](sprite_library/contra_sprites/sprite_6d.png?raw=true "sprite_6d")
+![sprite_6e](sprite_library/contra_sprites/sprite_6e.png?raw=true "sprite_6e")
+![sprite_6f](sprite_library/contra_sprites/sprite_6f.png?raw=true "sprite_6f")
+![sprite_70](sprite_library/contra_sprites/sprite_70.png?raw=true "sprite_70")
+![sprite_71](sprite_library/contra_sprites/sprite_71.png?raw=true "sprite_71")
+![sprite_72](sprite_library/contra_sprites/sprite_72.png?raw=true "sprite_72")
+
+**ENEMY HP**: 1
+
 #### Attributes
 
 * `.... .xxx` - specifies how frequently the bubbles will spin. Initialized in
@@ -732,6 +749,16 @@ Value is an offset into `spinning_bullet_spin_tbl`.
 ### 1E - Garth
 
 Other Names: Blue Jumping Guy, Boss Blue Soldier, Blue Soldier
+
+![sprite_85](sprite_library/contra_sprites/sprite_85.png?raw=true "sprite_85")
+![sprite_86](sprite_library/contra_sprites/sprite_86.png?raw=true "sprite_86")
+![sprite_87](sprite_library/contra_sprites/sprite_87.png?raw=true "sprite_87")
+![sprite_88](sprite_library/contra_sprites/sprite_88.png?raw=true "sprite_88")
+![sprite_89](sprite_library/contra_sprites/sprite_89.png?raw=true "sprite_89")
+![sprite_8a](sprite_library/contra_sprites/sprite_8a.png?raw=true "sprite_8a")
+![sprite_8b](sprite_library/contra_sprites/sprite_8b.png?raw=true "sprite_8b")
+
+**ENEMY HP**: 1
 
 #### Attributes
 
@@ -754,6 +781,14 @@ Other Names: Blue Jumping Guy, Boss Blue Soldier, Blue Soldier
 
 Other Names: Red Shooting Guy, Boss Red Soldier, Red Soldier
 
+![sprite_8c](sprite_library/contra_sprites/sprite_8c.png?raw=true "sprite_8c")
+![sprite_8d](sprite_library/contra_sprites/sprite_8d.png?raw=true "sprite_8d")
+![sprite_8e](sprite_library/contra_sprites/sprite_8e.png?raw=true "sprite_8e")
+![sprite_8f](sprite_library/contra_sprites/sprite_8f.png?raw=true "sprite_8f")
+![sprite_90](sprite_library/contra_sprites/sprite_90.png?raw=true "sprite_90")
+
+**ENEMY HP**: 1
+
 #### Attributes
 
 * `.... ..xx` - specifies initial position (see `red_blue_soldier_init_pos_tbl`)
@@ -773,6 +808,8 @@ Other Names: Red Shooting Guy, Boss Red Soldier, Red Soldier
 ### 20 - Garth and Rangel Generator
 
 Other Names: Red Blue Soldier Generator
+
+**ENEMY HP**: n/a
 
 Generates Garth and Rangel enemies following a pattern specified in
 `red_blue_solider_data_tbl`.
@@ -801,6 +838,10 @@ No attributes exist for this enemy.
 Floats back and forth to allow players to jump higher in level.  This enemy is
 very similar to the moving flame enemy, which is also in the vertical level.
 
+![sprite_48](sprite_library/contra_sprites/sprite_48.png?raw=true "sprite_48")
+
+**ENEMY HP**: n/a
+
 #### Attributes
 
 * `000` - platform starts out moving left at 1 unit per frame
@@ -811,6 +852,10 @@ very similar to the moving flame enemy, which is also in the vertical level.
 Flame that goes back and forth over bridge. This enemy is very similar to the
 floating rock platform enemy, which is also in the vertical level
 
+![sprite_49](sprite_library/contra_sprites/sprite_49.png?raw=true "sprite_49")
+
+**ENEMY HP**: n/a
+
 #### Attributes
 
 * `010` - Flame starts out moving left at 1 unit per frame
@@ -820,9 +865,15 @@ floating rock platform enemy, which is also in the vertical level
 
 Generates #13 Falling Rocks
 
+**ENEMY HP**: n/a
+
 ### 13 - Falling Rock
 
 Other Names: Boulder
+
+![sprite_4a](sprite_library/contra_sprites/sprite_4a.png?raw=true "sprite_4a")
+
+**ENEMY HP**: n/a
 
 #### Logic
 
@@ -831,6 +882,8 @@ Other Names: Boulder
 ### 14 - Dragon
 
 Other Names: Boss Mouth, Gromaides
+
+**ENEMY HP**: 32
 
 #### Logic
 
@@ -850,6 +903,11 @@ Other Names: Boss Arm, Boss Tentacle, Dragon Arm, Dragon Arm Orb
 for each arm. Each side then spawns 4 additional dragon arm orb enemies.  Loops
 through 5 different attack patterns. This is the most complicated enemy in the
 game.
+
+![sprite_7a](sprite_library/contra_sprites/sprite_7a.png?raw=true "sprite_7a")
+![sprite_7b](sprite_library/contra_sprites/sprite_7b.png?raw=true "sprite_7b")
+
+**ENEMY HP**: 16
 
 #### Attributes
 
@@ -913,7 +971,16 @@ simplify defining the enemy vars.
 
 No attributes exist for this enemy.
 
+**ENEMY HP**: n/a
+
 ### 11 - Ice Grenade
+
+![sprite_74](sprite_library/contra_sprites/sprite_74.png?raw=true "sprite_74")
+![sprite_75](sprite_library/contra_sprites/sprite_75.png?raw=true "sprite_75")
+![sprite_76](sprite_library/contra_sprites/sprite_76.png?raw=true "sprite_76")
+![sprite_77](sprite_library/contra_sprites/sprite_77.png?raw=true "sprite_77")
+
+**ENEMY HP**: n/a
 
 No attributes exist for this enemy.
 
@@ -924,6 +991,8 @@ No attributes exist for this enemy.
 ### 12 - Tank
 
 Other Names: Dogra
+
+**ENEMY HP**: 71
 
 #### Attributes
 
@@ -949,16 +1018,22 @@ Other Names: Dogra
 
 Other Names: Pipe Joint, Ice Joint
 
+![sprite_c4](sprite_library/contra_sprites/sprite_c4.png?raw=true "sprite_c4")
+
+**ENEMY HP**: n/a
+
 No attributes exist for this enemy.
 
 ### 14 - Alien Carrier
 
 Other Names: Guldaf, Boss UFO
 
+**ENEMY HP**: 32
+
 No attributes exist for this enemy.
 
 Appears randomly and creates flying saucers (enemy type - #$15) and drop bombs
-(enemy type - #$16).  One of the few enemies that use BG_PALETTE_ADJ_TIMER to
+(enemy type - #$16).  One of the few enemies that use `BG_PALETTE_ADJ_TIMER` to
 create a fading in effect.
 
 #### Logic
@@ -972,12 +1047,22 @@ create a fading in effect.
 
 Other Names: Mini UFO
 
+![sprite_7c](sprite_library/contra_sprites/sprite_7c.png?raw=true "sprite_7c")
+![sprite_7d](sprite_library/contra_sprites/sprite_7d.png?raw=true "sprite_7d")
+![sprite_7e](sprite_library/contra_sprites/sprite_7e.png?raw=true "sprite_7e")
+
+**ENEMY HP**: 1
+
 No attributes exist for this enemy. Direction of flying saucer is determined by
 Alien Carrier.
 
 ### 16 - Drop Bomb
 
 Bombs dropped from the Alien Carrier
+
+![sprite_22](sprite_library/contra_sprites/sprite_22.png?raw=true "sprite_22")
+
+**ENEMY HP**: 1
 
 ## Level 6 - Energy Zone
 
@@ -1011,20 +1096,29 @@ These 4 enemy types are very similar. They differ in the direction they fire
 Other Names: Gordea, JJ, Jumping Joey, Jumping Jack Flash, Giant Boss Robot,
   Giant Armored Soldier, Boss Giant
 
-No attributes exist for this enemy.  His health is calculated based on player's
-`PLAYER_WEAPON_STRENGTH` value.  The formula is below
+![sprite_b7](sprite_library/contra_sprites/sprite_b7.png?raw=true "sprite_b7")
+![sprite_b8](sprite_library/contra_sprites/sprite_b8.png?raw=true "sprite_b8")
+![sprite_b9](sprite_library/contra_sprites/sprite_b9.png?raw=true "sprite_b9")
+![sprite_ba](sprite_library/contra_sprites/sprite_ba.png?raw=true "sprite_ba")
+![sprite_c3](sprite_library/contra_sprites/sprite_c3.png?raw=true "sprite_c3")
+
+**ENEMY HP**:
 
 ```
 (PLAYER_WEAPON_STRENGTH * #$08) + #$40
 ```
 
-| Weapon  | Strength |
-|---------|----------|
-| Default | 0        |
-| M       | 2        |
-| F       | 1        |
-| S       | 3        |
-| L       | 2        |
+| Weapon  | Strength | HP |
+|---------|----------|----|
+| Default | 0        | 64 |
+| M       | 2        | 80 |
+| F       | 1        | 72 |
+| S       | 3        | 88 |
+| L       | 2        | 80 |
+
+No attributes exist for this enemy.  His health is calculated based on player's
+`PLAYER_WEAPON_STRENGTH` value.  The formula is below
+
 
 #### Logic
 
@@ -1054,6 +1148,8 @@ Other Names: Saucer, Spiked Disk Projectile
 
 Other Names: Moving Claw
 
+**ENEMY HP**: n/a
+
 Mechanical claw similar to arcade claw machines
 
 #### Attributes
@@ -1081,6 +1177,8 @@ Mechanical claw similar to arcade claw machines
 Other Names: Spiked Wall
 
 A spiked wall that rises from the ground in front of the player
+
+**ENEMY HP**: 16
 
 #### Attributes
 
@@ -1111,6 +1209,8 @@ rising spiked wall by using offset 16 into `collision_code_f_adj_tbl`.
 
 Similar to Rising Spiked Wall (#$11), but taller and stationary
 
+**ENEMY HP**: 16
+
 #### Attributes
 
 * `.... ..xx` - index into `spiked_wall_destroyed_data_tbl`
@@ -1130,11 +1230,18 @@ rising spiked wall by using offset 16 into `collision_code_f_adj_tbl`.
 
 Other Names: Mine Cart Generator
 
+**ENEMY HP**: n/a
+
 ### 14 - Mining Cart
 
 Other Names: Moving Cart
 
 Moving mining cart that can be destroyed.
+
+![sprite_2a](sprite_library/contra_sprites/sprite_2a.png?raw=true "sprite_2a")
+![sprite_2b](sprite_library/contra_sprites/sprite_2b.png?raw=true "sprite_2b")
+
+**ENEMY HP**: 3
 
 #### Attributes
 
@@ -1151,6 +1258,11 @@ Other Names: Immobile Cart
 
 Stationary mining cart that can start moving when a player lands on it
 
+![sprite_2a](sprite_library/contra_sprites/sprite_2a.png?raw=true "sprite_2a")
+![sprite_2b](sprite_library/contra_sprites/sprite_2b.png?raw=true "sprite_2b")
+
+**ENEMY HP**: 3
+
 #### Attributes
 
 * #$80 - the cart should be destroyed when colliding with background (only
@@ -1162,11 +1274,15 @@ Stationary mining cart that can start moving when a player lands on it
 
 Other Names: Armored Door With Siren
 
+**ENEMY HP**: 32
+
 ### 17 - Mortar Launcher
 
 Other Names: Boss Mortar
 
 Launches mortar shots (enemy type #$0b) on the boss screen.
+
+**ENEMY HP**: 8
 
 ### Attributes
 
@@ -1193,6 +1309,8 @@ screen depending on players' location.  To make things more challenging, once
 one mortar launcher is destroyed, or if 20 waves of soldier attack have
 occurred, then even if the player is close to the left side, soldiers will
 randomly be generated on the left side.
+
+**ENEMY HP**: n/a
 
 #### Logic
 
