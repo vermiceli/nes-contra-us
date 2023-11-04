@@ -1334,6 +1334,17 @@ Other Names: Alien Guardian, Red Falcon (formerly), Alien Mini-Boss
 
 Worm-like alien who generates bundles (enemy type #$11).
 
+**ENEMY HP**:
+
+```
+HP = (PLAYER_WEAPON_STRENGTH * 16) + 55 + (GAME_COMPLETION_COUNT * 16)
+```
+
+Note if `PLAYER_WEAPON_STRENGTH` * 16 is larger than 255, then the results will
+wrap around. So sometimes the HP is actually lower than a previous playthrough
+where `GAME_COMPLETION_COUNT` was lower. This occurs every 16 loops.  For more
+details see [Game Completion Modifier.md](./Game%20Completion%20Modifier.md)
+
 #### Logic
 
 * `ENEMY_VAR_1` - super-tile code for mouth relative references to entries in
@@ -1346,6 +1357,21 @@ Worm-like alien who generates bundles (enemy type #$11).
 ### 11 - Bundle
 
 Other Names: Alien Fetus
+
+![sprite_ac](sprite_library/contra_sprites/sprite_ac.png?raw=true "sprite_ac")
+![sprite_ad](sprite_library/contra_sprites/sprite_ad.png?raw=true "sprite_ad")
+![sprite_ae](sprite_library/contra_sprites/sprite_ae.png?raw=true "sprite_ae")
+![sprite_af](sprite_library/contra_sprites/sprite_af.png?raw=true "sprite_af")
+
+**ENEMY HP**: Starts at 2
+
+```
+HP = GAME_COMPLETION_COUNT + 2
+```
+
+HP goes up by 1 every time the game is beaten (until max 255 due to memory
+limit where HP wraps back around).  For more details see
+[Game Completion Modifier.md](./Game%20Completion%20Modifier.md)
 
 ### Attributes
 
@@ -1369,6 +1395,15 @@ Other Names: Alien Mouth
 Generates Poisonous Insect Gel (enemy type #$13).  Note that the wadder's mouth
 does not need to be open for it to generate poisonous insect gels.
 
+**ENEMY HP**:
+
+```
+HP = (2 * GAME_COMPLETION_COUNT) + PLAYER_WEAPON_STRENGTH + 4
+```
+
+For more details see
+[Game Completion Modifier.md](./Game%20Completion%20Modifier.md)
+
 They are no attributes for this enemy type.
 
 #### Logic
@@ -1385,6 +1420,12 @@ They are no attributes for this enemy type.
 ### 13 - Poisonous Insect Gel
 
 Other Names: White Sentient Blob, White Blob, Cottonball, Cotton Ball
+
+![sprite_b0](sprite_library/contra_sprites/sprite_b0.png?raw=true "sprite_b0")
+![sprite_b1](sprite_library/contra_sprites/sprite_b1.png?raw=true "sprite_b1")
+![sprite_b2](sprite_library/contra_sprites/sprite_b2.png?raw=true "sprite_b2")
+
+**ENEMY HP**: 1
 
 They are no attributes for this enemy type.
 
@@ -1413,6 +1454,20 @@ They are no attributes for this enemy type.
 ### 14 - Bugger
 
 Other Names: Alien Spider
+
+![sprite_b6](sprite_library/contra_sprites/sprite_b6.png?raw=true "sprite_b6")
+![sprite_b3](sprite_library/contra_sprites/sprite_b3.png?raw=true "sprite_b3")
+![sprite_b4](sprite_library/contra_sprites/sprite_b4.png?raw=true "sprite_b4")
+![sprite_b5](sprite_library/contra_sprites/sprite_b5.png?raw=true "sprite_b5")
+
+**ENEMY HP**:
+
+```
+HP = PLAYER_WEAPON_STRENGTH + GAME_COMPLETION_COUNT + 2
+```
+
+For more details see
+[Game Completion Modifier.md](./Game%20Completion%20Modifier.md)
 
 This enemy's routine flow is different depending on how it was created. When
 defined in the screen enemies data structure, `alien_spider_routine_00` is the
@@ -1450,6 +1505,15 @@ Other Names: Spider Spawn, Cocoon
 Enemy that appears with the final boss of the game, Gomeramos King.  It produces
 buggers to defend the alien heart.
 
+**ENEMY HP**:
+
+```
+HP = (GAME_COMPLETION_COUNT * 2) + (PLAYER_WEAPON_STRENGTH * 2) + 24
+```
+
+For more details see
+[Game Completion Modifier.md](./Game%20Completion%20Modifier.md)
+
 #### Logic
 
 * `ENEMY_VAR_1` - nametable update super-tile index to draw, all values have
@@ -1466,6 +1530,17 @@ Other Names: Alien Heart, Heart, Boss Heart
 
 Gomeramos King is the final boss of the game.  It is the beating heart of the
 Emperor Demon Dragon God Java.
+
+**ENEMY HP**:
+
+```
+HP = (PLAYER_WEAPON_STRENGTH * 16) + 55 + (GAME_COMPLETION_COUNT * 16)
+```
+
+Note if `PLAYER_WEAPON_STRENGTH` * 16 is larger than 255, then the results will
+wrap around. So sometimes the HP is actually lower than a previous playthrough
+where `GAME_COMPLETION_COUNT` was lower. This occurs every 16 loops.  For more
+details see [Game Completion Modifier](./Game%20Completion%20Modifier.md)
 
 #### Logic
 
