@@ -161,7 +161,7 @@ weapon_item_routine_00:
     sta ENEMY_VAR_4,x
     lda #$fd
     sta ENEMY_VAR_B,x
-    jmp advance_enemy_routine           ; advance to next routine
+    jmp advance_enemy_routine           ; advance enemy x to next routine
 
 @set_velocity_outdoor:
     ldy #$00                 ; set weapon_item_init_vel_tbl to first set of entries
@@ -4722,7 +4722,7 @@ dragon_arm_orb_routine_ptr_tbl:
     .addr dragon_arm_orb_routine_01    ; CPU address $9ac5
     .addr dragon_arm_orb_routine_02    ; CPU address $9b63 - dragon arms extending outward animation
     .addr dragon_arm_orb_routine_03    ; CPU address $9c03 - dragon arms attack patterns, only executes code for shoulder orbs
-    .addr dragon_arm_orb_routine_04    ; CPU address $9edd
+    .addr dragon_arm_orb_routine_04    ; CPU address $9edd - dragon arm orb destroyed routine
     .addr enemy_routine_init_explosion ; CPU address $e74b from bank 7
     .addr enemy_routine_explosion      ; CPU address $e7b0 from bank 7
     .addr enemy_routine_remove_enemy   ; CPU address $e806 from bank 7
@@ -4860,23 +4860,24 @@ dragon_arm_orb_routine_02:
     bcc @exit2
     lda #$ff                      ; a = #$ff
     sta ENEMY_VAR_2,x
-    ldy ENEMY_VAR_4,x
+    ldy ENEMY_VAR_4,x             ; load parent orb in y
     lda #$01                      ; a = #$01
     sta ENEMY_VAR_2,y
     lda #$00                      ; a = #$00
-    sta ENEMY_ANIMATION_DELAY,y
-    lda ENEMY_VAR_4,y
-    bpl @set_enemy_slot_exit
+    sta ENEMY_ANIMATION_DELAY,y   ; set animation delay for parent orb
+    lda ENEMY_VAR_4,y             ; load parent orb of parent orb
+    bpl @set_enemy_slot_exit      ; restore x to current enemy slot and exit
     tya
     tax
 
+; arms fully extended, advance orb routines
 @adv_routine_exit:
-    jsr advance_enemy_routine
+    jsr advance_enemy_routine ; advance arm orb routine in slot x
     lda #$00                  ; a = #$00
     sta ENEMY_VAR_2,x
-    lda ENEMY_VAR_3,x
+    lda ENEMY_VAR_3,x         ; load child arm orb
     tax
-    bpl @adv_routine_exit
+    bpl @adv_routine_exit     ; loop to advance arm orb routine of child
     ldx ENEMY_CURRENT_SLOT
     lda #$00                  ; a = #$00
     sta ENEMY_FRAME,x         ; set enemy animation frame number
@@ -5240,6 +5241,7 @@ dragon_arm_animate:
                                 ; only used for ENEMY_FRAME = #$01
     rts
 
+; dec animation timer and run @timer_logic
 @check_delay_run_timer:
     lda ENEMY_ANIMATION_DELAY,x ; load enemy animation frame delay counter
     beq @timer_elapsed          ; continue once animation timer has elapsed
@@ -5253,7 +5255,7 @@ dragon_arm_animate:
     bmi @negative_rotation_adjustment ; branch if dragon arm is rotating counterclockwise
     dec ENEMY_VAR_2,x                 ; rotating clockwise, decrement dragon arm rotation timer
     lda #$01                          ; a = #$01
-    bne @timer_logic
+    bne @timer_logic                  ; always branch
 
 @negative_rotation_adjustment:
     inc ENEMY_VAR_2,x
@@ -5393,23 +5395,24 @@ dragon_arm_orb_pos_tbl:
     .byte $f1,$f1,$f1,$f1,$f2,$f2,$f3,$f4,$f5,$f6,$f8,$f9,$fa,$fc,$fd,$ff
     .byte $00,$01,$03,$04,$06,$07,$08,$0a,$0b,$0c,$0d,$0e,$0e,$0f,$0f,$0f
 
+; dragon arm orb destroyed routine -
 dragon_arm_orb_routine_04:
-    lda ENEMY_VAR_3,x
-    bpl @adv_routine
-    inc BOSS_SCREEN_ENEMIES_DESTROYED ; increase number of dragon arms destroyed
+    lda ENEMY_VAR_3,x                 ; load the child orb for current orb (farther from dragon)
+    bpl @adv_routine                  ; if not the hand, then advance routine to show explosions
+    inc BOSS_SCREEN_ENEMIES_DESTROYED ; current orb is the hand, increase number of dragon arms destroyed
 
 @destroy_arm_part_loop:
-    lda ENEMY_VAR_4,x
-    bmi @set_slot_adv_routine
-    tax
-    jsr set_destroyed_enemy_routine ; update enemy's routine to the destroyed routine
-    jmp @destroy_arm_part_loop
+    lda ENEMY_VAR_4,x               ; load the parent orb
+    bmi @set_slot_adv_routine       ; branch if shoulder to exit, destroyed all orbs in arb
+    tax                             ; transfer parent orb index to x
+    jsr set_destroyed_enemy_routine ; update enemy's routine to the destroyed routine (enemy_routine_init_explosion)
+    jmp @destroy_arm_part_loop      ; loop to update parent orb to the destroyed routine
 
 @set_slot_adv_routine:
-    ldx ENEMY_CURRENT_SLOT
+    ldx ENEMY_CURRENT_SLOT ; restore x to current enemy slot
 
 @adv_routine:
-    jmp advance_enemy_routine
+    jmp advance_enemy_routine ; all arm orbs set to run explosions, advance routine to explode hand as well
 
 ; pointer table for boss gemini (#$7 * #$2 = #$e bytes)
 boss_gemini_routine_ptr_tbl:
@@ -7731,7 +7734,7 @@ boss_giant_soldier_routine_06:
     sta $09                         ; set relative x offset to #$00
     jsr create_giant_boss_explosion ; create explosion at center of enemy
                                     ; $09 - relative x offset, $08 - relative y offset
-    jmp advance_enemy_routine
+    jmp advance_enemy_routine       ; advance enemy in slot x to next routine
 
 ; create explosion animations
 boss_giant_soldier_routine_07:
@@ -7935,7 +7938,7 @@ boss_giant_projectile_routine_00:
     sta ENEMY_Y_VELOCITY_FRACT,x ; set spiked disk fractional y velocity to #$00
 
 boss_giant_projectile_adv_routine:
-    jmp advance_enemy_routine
+    jmp advance_enemy_routine ; advance spiked disk to next routine, boss_giant_projectile_routine_01 or remove_enemy
 
 ; update position, if animation delay has elapsed, update sprite so the disk rotates
 ; remove enemy if off screen

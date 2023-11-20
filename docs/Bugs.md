@@ -151,3 +151,76 @@ boss_gemini_routine_02:
 @calc_offset_set_pos:
     ...
 ```
+
+# 4. Dragon Crash
+
+On 2020-09-08, user [aiqiyou](https://tasvideos.org/Users/Profile/aiqiyou) had
+[posted](https://tasvideos.org/Forum/Topics/485?CurrentPage=7&Highlight=499433#499433)
+a .fm2 file [glitch.fm2](https://tasvideos.org/userfiles/info/65950171267733022)
+on the TASVideos forums.  This showed a 2 player play through where the game
+freezes on the level 3 - waterfall dragon boss.  The next day
+[feos](https://tasvideos.org/Users/Profile/feos) posted a
+[video of the run](https://www.youtube.com/watch?v=4ffhI2J2dA8) on YouTube for
+easier viewing.  [Sand](https://tasvideos.org/Users/Profile/Sand) did some
+initial investigation as to the cause of the freeze and noticed the game was in
+a forever loop inside the `@enemy_orb_loop` code and it was looping forever due
+to an invalid doubly linked list (`ENEMY_VAR_3` and `ENEMY_VAR_4` values).
+
+The reason this freeze happens is due to a race condition where the left 'hand'
+(red dragon arm orb) is destroyed, but before the next frame happens where the
+'orb destroyed' routine is executed, another orb on the left arm changes the
+routine of the left 'hand' to be a different routine.  Since the expected
+'orb destroyed' routine wasn't run, the rest of the arm didn't get the notice to
+self-destruct.  Then, a few frames later, the left shoulder creates a
+projectile, which takes over the same slot where the left 'hand' was.  Finally,
+one frame later, when the left shoulder tries to animate the arm, the left
+'hand' not having correct data (because it is now a projectile), causes the game
+to get stuck in an infinite loop.
+
+## Detailed Explanation
+
+Below is a diagram of the dragon boss and its arm orbs.  Each number below is
+the enemy slot, i.e. the enemy number.  #$06 and #$05 are the left and right
+'hands' respectively, and are red.  #$0d and #$0a are the left and right
+'shoulders' respectively.  () represents the dragon's mouth and is uninvolved in
+this bug. In fact, only the left arm is involved in this bug.
+
+```
+06 08 0c 0f 0d () 0a 0e 0b 07 05
+```
+
+1. Frame #$aa - Enemy #$06 (the left 'hand') is destroyed, the memory address
+  specifying which routine to execute is updated to point to
+  `dragon_arm_orb_routine_04`.
+2. Frame #$ab - Enemy #$0f has a timer elapse in `dragon_arm_orb_routine_02`.
+  Enemy #$0d updates the enemy routine for all orbs on the left arm.  It does
+  this by incrementing a pointer.  Usually, this updates the routine from
+  `dragon_arm_orb_routine_02` to `dragon_arm_orb_routine_03`.  However, since
+  arm orb #$06 (the left 'hand') was no longer pointing to
+  `dragon_arm_orb_routine_02`, but instead to `dragon_arm_orb_routine_04`,
+  incrementing this pointer, set #$06's routine to
+  `enemy_routine_init_explosion`.
+3. Frames #$ac-#$d1 - The animation for the left 'hand' explosion completes and
+  the 'hand' is removed from memory (`enemy_routine_remove_enemy`)
+4. Frame #$d2 - The #$0d (left shoulder) decides that it should create a
+  projectile.  The game logic finds an empty enemy slot where the left 'hand'
+  originally was (slot #$06).  A bullet is created and initialized.  This
+  initialization clears the data that linked the hand to the rest of the arm, in
+  particular `ENEMY_VAR_3` and `ENEMY_VAR_4`.
+5. Frame #$d3 - When #$0d (left shoulder) executes, it animates the rest of the
+  orbs to make an attack pattern.  It loops down to the hand by following the
+  links among the orbs.  When it gets to the hand, it expects that the hand's
+  will have its `ENEMY_VAR_3` set to `#$ff` indicating there aren't any more
+  orbs to process.  However, since the enemy at slot #$06 is no longer a hand,
+  but instead a projectile, the value at `ENEMY_VAR_3` has been cleared and is
+  #$00.  This causes the logic to get stuck in `@arm_orb_loop` as an infinite
+  loop.
+
+Step (2) caused `dragon_arm_orb_routine_04` to be skipped.  Since this routine
+was not executed as expected, the rest of the arm didn't get updated to know
+that the 'hand' was destroyed.  `dragon_arm_orb_routine_04` is responsible for
+updating each orb on the arm to be begin its self destruct routine.  However,
+that never happens.  So, the shoulder doesn't know to destroy itself.  Instead
+the shoulder operates as if it wasn't destroyed and when it decides that a
+projectile should be created, that overwrites the hand with a different enemy
+type, and clears all the links between the hand and the arm.

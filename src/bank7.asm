@@ -300,9 +300,9 @@ nmi_start:
     pha                                  ; push A on to the stack
     lda PPUSTATUS                        ; reset PPU latch
     ldy NMI_CHECK                        ; see if nmi interrupted previous frame's game loop
-    bne handle_sounds_set_ppu_scroll_rti ; branch if nmi occurred before game loop was completed
-                                         ; to skip game loop and instead just check for sounds to play and play them
-                                         ; set ppu scroll, and rti
+    bne handle_sounds_set_ppu_scroll_rti ; branch if nmi occurred before game loop was completed to skip game loop
+                                         ; instead just continue playing sounds, set ppu scroll, and rti
+                                         ; previously unfinished frame will finish after rti and then itself rti
     jsr clear_ppu                        ; first frame, so clear/init PPU
     sta OAMADDR                          ; set OAM address to #00 (DMA is used instead)
     ldy #>OAMDMA_CPU_BUFFER              ; setting OAMDMA to #$02 tells PPU to load sprite data from $0200-$02ff
@@ -335,7 +335,7 @@ nmi_start:
     jsr draw_sprites                   ; bank 1
     jsr write_0_to_cpu_graphics_buffer
     lda #$00
-    sta NMI_CHECK
+    sta NMI_CHECK                      ; successfully rendered full frame before NMI, mark flag appropriately
 
 remove_registers_from_stack_and_rti:
     pla ; remove byte from stack
@@ -7003,7 +7003,7 @@ bullet_collision_logic:
     lda ENEMY_HP,y         ; load enemy hp
     beq @exit              ; exit if enemy HP already #$00
     cmp #$f0
-    bcs @exit              ; exit if enemy HP is negative
+    bcs @exit              ; exit if enemy HP is between #$f0 and #$ff
     sbc #$00               ; subtract #$01 from enemy HP (carry is clear)
     bcs @continue
     lda #$00               ; a = #$00
@@ -9712,7 +9712,7 @@ mortar_shot_routine_02:
 
 @advance_enemy_routine:
     ldx ENEMY_CURRENT_SLOT    ; restore enemy slot
-    jmp advance_enemy_routine ; advance to next routine
+    jmp advance_enemy_routine ; advance enemy x to next routine
 
 ; determines firing direction based on enemy position ($08, $09) and player position ($0b, $0a)
 ; and creates bullet if appropriate
