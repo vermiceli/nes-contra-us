@@ -4873,6 +4873,11 @@ dragon_arm_orb_routine_02:
 ; arms fully extended, advance orb routines
 @adv_routine_exit:
     jsr advance_enemy_routine ; advance arm orb routine in slot x
+                              ; !(BUG?) doesn't check what enemy routine the orb is currently on before updating
+                              ; usually each orb will be in dragon_arm_orb_routine_02, but if the hand orb
+                              ; was destroyed in the previous frame, the routine will be dragon_arm_orb_routine_04
+                              ; this causes the dragon_arm_orb_routine_04 routine to not be executed, which will
+                              ; cause the game to freeze due to an infinite loop
     lda #$00                  ; a = #$00
     sta ENEMY_VAR_2,x
     lda ENEMY_VAR_3,x         ; load child arm orb
