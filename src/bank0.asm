@@ -7147,12 +7147,15 @@ fire_beam_down_routine_ptr_tbl:
     .addr fire_beam_down_routine_02 ; CPU address $aa0f
     .addr fire_beam_down_routine_03 ; CPU address $aa2b
 
-; fire beam down - pointer 1
+; fire beam down - pointer 1 - initialize enemy and initial attack delay, then advance routine
 fire_beam_down_routine_00:
     lda #$04          ; a = #$04
     sta ENEMY_FRAME,x ; set enemy animation frame number
     lda #$80          ; a = #$80
 
+; set fire beam collision attribute bit, position, and initial attack/animation delay, and advance routine
+; input
+;  * a - value to merge with fire beam's attributes to update collision code
 fire_beam_add_pos_set_delay:
     ora ENEMY_ATTRIBUTES,x         ; merge flip bits with original enemy attributes
     sta ENEMY_ATTRIBUTES,x         ; update enemy attributes (to support flipping horizontally and/or vertically)
@@ -7162,7 +7165,7 @@ fire_beam_add_pos_set_delay:
     lsr
     lsr
     and #$03                       ; keep bits .... ..xx
-    tay
+    tay                            ; set ... xx.. from enemy attributes to y
     lda fire_beam_anim_delay_tbl,y ; load animation delay
     sta ENEMY_VAR_A,x              ; storey in ENEMY_VAR_A
 
@@ -7173,13 +7176,14 @@ fire_beam_set_delay_adv_routine:
 fire_beam_anim_delay_tbl:
     .byte $00,$20,$40,$60
 
-; fire beam down - pointer 2
+; fire beam down - pointer 2 - wait for initial attack delay, then wait for player proximity, then initialize attack and advance routine
 fire_beam_down_routine_01:
     jsr animate_small_flame      ; animate small flame when fire beam isn't firing
     jsr add_scroll_to_enemy_pos  ; add scrolling to enemy position
     lda ENEMY_ANIMATION_DELAY,x  ; load enemy animation frame delay counter
     bne fire_beam_dec_delay_exit ; decrement animation delay and exit if delay hasn't elapsed
-    jsr player_enemy_x_dist      ; a = closest x distance to enemy from players, y = closest player (#$00 or #$01)
+    jsr player_enemy_x_dist      ; animation delay timer elapsed, get closest player and his distance
+                                 ; a = closest x distance to enemy from players, y = closest player (#$00 or #$01)
     cmp #$20                     ; see if player is within #$20 pixels of fire beam
     bcs fire_beam_down_exit      ; branch if closest player is farther than #$20
 
@@ -7187,8 +7191,8 @@ fire_beam_down_routine_01:
 begin_fire_beam_attack:
     lda ENEMY_X_POS,x                       ; load enemy x position on screen
     cmp #$30                                ; position at which fire beam stops firing (as player scrolls right)
-    bcc fire_beam_down_exit                 ; don't fire if too far to the left
-    lda #$09                                ; a = #$09 (sound_09)
+    bcc fire_beam_down_exit                 ; don't fire if fire beam is too far to the left
+    lda #$09                                ; load a = #$09 (sound_09)
     jsr play_sound                          ; play fire beam burning sound
     jsr enable_enemy_player_collision_check ; enable player collision check with flame
     lda ENEMY_ATTRIBUTES,x                  ; load enemy attributes
@@ -7204,7 +7208,7 @@ begin_fire_beam_attack:
     sta ENEMY_VAR_1,x
     sta ENEMY_VAR_3,x
     sta ENEMY_VAR_4,x
-    beq fire_beam_set_delay_adv_routine
+    beq fire_beam_set_delay_adv_routine     ; always branch
 
 fire_beam_dec_delay_exit:
     dec ENEMY_ANIMATION_DELAY,x ; decrement enemy animation frame delay counter
@@ -7214,7 +7218,7 @@ fire_beam_dec_delay_exit:
 fire_beam_length_tbl:
     .byte $05,$09,$0d,$0f
 
-; fire beam down - pointer 3
+; fire beam down - pointer 3 - attack
 fire_beam_down_routine_02:
     jsr add_scroll_to_enemy_pos            ; add scrolling to enemy position
     ldy #$00                               ; y = #$00
@@ -7233,7 +7237,7 @@ set_fire_beam_delay_10_adv_routine:
     lda #$10                            ; a = #$10 (delay for fire beam to stay at max)
     bne fire_beam_set_delay_adv_routine
 
-; fire beam down - pointer 4
+; fire beam down - pointer 4 - recede after delay, set new attack delay and go back to fire_beam_right_routine_01
 fire_beam_down_routine_03:
     jsr add_scroll_to_enemy_pos        ; add scrolling to enemy position
     ldy #$02                           ; y = #$02
@@ -7244,8 +7248,9 @@ fire_beam_down_routine_03:
     sta ENEMY_VAR_4,x
     bpl fire_beam_down_exit
 
+; set next ignition delay, disable collision, and set routine to fire_beam_xx_routine_01 to wait for delay and player proximity
 fire_beam_disable_collision_routine_01:
-    lda ENEMY_VAR_A,x           ; load animation delay
+    lda ENEMY_VAR_A,x           ; load next attack delay
     sta ENEMY_ANIMATION_DELAY,x ; set enemy animation frame delay counter
     jsr disable_enemy_collision ; prevent player enemy collision check and allow bullets to pass through enemy
     lda #$02                    ; a = #$02
@@ -7260,7 +7265,7 @@ fire_beam_left_routine_ptr_tbl:
 
 fire_beam_left_routine_00:
     lda #$40                        ; a = #$40
-    jmp fire_beam_add_pos_set_delay
+    jmp fire_beam_add_pos_set_delay ; merge #$40 (bit 6) with fire beam enemy attributes and advance routine
 
 fire_beam_left_routine_01:
     jsr animate_small_flame     ; animate small flame when fire beam isn't firing
@@ -7299,37 +7304,40 @@ fire_beam_left_routine_03:
 
 ; pointer table for fire beam right (#$4 * #$2 = #$8 bytes)
 fire_beam_right_routine_ptr_tbl:
-    .addr fire_beam_right_routine_00 ; CPU address $aaa4
-    .addr fire_beam_right_routine_01 ; CPU address $aaae
-    .addr fire_beam_right_routine_02 ; CPU address $aac3
-    .addr fire_beam_right_routine_03 ; CPU address $aade
+    .addr fire_beam_right_routine_00 ; CPU address $aaa4 - initialize enemy and initial attack delay, then advance routine
+    .addr fire_beam_right_routine_01 ; CPU address $aaae - wait for attack delay, then initialize attack and advance routine
+    .addr fire_beam_right_routine_02 ; CPU address $aac3 - attack
+    .addr fire_beam_right_routine_03 ; CPU address $aade - recede after delay, set new attack delay and go back to fire_beam_right_routine_01
 
+; initialize enemy and initial attack delay, then advance routine
 fire_beam_right_routine_00:
     lda #$40                        ; a = #$40
     sta ENEMY_SPRITE_ATTR,x         ; set enemy sprite attributes (flip sprite horizontally)
     lda #$00                        ; a = #$00
-    jmp fire_beam_add_pos_set_delay
+    jmp fire_beam_add_pos_set_delay ; set fire beam collision attribute bit, position, initial attack/animation delay, and advance routine
 
+; wait for attack delay, then initialize attack and advance routine
 fire_beam_right_routine_01:
     jsr animate_small_flame     ; animate small flame when fire beam isn't firing
     jsr add_scroll_to_enemy_pos ; add scrolling to enemy position
     dec ENEMY_ANIMATION_DELAY,x ; decrement enemy animation frame delay counter
-    bne fire_beam_right_exit_00
-    lda RANDOM_NUM              ; load random number
+    bne fire_beam_right_exit_00 ; branch if attack delay hasn't elapsed to exit
+    lda RANDOM_NUM              ; attack delay has elapsed, load random number
     and #$3f                    ; keep bits ..xx xxxx
-    sta ENEMY_VAR_A,x           ; set delay between bursts
-    jmp begin_fire_beam_attack  ; load fire beam length, play sound, clear variables for use
+    sta ENEMY_VAR_A,x           ; set delay between burst for subsequent attack (re-ignition)
+    jmp begin_fire_beam_attack  ; load fire beam length, play sound, clear variables for use, and advance routine to attack (ignite)
 
+; attack
 fire_beam_right_routine_02:
     jsr add_scroll_to_enemy_pos        ; add scrolling to enemy position
     ldy #$08                           ; y = #$08
     jsr draw_fire_beam_if_anim_elapsed
     bcs fire_beam_right_exit_00
-    dec ENEMY_VAR_2,x                  ; fire beam length
-    beq fire_beam_delay_10_adv_routine
-    lda ENEMY_VAR_3,x
-    adc #$08
-    sta ENEMY_VAR_3,x
+    dec ENEMY_VAR_2,x                  ; decrement the current fire beam number of segments
+    beq fire_beam_delay_10_adv_routine ; fire beam finished growing, advance routine to shrink back after delay
+    lda ENEMY_VAR_3,x                  ; load horizontal fire beam length
+    adc #$08                           ; add #$08 to length
+    sta ENEMY_VAR_3,x                  ; update horizontal fire beam length
 
 fire_beam_right_exit_00:
     rts
@@ -7337,20 +7345,23 @@ fire_beam_right_exit_00:
 fire_beam_delay_10_adv_routine:
     jmp set_fire_beam_delay_10_adv_routine
 
+; recede after delay, set new attack delay and go back to fire_beam_right_routine_01
 fire_beam_right_routine_03:
     jsr add_scroll_to_enemy_pos                ; add scrolling to enemy position
-    ldy #$0a                                   ; y = #$0a
+    ldy #$0a                                   ; y = #$0a (fire_beam_tile_tbl tile offset)
     jsr draw_fire_beam_if_anim_elapsed
     bcs fire_beam_right_exit_00
-    lda ENEMY_VAR_3,x
-    sbc #$07
-    sta ENEMY_VAR_3,x
-    bpl fire_beam_right_exit_00
-    jmp fire_beam_disable_collision_routine_01
+    lda ENEMY_VAR_3,x                          ; load horizontal beam length
+    sbc #$07                                   ; subtract #$08 (carry bit set) from horizontal beam length
+    sta ENEMY_VAR_3,x                          ; update horizontal beam length
+    bpl fire_beam_right_exit_00                ; exit if flame not fully receded
+    jmp fire_beam_disable_collision_routine_01 ; flame fully receded, set attack delay and go back to fire_beam_right_routine_01
 
 ; input
 ;  * x - current enemy offset
 ;  * y - fire_beam_tile_tbl offset minus 1
+; output
+;  * carry flag - set when delay has not elapsed and fire beam should not yet recede
 draw_fire_beam_if_anim_elapsed:
     lda ENEMY_ANIMATION_DELAY,x       ; load enemy animation frame delay counter
     bne set_fire_beam_anim_delay_exit
@@ -7385,14 +7396,14 @@ fire_beam_add_x_length_exit:
     adc $00
     bcc fire_beam_exit
 
-; draws the fire beam tiles $10 at (a, y)
+; draws the fire beam tiles $10 at (a, y), decrements animation delay
 ; input
 ;  * $10 - level_6_tile_animation offset (tiles to draw)
 ;  * a - x position to draw tile
 ;  * y - y position to draw tile
 draw_fire_beam_tiles:
     jsr load_bank_3_update_nametable_tiles ; draw tile code $10 to nametable at (a, y)
-    bcs @exit
+    bcs @exit                              ; exit if unable to update nametable tiles
     ldx ENEMY_CURRENT_SLOT                 ; restore current enemy slot
     lda ENEMY_X_POS,x                      ; load enemy x position on screen
     cmp #$30                               ; see if fire beam is closer to the left edge

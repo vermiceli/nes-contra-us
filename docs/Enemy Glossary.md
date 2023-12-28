@@ -1070,15 +1070,23 @@ Bombs dropped from the Alien Carrier
 
 Other Names: Energy Beam
 
-These 4 enemy types are very similar. They differ in the direction they fire
+These 3 enemy types are very similar. They differ in the direction they fire
 * #$10 - down
 * #$11 - left
 * #$12 - right
+
+Horizontal fire beams have randomness baked into the duration after receding to
+then re-ignite.  They do not wait for player proximity either compared to the
+vertical fire beams.
 
 #### Attributes
 * `.... ..xx` - beam length code (0-3) (index, not actual amount)
 * `.... xx..` - beam delay between bursts (index into
   `fire_beam_anim_delay_tbl`)
+  * 00 = #$00
+  * 01 = #$20
+  * 10 = #$40
+  * 11 = #$60
 * `xx.. ....` - collision code logic, see `collision_code_f`, offset into
   `collision_code_f_adj_tbl` (0, 4, 8, or 16)
 
