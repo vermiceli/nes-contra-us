@@ -77,21 +77,25 @@ YouTube called
 Supplemental materials have been added that help explain interesting features of
 the code.  Below are some of the more important documents.
 
-* `docs/Aim Documentation.md` - documentation on how enemy aiming works
-* `docs/Bugs.md` - bugs identified while disassembling
-* `docs/Contra Control Flow.md` - detailed look at the game routine and level
-  routine flows.
-* `docs/Enemy Glossary.md` - documentation on every enemy type in the game
-* `docs/Enemy Routines.md` - documentation on level enemy configuration and
-  random soldier generation.
-* `docs/Graphics Documentation.md` - documentation on pattern tables,
-  nametables, palettes, palette cycling, super-tiles, background collision, and
-  compression.
-* `docs/Sound Documentation.md` - documentation on the audio engine used as well
-  as information on all sounds from the game.
+* [docs/Aim Documentation.md](./docs/Aim%20Documentation.md) - documentation on
+  how enemy aiming works
+* [docs/Bugs.md](./docs/Bugs.md) - bugs identified while disassembling
+* [docs/Contra Control Flow.md](./docs/Contra%20Control%20Flow.md) - detailed
+  look at the game routine and level routine flows.
+* [docs/Enemy Glossary.md](./docs/Enemy%20Glossary.md) - documentation on every
+  enemy type in the game
+* [docs/Enemy Routines.md](./docs/Enemy%20Routines.md) - documentation on level
+  enemy configuration and random soldier generation.
+* [docs/Graphics Documentation.md](./docs/Graphics%20Documentation.md) -
+  documentation on pattern tables, nametables, palettes, palette cycling,
+  super-tiles, background collision, and compression.
+* [docs/ROM Map.md](./docs/ROM%20Map.md) - detailed description of ROM file
+  contents 
+* [docs/Sound Documentation.md](./docs/Sound%20Documentation.md) - documentation
+  on the audio engine used as well as information on all sounds from the game.
 
 All sprites were captured and labeled for easy reference in
-`docs/sprite_library/README.md`
+[docs/sprite_library/README.md](./docs/sprite_library/README.md)
 
 ### Getting Started
 
