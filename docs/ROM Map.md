@@ -2,15 +2,15 @@ Below is a detailed overview of the layout of the Contra ROM file's contents.
 
 In summary, the ROM contains the following things
 
-| Type                    | Percentage |
-|-------------------------|------------|
-| Compressed Graphic Data |    49.177% |
-| Code                    |    29.721% |
-| Compressed Audio        |     8.108% |
-| Unused                  |     5.578% |
-| Configuration Data      |     4.024% |
-| Sprite Data             |     2.676% |
-| Text Data               |      .695% |
+| Type                    | Percentage |  Bytes |
+|-------------------------|------------|--------|
+| Compressed Graphic Data |    49.179% | 64,461 |
+| Code                    |    29.726% | 38,962 |
+| Compressed Audio        |     8.109% | 10,629 |
+| Unused                  |     5.585% |  7,320 |
+| Configuration Data      |     4.027% |  5,278 |
+| Sprite Data             |     2.677% |  3,509 |
+| Text Data               |      .697% |    913 |
 
 # ROM Map
 
