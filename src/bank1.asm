@@ -177,7 +177,7 @@ handle_sound_slots:
 ;  * y - channel register offset, e.g. #$00 (pulse 1 channel), #$04 (pulse 2 channel), #$08 (triangle channel), #$0c (noise/dmc channel)
 @sound_slot_loop:
     stx SOUND_CURRENT_SLOT    ; set the current sound slot to the current loop index
-    sty SOUND_CHNL_REG_OFFSET ; set sound channel config register offset (#$00, #$04, $08, or #$0c)
+    sty SOUND_CHNL_REG_OFFSET ; set sound channel config register offset (#$00, #$04, #$08, or #$0c)
     lda SOUND_CODE,x          ; load sound code for sound slot
     beq @prep_next_loop       ; prep to move to next sound slot, or exit if looped through all slots
     tay                       ; sound slot has a sound code, transfer sound code to offset register y
@@ -434,7 +434,7 @@ read_low_sound_cmd:
 pulse_sustain_note:
     tya                       ; transfer sound code read offset (#$00) to a
     pha                       ; backup y to the stack
-    ldy SOUND_CHNL_REG_OFFSET ; load sound channel config register offset (#$00, #$04, $08, or #$0c)
+    ldy SOUND_CHNL_REG_OFFSET ; load sound channel config register offset (#$00, #$04, #$08, or #$0c)
     sec                       ; set carry flag in preparation for subtraction
     sbc VIBRATO_DELAY,x       ; negate vibrato duration (or #$100 - vibrato duration)
                               ; y - VIBRATO_DELAY,x --> #$00 - VIBRATO_DELAY,x
@@ -1266,7 +1266,7 @@ ldx_pulse_triangle_reg:
 ; exit with x set to SOUND_CHNL_REG_OFFSET and the carry clear
 @clc_exit:
     clc                       ; clear carry to signal to update sound register
-    ldx SOUND_CHNL_REG_OFFSET ; load sound channel config register offset (#$00, #$04, $08, or #$0c)
+    ldx SOUND_CHNL_REG_OFFSET ; load sound channel config register offset (#$00, #$04, #$08, or #$0c)
     pla                       ; restore a from stack
     rts
 
@@ -1332,7 +1332,7 @@ init_pulse_channel:
     tax
     lda SOUND_CODE,x
     beq sound_code_00             ; branch if sound code is #$00
-    ldy SOUND_CHNL_REG_OFFSET     ; load sound channel config register offset (#$00, #$04, $08, or #$0c)
+    ldy SOUND_CHNL_REG_OFFSET     ; load sound channel config register offset (#$00, #$04, #$08, or #$0c)
     jsr mute_unmute_pulse_channel ; mutes/unmutes pulse wave channel based on pause state
     ldx SOUND_CURRENT_SLOT        ; load current sound slot
     rts
@@ -1484,8 +1484,8 @@ bank_1_unused_label_00:
     stx $e6
     lda $010a
     beq @pop_and_exit
-    stx $010a                 ; set sound channel config register offset (#$00, #$04, $08, or #$0c)
-    stx SOUND_CHNL_REG_OFFSET ; set sound channel config register offset (#$00, #$04, $08, or #$0c)
+    stx $010a                 ; set sound channel config register offset (#$00, #$04, #$08, or #$0c)
+    stx SOUND_CHNL_REG_OFFSET ; set sound channel config register offset (#$00, #$04, #$08, or #$0c)
     jsr init_pulse_channel
 
 @pop_and_exit:

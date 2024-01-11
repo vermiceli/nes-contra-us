@@ -322,7 +322,7 @@ decay that OAM has.
 
 ## Sprite Number Encoding
 The sprite data in bank 1 is encoded.  Except when #$fe, the first byte
-specifies the number of entries in the sprite.  There there are that many groups
+specifies the number of entries in the sprite.  Then there are that many groups
 of 4-bytes. Each #$4 bytes specify two tiles that are stacked vertically.
 Except when the first byte is #$80, these four bytes follow the PPU OAM byte
 specification.  For details on this data structure,

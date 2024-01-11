@@ -1187,13 +1187,14 @@ player_mode_1d_table:
 p2_game_over_status_tbl:
     .byte $01,$00
 
-; clear memory addresses $0028 to $00f0 then CPU_SPRITE_BUFFER up to CPU_GRAPHICS_BUFFER
+; clear memory addresses $0028 to $00f0 then CPU_SPRITE_BUFFER up to CPU_GRAPHICS_BUFFER (not including) [$300-$700)
 clear_memory_3:
     ldx #$28
 
-; clear x to #$f0 bytes
-; then clear CPU_SPRITE_BUFFER ($300) up to CPU_GRAPHICS_BUFFER ($700)
-clear_memory_starting_a_x:
+; clears memory [x-$f0) and [$300-$700]
+; input
+;  * x - starting memory address to clear (inclusive)
+clear_memory_starting_at_x:
     lda #$00
 
 @loop:
@@ -2653,13 +2654,14 @@ write_cpu_graphics_buffer_to_ppu:
 
 @read_cpu_mem_to_ppu:
     lda $08       ; read previous high byte of PPU write address
-    cmp #$3f      ; compare $08 to #$3f
-    bne @continue ; skip ahead if $08 is not equal to #$3f
-    sta PPUADDR   ; !(WHY?) the following code doesn't make sense to me
-    lda #$00      ; it sets the PPUADDR to #$3f00, then #$0000
-    sta PPUADDR   ; but this is overwritten in the next few lines
-    sta PPUADDR   ; that would have been executed regardless of what $08 was
-    sta PPUADDR   ; this code seems to be able to be removed without issue !(WHY?)
+    cmp #$3f      ; compare $08 to #$3f (seeing if palette write)
+    bne @continue ; skip ahead if $08 is not equal to #$3f (not writing palette)
+    sta PPUADDR   ; !(OBS) I think this is attempting to prevent the NTSC NES palette corruption bug
+    lda #$00      ; the palette can get corrupted after writes to it
+                  ; the workaround is to update the PPUADDR twice after writing to palette memory
+    sta PPUADDR   ; ref: https://www.nesdev.org/wiki/PPU_registers#Address_($2006)_%3E%3E_write_x2
+    sta PPUADDR   ; (1) set PPUADDR to $3f00, then (2) set PPUADDR outside palette memory (in this case $0000)
+    sta PPUADDR   ; these steps prevent palette corruption
 
 ; CPU address $cbe5
 @continue:
@@ -2787,10 +2789,12 @@ write_palette_colors_to_ppu:
     dex
     bne @loop
     lda #$3f
-    sta PPUADDR              ; set ppu write address to $3f00
-    stx PPUADDR              ; store low byte of $3f00
-    stx PPUADDR              ; be sure it wrote correctly
-    stx PPUADDR              ; be sure it wrote correctly
+    sta PPUADDR              ; !(OBS) I think this is attempting to prevent the NTSC NES palette corruption bug
+    stx PPUADDR              ; the palette can get corrupted after writes to it
+                             ; the workaround is to update the PPUADDR twice after writing to palette memory
+                             ; ref: https://www.nesdev.org/wiki/PPU_registers#Address_($2006)_%3E%3E_write_x2
+    stx PPUADDR              ; (1) set PPUADDR to $3f00, then (2) set PPUADDR outside palette memory (in this case $0000)
+    stx PPUADDR              ; these steps prevent palette corruption after writing to the palette memory
     stx NUM_PALETTES_TO_LOAD ; set number of palettes to load to #$3f
                              ; don't think this value is ever read when it's #$3f, overwritten later
 
@@ -3231,7 +3235,7 @@ level_routine_05:
     lda P2_CURRENT_WEAPON           ; current weapon code (player 2)
     sta $11                         ; temporarily store current weapon in $11
     ldx #$40                        ; x = #$40 (set to 30 for game over after lvl 1)
-    jsr clear_memory_starting_a_x   ; clear level header data, player data, sprite buffer, and super-tile buffer
+    jsr clear_memory_starting_at_x  ; clear level header data, player data, sprite buffer, and super-tile buffer (memory [$40-$f0) and [$300-$700])
     lda BOSS_DEFEATED_FLAG          ; 0 = boss not defeated, 1 = boss defeated
     beq show_game_over_screen       ; in level_routine_05 and boss wasn't defeated, game over
                                     ; unless demo mode (shouldn't happen because demos don't reach end of level), then just set DEMO_LEVEL_END_FLAG and exit

@@ -456,7 +456,7 @@ game_end_routine_04:
     beq load_credits_line_text  ; always branch to draw blank line of tiles (ending_credits_00)
 
 @draw_next_line:
-    lda $42 ; load line credits text offset (initialized to 0 in level_routine_05 clear_memory_starting_a_x)
+    lda $42 ; load line credits text offset (initialized to 0 in level_routine_05 clear_memory_starting_at_x)
     inc $42 ; increment credits line offset
     asl     ; double since each entry is #$02 bytes
     tay

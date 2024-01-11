@@ -1833,7 +1833,7 @@ sniper_attack_delay_tbl:
 ; #$01 - number of bullets to shoot per attack - hiding rifle man
 ; #$03 - number of bullets to shoot per attack - boss screen rifle man
 sniper_bullet_attack_count_tbl:
-    .byte $03, $01,$03
+    .byte $03,$01,$03
 
 ; rifle man - pointer 3
 sniper_routine_02:
