@@ -1,7 +1,7 @@
 # Enemies
 
 In _Contra_ there are various enemies, each enemy type is assigned a number.
-Enemy types whose number is larger than #$09 are level specific.
+Enemy types whose number is larger than #$0f are level specific.
 
 For outdoor levels, each enemy has 3 bits available to modify their attributes
 in some way. For indoor/base levels, and generated enemies, each enemy has an
@@ -11,6 +11,79 @@ For some enemies, the last bit of the Y position also serves as bit 3 of the
 attributes. An odd Y position will make bit 3 of attributes set, and an even Y
 position will make bit 3 of attributes clear.  Examples include the pill box
 sensor (common), and the claw (hangar).
+
+| Enemy Type | Name                                                                 | Group     |
+|------------|----------------------------------------------------------------------|-----------|
+| 00         | [Weapon Item](#00---weapon-item)                                     | Shared    |
+| 01         | [Bullet](#01---bullet)                                               | Shared    |
+| 02         | [Pill Box Sensor](#02---pill-box-sensor)                             | Shared    |
+| 03         | [Flying Capsule](#03---flying-capsule)                               | Shared    |
+| 04         | [Rotating Gun](#04---rotating-gun)                                   | Shared    |
+| 05         | [Soldier](#05---soldier)                                             | Shared    |
+| 06         | [Sniper](#06---sniper)                                               | Shared    |
+| 07         | [Red Turret](#07---red-turret)                                       | Shared    |
+| 08         | [Wall Cannon](#08---wall-cannon)                                     | Shared    |
+| 09         | [Unused](#09---unused)                                               | Shared    |
+| 0A         | [Wall Plating](#0a---wall-plating)                                   | Shared    |
+| 0B         | [Mortar Shot](#0b---mortar-shot)                                     | Shared    |
+| 0C         | [Scuba Diver](#0c---scuba-diver)                                     | Shared    |
+| 0D         | [Unused](#0d---unused)                                               | Shared    |
+| 0E         | [Basquez](#0e---basquez)                                             | Shared    |
+| 0F         | [Basquez Bullet](#0f---basquez-bullet)                               | Shared    |
+| 10         | [Bomb Turret](#10---bomb-turret)                                     | Level 1   |
+| 11         | [Plated Door](#11---plated-door)                                     | Level 1   |
+| 12         | [Exploding Bridge](#12---exploding-bridge)                           | Level 1   |
+| 10         | [Boss Eye](#10---boss-eye)                                           | Level 2/4 |
+| 11         | [Roller](#11---roller)                                               | Level 2/4 |
+| 12         | [Grenade](#12---grenade)                                             | Level 2/4 |
+| 13         | [Wall Turret](#13---wall-turret)                                     | Level 2/4 |
+| 14         | [Core](#14---core)                                                   | Level 2/4 |
+| 15         | [Indoor Soldier](#15---indoor-soldier)                               | Level 2/4 |
+| 16         | [Jumping Soldier](#16---jumping-soldier)                             | Level 2/4 |
+| 17         | [Grenade Launcher](#17---grenade-launcher)                           | Level 2/4 |
+| 18         | [Group of Four Soldiers](#18---group-of-four-soldiers)               | Level 2/4 |
+| 19         | [Indoor Soldier Generator](#19---indoor-soldier-generator)           | Level 2/4 |
+| 1A         | [Indoor Roller Generator](#1a---indoor-roller-generator)             | Level 2/4 |
+| 1B         | [Boss Eye Fire Ring Projectile](#1b---boss-eye-fire-ring-projectile) | Level 2/4 |
+| 1C         | [Godomuga](#1c---godomuga)                                           | Level 2/4 |
+| 1D         | [Gardegura](#1d---gardegura)                                         | Level 2/4 |
+| 1E         | [Garth](#1e---garth)                                                 | Level 2/4 |
+| 1F         | [Rangel](#1f---rangel)                                               | Level 2/4 |
+| 20         | [Garth and Rangel Generator](#20---garth-and-rangel-generator)       | Level 2/4 |
+| 10         | [Floating Rock Platform](#10---floating-rock-platform)               | Level 3   |
+| 11         | [Moving Flame](#11---moving-flame)                                   | Level 3   |
+| 12         | [Rock Cave](#12---rock-cave)                                         | Level 3   |
+| 13         | [Falling Rock](#13---falling-rock)                                   | Level 3   |
+| 14         | [Dragon](#14---dragon)                                               | Level 3   |
+| 15         | [Dragon Tentacle Orb](#15---dragon-tentacle-orb)                     | Level 3   |
+| 10         | [Ice Grenade Generator](#10---ice-grenade-generator)                 | Level 5   |
+| 11         | [Ice Grenade](#11---ice-grenade)                                     | Level 5   |
+| 12         | [Tank](#12---tank)                                                   | Level 5   |
+| 13         | [Ice Separator](#13---ice-separator)                                 | Level 5   |
+| 14         | [Alien Carrier](#14---alien-carrier)                                 | Level 5   |
+| 15         | [Flying Saucer](#15---flying-saucer)                                 | Level 5   |
+| 16         | [Drop Bomb](#16---drop-bomb)                                         | Level 5   |
+| 10         | [Down Fire Beam](#10---down-fire-beam)                               | Level 6   |
+| 11         | [Left Fire Beam](#11---left-fire-beam)                               | Level 6   |
+| 12         | [Right Fire Beam](#12---right-fire-beam)                             | Level 6   |
+| 13         | [Giant Boss Soldier](#13---giant-boss-soldier)                       | Level 6   |
+| 14         | [Spiked Projectile](#14---spiked-projectile)                         | Level 6   |
+| 10         | [Claw](#10---claw)                                                   | Level 7   |
+| 11         | [Rising Spiked Wall](#11---rising-spiked-wall)                       | Level 7   |
+| 12         | [Tall Spiked Wall](#12---tall-spiked-wall)                           | Level 7   |
+| 13         | [Mining Cart Generator](#13---mining-cart-generator)                 | Level 7   |
+| 14         | [Mining Cart](#14---mining-cart)                                     | Level 7   |
+| 15         | [Stationary Mining Cart](#15---stationary-mining-cart)               | Level 7   |
+| 16         | [Armored Door](#16---armored-door)                                   | Level 7   |
+| 17         | [Mortar Launcher](#17---mortar-launcher)                             | Level 7   |
+| 18         | [Soldier Generator](#18---soldier-generator)                         | Level 7   |
+| 10         | [Emperor Demon Dragon God Java](#10---emperor-demon-dragon-god-java) | Level 8   |
+| 11         | [Bundle](#11---bundle)                                               | Level 8   |
+| 12         | [Wadder](#12---wadder)                                               | Level 8   |
+| 13         | [Poisonous Insect Gel](#13---poisonous-insect-gel)                   | Level 8   |
+| 14         | [Bugger](#14---bugger)                                               | Level 8   |
+| 15         | [Eggron](#15---eggron)                                               | Level 8   |
+| 16         | [Gomeramos King](#16---gomeramos-king)                               | Level 8   |
 
 ## Common
 
