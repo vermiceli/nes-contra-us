@@ -1482,9 +1482,9 @@ bank_1_unused_label_00:
     pha
     ldx #$00                  ; x = #$00
     stx $e6
-    lda $010a
+    lda SOUND_CODE+4
     beq @pop_and_exit
-    stx $010a                 ; set sound channel config register offset (#$00, #$04, #$08, or #$0c)
+    stx SOUND_CODE+4          ; set sound channel config register offset (#$00, #$04, #$08, or #$0c)
     stx SOUND_CHNL_REG_OFFSET ; set sound channel config register offset (#$00, #$04, #$08, or #$0c)
     jsr init_pulse_channel
 

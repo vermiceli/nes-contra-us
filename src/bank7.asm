@@ -303,7 +303,7 @@ nmi_start:
     bne handle_sounds_set_ppu_scroll_rti ; branch if nmi occurred before game loop was completed to skip game loop
                                          ; instead just continue playing sounds, set ppu scroll, and rti
                                          ; previously unfinished frame will finish after rti and then itself rti
-    jsr clear_ppu                        ; first frame, so clear/init PPU
+    jsr clear_ppu                        ; re-init PPU
     sta OAMADDR                          ; set OAM address to #00 (DMA is used instead)
     ldy #>OAMDMA_CPU_BUFFER              ; setting OAMDMA to #$02 tells PPU to load sprite data from $0200-$02ff
     sty OAMDMA                           ; write #$100 (256 decimal) bytes ($0200 to $02ff) of data to PPU OAM (the entire screen)
@@ -2438,12 +2438,12 @@ draw_player_num_lives:
     beq @exit                  ; exit if just drew a 0, meaning no more digits to draw
 
 @write_num_lives:
-    sta $06fe,y ; set ones digit
-    txa         ; transfer 10s digit to a
-    beq @exit   ; exit without drawing 10s digit if #$00
-    ora #$30    ; converting number to pattern tile offset
-                ; #$31 = 1, #$32 = 2, etc.
-    sta $06fd,y ; set 10s digit of num lives
+    sta CPU_GRAPHICS_BUFFER-2,y ; set ones digit
+    txa                         ; transfer 10s digit to a
+    beq @exit                   ; exit without drawing 10s digit if #$00
+    ora #$30                    ; converting number to pattern tile offset
+                                ; #$31 = 1, #$32 = 2, etc.
+    sta CPU_GRAPHICS_BUFFER-3,y ; set 10s digit of num lives
 
 @exit:
     rts
@@ -2461,7 +2461,7 @@ draw_stage_and_level_name:
     lda CURRENT_LEVEL                         ; current level number
     clc                                       ; clear carry in preparation for addition
     adc #$31
-    sta $06fe,x                               ; draw current level
+    sta CPU_GRAPHICS_BUFFER-2,x               ; draw current level
     lda CURRENT_LEVEL                         ; current level
     adc #$11                                  ; string id = level number + 11
     jmp load_bank_6_write_text_palette_to_mem ; draw text string
@@ -2502,40 +2502,40 @@ draw_the_scores:
 
 ; digits are calculated from right to left, then two 0s are tacked to end (unless the score is 0)
 @draw_score_digit:
-    lda #$0a                  ; ensuring the high score digits is below decimal 10
-    sta $03                   ; store $0a into $03
-    jsr calculate_score_digit ; calculate next digit and store into $02
-    lda $02                   ; load the digit of the score to display from $02
-    ora #$30                  ; convert from number to character to display. In Contra 30 = 0, 31 = 1, etc.
-    sta $06fc,x               ; draw digit
-    dex                       ; move to the previous digit (score drawn right to left)
-    lda $00                   ; load current low byte of score
-    ora $01                   ; combine low byte with high byte
-    beq @draw_score_end_zeros ; if both high and low bytes are 0, printing of the score is finished, add two 0s to end
-    dec $04                   ; decrement the digit counter, only #$05 decimal digits are used
-    bne @draw_score_digit     ; draw the next digit if less than #05 digits have been drawn
+    lda #$0a                    ; ensuring the high score digits is below decimal 10
+    sta $03                     ; store $0a into $03
+    jsr calculate_score_digit   ; calculate next digit and store into $02
+    lda $02                     ; load the digit of the score to display from $02
+    ora #$30                    ; convert from number to character to display. In Contra 30 = 0, 31 = 1, etc.
+    sta CPU_GRAPHICS_BUFFER-4,x ; draw digit
+    dex                         ; move to the previous digit (score drawn right to left)
+    lda $00                     ; load current low byte of score
+    ora $01                     ; combine low byte with high byte
+    beq @draw_score_end_zeros   ; if both high and low bytes are 0, printing of the score is finished, add two 0s to end
+    dec $04                     ; decrement the digit counter, only #$05 decimal digits are used
+    bne @draw_score_digit       ; draw the next digit if less than #05 digits have been drawn
 
 @draw_score_end_zeros:
-    ldx GRAPHICS_BUFFER_OFFSET ; index int PPU character map
-    lda $04                    ; load the number of digits remaining (starts at $05)
-    sec                        ; set carry flag in preparation for subtraction
-    sbc #$05                   ; subtract 5 from total digits used, used to know if no digits have been printed
-    ora $02                    ; see if score is #$00
-    beq @draw_zero_score       ; handle when the score is #$00 (don't tack on ending 00s)
-    lda #$30                   ; set the character to display to 0
-    sta $06fd,x                ; display the character '0'
+    ldx GRAPHICS_BUFFER_OFFSET  ; index int PPU character map
+    lda $04                     ; load the number of digits remaining (starts at $05)
+    sec                         ; set carry flag in preparation for subtraction
+    sbc #$05                    ; subtract 5 from total digits used, used to know if no digits have been printed
+    ora $02                     ; see if score is #$00
+    beq @draw_zero_score        ; handle when the score is #$00 (don't tack on ending 00s)
+    lda #$30                    ; set the character to display to 0
+    sta CPU_GRAPHICS_BUFFER-3,x ; display the character '0'
 
 @draw_final_0_exit:
-    sta $06fe,x ; display the character '0'
+    sta CPU_GRAPHICS_BUFFER-2,x ; display the character '0'
 
 @exit:
     rts
 
 ; handle the case when player score is $00, i.e. no points were scored
 @draw_zero_score:
-    sta $06fc,x            ; this is the first decimal digit of the score, set it to '0'
-    lda #$30               ; display the character '0'
-    bne @draw_final_0_exit ; always branch, to exit out of @draw_score_digit
+    sta CPU_GRAPHICS_BUFFER-4,x ; this is the first decimal digit of the score, set it to '0'
+    lda #$30                    ; display the character '0'
+    bne @draw_final_0_exit      ; always branch, to exit out of @draw_score_digit
 
 ; graphic data to reset nametables (#$2a bytes)
 ; set nametable 0 ($2000) and nametable 1 ($2400) all to #$00
