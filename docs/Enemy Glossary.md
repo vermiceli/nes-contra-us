@@ -182,7 +182,7 @@ destroyed.
 ### 03 - Flying Capsule
 
 Other Names: Weapon Zeppelin, Power-Up Capsule, Weapon Wings, Weapon Drop,
-  or Flying Item Pod
+  Flying Item Pod, or Football
 
 Weapon Item transportation device that which travels from the left end of the
 screen to the other in a wave-like pattern.

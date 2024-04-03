@@ -1430,7 +1430,7 @@ init_pulse_and_noise_channels:
     lda #$00
     tax
 
-; write #$00-#$05 to $0106
+; write #$00 to all sound slots' sound code
 @loop:
     sta SOUND_CODE,x
     inx
@@ -4100,10 +4100,10 @@ load_sprite_to_cpu_mem:
     iny           ; increment sprite_xx read offset
     lda ($08),y   ; load low byte of new sprite read address
     sta $06       ; store low byte into $06
-    iny
+    iny           ; increment sprite_xx read offset
     lda ($08),y   ; load high byte of new sprite read address
     sta $09       ; replace existing read high byte in $09 with new address
-    lda $06       ; load low byte back into $06
+    lda $06       ; load low byte
     sta $08       ; replace existing read low byte in $08 with new address
     ldy #$00      ; clear sprite_xx read offset since starting at new address
 
@@ -4135,7 +4135,7 @@ load_sprite_to_cpu_mem:
     lda ($08),y               ; read 3rd byte (sprite tile attributes) (Byte 2)
     and $0d                   ; keep/strip sprite palette from sprite tile byte 2, based on bit 2 of SPRITE_ATTR
     ora $00                   ; merge sprite code tile byte 2 with attribute data from SPRITE_ATTR
-    eor $0b                   ; exclusive to handle flipping a flipped sprite tile, e.g. flip + flip = no flip
+    eor $0b                   ; exclusive or to handle flipping a flipped sprite tile, e.g. flip + flip = no flip
     sta OAMDMA_CPU_BUFFER+2,x ; write sprite attributes to CPU buffer
     iny                       ; increment sprite_xx read offset
     lda $0b
@@ -4218,7 +4218,7 @@ draw_player_hud_sprites:
     ldy #$04                  ; set hud_sprites base offset to show GAME OVER
     lsr
     bcs @four_sprites         ; branch if in game over
-    ldy $00                   ; not in game over, load number of lives remaining
+    ldy $00                   ; not in game over, load number of lives remaining for current player
     lda P1_NUM_LIVES,y        ; player y lives
     ldy #$00                  ; set hud_sprites base offset to show medals
     cmp #$04
@@ -4231,18 +4231,18 @@ draw_player_hud_sprites:
     sta $01 ; store number of medals to draw in $01
 
 @draw_p_sprite:
-    dec $01                            ; decrement number of medals to draw
-    bmi @move_to_next_player           ; if done drawing all sprites, move to next player
-    lda #$10                           ; a = #$10
-    sta OAMDMA_CPU_BUFFER,x            ; set y position of medal/game over hud sprite to #$10
-    lda hud_sprites,y                  ; load HUD sprite (either medal, or game over text)
-    sta OAMDMA_CPU_BUFFER+1,x          ; write tile number to OAM
+    dec $01                     ; decrement number of medals to draw
+    bmi @move_to_next_player    ; if done drawing all sprites, move to next player
+    lda #$10                    ; a = #$10
+    sta OAMDMA_CPU_BUFFER,x     ; set y position of medal/game over hud sprite to #$10
+    lda hud_sprites,y           ; load HUD sprite (either medal, or game over text)
+    sta OAMDMA_CPU_BUFFER+1,x   ; write tile number to OAM
     lda $00
-    sta OAMDMA_CPU_BUFFER+2,x          ; write the tile attributes (blue palette for p1, red palette for p2)
-    lsr                                ; set carry flag if on player 2
-    lda sprite_sprite_medal_x_offset,y ; load x offset based on sprite number
+    sta OAMDMA_CPU_BUFFER+2,x   ; write the tile attributes (blue palette for p1, red palette for p2)
+    lsr                         ; set carry flag if on player 2
+    lda sprite_medal_x_offset,y ; load x offset based on sprite number
     bcc @continue
-    adc #$af                           ; add #$af to sprite x offset if on player 2 (see previous lsr)
+    adc #$af                    ; add #$af to sprite x offset if on player 2 (see previous lsr)
 
 @continue:
     jsr set_x_adv_OAMDMA_addr ; set sprite tile x position (a) in OAMDMA and advance OAMDMA write address
@@ -4263,7 +4263,7 @@ hud_sprites:
     .byte $0a,$0a,$0a,$0a ; medals
     .byte $02,$04,$06,$08 ; game over text
 
-sprite_sprite_medal_x_offset:
+sprite_medal_x_offset:
     .byte $10,$1c,$28,$34
     .byte $10,$1c,$28,$34
 

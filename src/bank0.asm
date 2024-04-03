@@ -345,7 +345,7 @@ set_weapon_item_sprite:
     lsr
     lsr                            ; flash every #$08 frames
     and #$03                       ; keep bits .... ..xx
-    ora #$04                       ; set bit 3
+    ora #$04                       ; set bit 2 (use palette defined in bits 0 and 1)
     sta ENEMY_SPRITE_ATTR,x        ; update enemy sprite attribute so it flashes
 
 @set_sprite_code:
@@ -735,7 +735,7 @@ flying_capsule_routine_01:
 
 ; weapon zeppelin pointer 3
 flying_capsule_routine_02:
-    jmp play_explosion_sound
+    jmp play_explosion_sound ; create explosion sound and 2 sets of explosion type #$89 at location
 
 ; pointer table for rotating gun (#$a * #$2 = #$14 bytes)
 ; level 1 or level 3 enemy

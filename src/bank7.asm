@@ -341,7 +341,7 @@ remove_registers_from_stack_and_rti:
     pla ; remove byte from stack
     tay ; store in y
     pla ; remove byte from stack
-    tax ; story in x
+    tax ; store in x
     pla ; remove byte stack
     plp ; set cpu flags from stack
 
@@ -2380,7 +2380,7 @@ change_ppu_write_address:
     lda #$01                           ; specifies to increment graphic read address by 1 byte
     ldx #$00                           ; specifies that the 2-byte graphic read address is located at $00
     jsr advance_graphic_read_addr      ; increment 2-byte graphic read address at $00 by 1 byte
-    jmp begin_ppu_graphics_block_write ; start populating nametable with zeros
+    jmp begin_ppu_graphics_block_write ; start writing graphics block to PPU
 
 ; handle when entire graphic data code has been read
 ; restore previously-loaded bank and re-init the PPU
@@ -3905,7 +3905,7 @@ set_frame_scroll_weapon_strength:
 @p2_game_over_status:
     ldy P2_GAME_OVER_STATUS                          ; player 2 game over state (1 = game over)
     bne run_player_invincibility_and_weapon_strength ; branch if player 2 is in game over, or if this is a single player game
-    ora #$02                                         ; set bit 2 to #$01 when player 2 is not in game over
+    ora #$02                                         ; set bit 1 to #$01 when player 2 is not in game over
 
 ; a will be #$00 when both players are in game over
 ; a will be #$01 when player 1 not game over, player 2 game over (or not playing)
@@ -5107,7 +5107,7 @@ apply_gravity:
 
 ; player death
 init_player_dec_num_lives:
-    jsr init_player_and_weapon
+    jsr init_player_and_weapon ; initialize player variables to 0
     sta PLAYER_STATE,x         ; set player state to #$00 (falling into level)
     lda P1_NUM_LIVES,x         ; load player number of lives
     beq @set_game_over         ; branch if no more lives
@@ -5291,6 +5291,9 @@ set_carry_exit:
     sec ; set carry flag
     rts
 
+; initialize player variables to 0
+; input
+;  * x - player offset (0 = p1, 1 = p2)
 init_player_and_weapon:
     lda #$00                ; a = #$00
     sta P1_CURRENT_WEAPON,x ; reset current player's weapon
