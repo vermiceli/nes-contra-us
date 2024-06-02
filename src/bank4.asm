@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.2
+; Contra US Disassembly - v1.3
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 4 mostly contains compressed graphic data. The rest of bank 4 is the code
 ; for the ending scene animation and the ending credits, including the ending

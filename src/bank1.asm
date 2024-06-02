@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.2
+; Contra US Disassembly - v1.3
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 1 is responsible for audio and sprites.  The audio code takes up about
 ; 3/4  of the bank. The remaining 1/4 of the bank is for sprite data and code to
@@ -323,7 +323,7 @@ set_pulse_config:
 @continue:
     ora SOUND_CFG_HIGH,x       ; merge with high nibble of pulse config value
     jsr ldx_pulse_triangle_reg ; set x to apu channel register [0, 1, 4, 5, 8, #$c]
-    bcs @exit
+    bcs @exit                  ; exit if there is already a sound playing on that channel that has priority
     sta APU_PULSE_CONFIG,x     ; set either pulse channel 1 or 2 config
                                ; a is either (PULSE_VOLUME,x - UNKNOWN_SOUND_01) | SOUND_CFG_HIGH,x
                                ; or #$00 | SOUND_CFG_HIGH,x
@@ -517,7 +517,7 @@ read_sound_command_00:
 ; output
 ;  * x - SOUND_CURRENT_SLOT [0-3]
 read_high_sound_cmd:
-    lda SOUND_CURRENT_SLOT   ; loud sound slot index
+    lda SOUND_CURRENT_SLOT   ; load sound slot index
     cmp #$03                 ; compare to sound slot #$03 (noise/dmc channel)
     beq parse_percussion_cmd ; branch if sound slot #$03 (noise/dmc channel)
     lda ($e0),y              ; not noise channel, load sound byte
@@ -671,7 +671,7 @@ interpret_sound_byte:
 
 @set_sweep_continue:
     jsr ldx_pulse_triangle_reg        ; set x to apu channel register [0, 1, 4, 5, 8, #$c]
-    bcs @next_high_control_sound_byte
+    bcs @next_high_control_sound_byte ; branch if there is already a sound playing on that channel that has priority
     sta APU_PULSE_SWEEP,x             ; enable or disable sweep
 
 @next_high_control_sound_byte:
@@ -712,7 +712,7 @@ interpret_sound_byte:
 ; set config register ($4000, $4004, or $400c) and period & length register
 @set_cfg_period_length:
     jsr ldx_pulse_triangle_reg  ; set x to apu channel register [0, 1, 4, 5, 8, #$c]
-    bcs @load_set_period_length
+    bcs @load_set_period_length ; branch if there is already a sound playing on that channel that has priority
     sta $4000,x                 ; set pulse, triangle, or noise channel configuration
 
 @load_set_period_length:
@@ -853,7 +853,7 @@ set_note:
     sta SOUND_PULSE_LENGTH,x   ; set in memory copy of current pulse length
     ora #$08                   ; set bit 0 of high timer to be 1
     jsr ldx_pulse_triangle_reg ; set x to apu channel register [0, 1, 4, 5, 8, #$c]
-    bcs @set_period
+    bcs @set_period            ; branch if there is already a sound playing on that channel that has priority
     sta APU_PULSE_LENGTH,x     ; set duration and high 3 bits of the pulse, or triangle channel
 
 ; set low period
@@ -866,7 +866,7 @@ set_note:
 
 @set_apu_period:
     jsr ldx_pulse_triangle_reg   ; set x to apu channel register [0, 1, 4, 5, 8, #$c]
-    bcs @restore_x_adv_sound_ptr ; if carry set, do not update APU register
+    bcs @restore_x_adv_sound_ptr ; branch if there is already a sound playing on that channel that has priority
                                  ; continue to restore x to the sound slot index, update SOUND_CMD_LOW_ADDR value, and exit
     sta APU_PULSE_PERIOD,x       ; update APU pulse period
 
@@ -1007,7 +1007,9 @@ skip_3_read_sound_command_01:
                               ;  (except SOUND_FLAGS are loaded within read_sound_command_00)
 
 ; set sound channel configuration (mute), advance sound command address
+; input
 ;  * a - amount to multiply SOUND_CMD_LENGTH by
+;  * y - current sound_xx read offset
 sound_cmd_routine_00:
     jsr calc_cmd_delay   ; multiply SOUND_CMD_LENGTH by a
     lda #$00             ; sound config low nibble = #$00 (mute sound channel)
@@ -1017,7 +1019,7 @@ sound_cmd_routine_00:
 
 @continue:
     jsr ldx_pulse_triangle_reg ; set x to apu channel register [0, 1, 4, 5, 8, #$c]
-    bcs @adv_read_addr
+    bcs @adv_read_addr         ; branch if there is already a sound playing on that channel that has priority
     sta $4000,x                ; set pulse 1, pulse 2, or triangle configuration
 
 @adv_read_addr:
@@ -1028,12 +1030,14 @@ sound_cmd_routine_00:
     jmp adv_sound_cmd_addr ; set the sound_xx command read offset to current read location + 1
 
 ; set in memory configuration for channel, set multiplier, and sometimes read_high_sound_cmd
+; input
 ;  * a - low nibble of sound byte value
+;  * y - current sound_xx read offset
 sound_cmd_routine_01:
     sta SOUND_LENGTH_MULTIPLIER,x        ; store value used to calculate SOUND_CMD_LENGTH
-    iny
+    iny                                  ; increment sound code read offset
     lda ($e0),y                          ; load sound code byte
-    cpx #$02                             ; compare to sound slot #$02 (triangle channel)
+    cpx #$02                             ; compare current sound slot to sound slot #$02 (triangle channel)
     beq set_sound_triangle_config        ; branch if triangle channel to set triangle config in memory and read_high_sound_cmd
     and #$0f                             ; not triangle sound slot, get low nibble
     sec
@@ -1293,7 +1297,7 @@ sound_exit_00:
 mute_channel:
     lda #$30                   ; a = #$30 (mute pulse channel register)
     jsr ldx_pulse_triangle_reg ; set x to apu channel register [0, 1, 4, 5, 8, #$c]
-    bcs @continue
+    bcs @continue              ; branch if there is already a sound playing on that channel that has priority
     sta $4000,x                ; update pulse channel config (mute pulse channel 1 or 2 register)
 
 @continue:
@@ -1373,7 +1377,7 @@ sound_cmd_ptr_tbl:
 
 ; table for note period to use when writing notes to the APU (#$30 bytes)
 ; the frequency of the pulse channels is a division of the CPU Clock (1.789773MHz NTSC, 1.662607MHz PAL)
-; the output frequency (f) of the generator can be determined by the 11-bit period value (f_pulse) written to $4002–$4003/$4006–$4007
+; the output frequency (f) of the generator can be determined by the 11-bit period value (f_pulse) written to $4002-$4003/$4006-$4007
 ; note that triangle channel is one octave lower
 ; frequency = cpu_speed / (#$0f * (f_pulse + 1))
 ; ex: 1789773 / (#$0f * (#$06ae + 1)) => 65.38 Hz

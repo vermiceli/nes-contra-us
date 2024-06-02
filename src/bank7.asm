@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.2
+; Contra US Disassembly - v1.3
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 7 is the core of the game's programming. Reset, NMI, and IRQ vectors are
 ; in this bank and is the entry point to the game.  Bank 7 is always loaded in
@@ -4889,7 +4889,6 @@ set_vel_for_speed_code_a:
     sta $0e  ; set $0e to #$00
     ldy #$07 ; set number of bits to rotate speed code to #$07
 
-
 ; for a given value $0f, set fast ($0f) and fractional ($0e) velocities based on y
 ; negate final results if $12 is greater than or equal to #$00
 ; also used directly for indoor bullets
@@ -9734,7 +9733,7 @@ aim_and_create_enemy_bullet:
     sty $06                           ; store bullet speed code in $06
     sta $00                           ; store bullet type temporarily
     lda #$01                          ; a = #$01, use quadrant_aim_dir_01
-    sta $0f                           ; quadrant_aim_dir_lookup_tbl offset (quadrant_aim_dir_01)
+    sta $0f                           ; quadrant_aim_dir_lookup_ptr_tbl offset (quadrant_aim_dir_01)
     lda $0a                           ; load player y position
     bpl @continue                     ; branch if >= #$00
     lda $0c                           ; load player y position
@@ -9857,10 +9856,10 @@ create_enemy_bullet:
 
 @continue:
     sta $06           ; store speed code in $06
-    lda $08           ; load enemy bullet y position
-    sta ENEMY_Y_POS,x ; store enemy bullet y position on screen
-    lda $09           ; load enemy bullet x position
-    sta ENEMY_X_POS,x ; store enemy bullet x position on screen
+    lda $08           ; load created bullet enemy y position
+    sta ENEMY_Y_POS,x ; set created bullet enemy y position
+    lda $09           ; load created bullet enemy y position
+    sta ENEMY_X_POS,x ; set created bullet enemy x position
     lda $0a
     and #$1f          ; keep bits ...x xxxx (quadrant aim dir)
 
@@ -10151,7 +10150,7 @@ rotate_enemy_var_1:
     rts
 
 ; determines which direction to rotate based on quadrant_aim_dir_00
-; targetting player index ($0a)
+; targeting player index ($0a)
 ; input
 ;  * $0a - player index to target, 0 = player 1, 1 = player 2
 ;  * $08 - source y position
@@ -10162,10 +10161,10 @@ rotate_enemy_var_1:
 ;  * $0c - new enemy aim direction
 get_rotate_00:
     lda #$00                     ; a = #$00 (use quadrant_aim_dir_00)
-    beq get_rotate_dir_for_index ; always jump, get enemy aim direction and rotation direction using quadrant_aim_dir_00
+    beq get_rotate_dir_for_index ; always branch, get enemy aim direction and rotation direction using quadrant_aim_dir_00
 
 ; determines which direction to rotate based on quadrant_aim_dir_01
-; targetting player index ($0a)
+; targeting player index ($0a)
 ; input
 ;  * $0a - player index to target, 0 = player 1, 1 = player 2
 ;  * $08 - source y position
@@ -10177,10 +10176,10 @@ get_rotate_00:
 get_rotate_01:
     lda #$01 ; a = #$01 (use quadrant_aim_dir_01)
 
-; determines which direction to rotate based on quadrant_aim_dir_lookup_tbl index offset (a)
-; targetting player index ($0a)
+; determines which direction to rotate based on quadrant_aim_dir_lookup_ptr_tbl index offset (a)
+; targeting player index ($0a)
 ; input
-;  * a - quadrant_aim_dir_lookup_tbl offset table
+;  * a - quadrant_aim_dir_lookup_ptr_tbl offset table
 ;  * $0a - player index to target, 0 = player 1, 1 = player 2
 ;  * $08 - source y position
 ;  * $09 - source x position
@@ -10189,7 +10188,7 @@ get_rotate_01:
 ;  * a - rotation direction, #$00 clockwise, #$01 counterclockwise, #$80 no rotation needed
 ;  * $0c - new enemy aim direction
 get_rotate_dir_for_index:
-    sta $0f                   ; set quadrant_aim_dir_lookup_tbl index offset
+    sta $0f                   ; set quadrant_aim_dir_lookup_ptr_tbl index offset
     lda $0a                   ; load player index
     bpl @get_quadrant_aim_dir ; branch if closest player has been determined
     lda $0c                   ; no player to target, not sure when this happens (see player_enemy_x_dist)
@@ -10211,14 +10210,14 @@ get_rotate_dir_for_index:
 ;  * $07 - specifies quadrant to aim in (0 = quadrant IV, 1 = quadrant I, 2 = quadrant III, 3 = quadrant II)
 ;    * bit 0 - 0 = bottom half of plane (quadrants III and IV), 1 = top half of plane (quadrants I and II)
 ;    * bit 1 - 0 = right half of the plan (quadrants I and IV), 1 = left half of plane (quadrants II and III)
-;  * $0f - quadrant_aim_dir_lookup_tbl offset
+;  * $0f - quadrant_aim_dir_lookup_ptr_tbl offset
 ; output
 ;  * negative flag - set when enemy is already aiming at player and no rotation is needed
 ;  * a - rotation direction, #$00 clockwise, #$01 counterclockwise, #$80 no rotation needed
 ;  * $0c - new enemy aim direction
 get_rotate_dir:
     sta $0c       ; store quadrant aim direction code in $0c
-    lda $0f       ; load quadrant_aim_dir_lookup_tbl offset (which quadrant_aim_dir_xx to use)
+    lda $0f       ; load quadrant_aim_dir_lookup_ptr_tbl offset (which quadrant_aim_dir_xx to use)
     lsr           ; move bit 0 to the carry
     lda #$06      ; using either quadrant_aim_dir_00, or quadrant_aim_dir_02
                   ; midway direction, i.e. 9 o'clock
@@ -10324,7 +10323,7 @@ get_rotate_dir:
 dragon_arm_orb_seek_should_move:
     jsr set_08_09_to_enemy_pos          ; set $08 and $09 to enemy x's X and Y position
     lda #$02                            ; dragon arm orb is only enemy that uses quadrant_aim_dir_02
-    sta $0f                             ; set quadrant_aim_dir_lookup_tbl offset to use quadrant_aim_dir_02
+    sta $0f                             ; set quadrant_aim_dir_lookup_ptr_tbl offset to use quadrant_aim_dir_02
     jsr get_quadrant_aim_dir_for_player ; set a to the aim direction within a quadrant
                                         ; based on source position ($09, $08) targeting player index $0a
     sta $0c                             ; store enemy aim direction in $0c
@@ -10393,7 +10392,7 @@ dragon_arm_orb_seek_should_move:
 
 ; determines the aim direction within a quadrant based on source position ($09, $08) targeting player index $0a
 ; input
-;  * $0f - quadrant_aim_dir_lookup_tbl offset [#$00-#$02]
+;  * $0f - quadrant_aim_dir_lookup_ptr_tbl offset [#$00-#$02]
 ;  * $0a - player index of player to target (#$00 for p1 or #$01 for p2)
 ;  * $08 - source y position
 ;  * $09 - source x position
@@ -10443,7 +10442,7 @@ get_quadrant_aim_dir_for_player:
 ;  * $09 - source x position
 ;  * $0a - closest player y position
 ;  * $0b - closest player x position
-;  * $0f - which of the #$03 tables from quadrant_aim_dir_lookup_tbl to use
+;  * $0f - which of the #$03 tables from quadrant_aim_dir_lookup_ptr_tbl to use
 ; output
 ;  * a - quadrant aim direction (quadrant_aim_dir_xx value)
 ;  * $07 - specifies quadrant to aim in (0 = quadrant IV, 1 = quadrant I, 2 = quadrant III, 3 = quadrant II)
@@ -10453,7 +10452,7 @@ get_quadrant_aim_dir:
     ldy #$00              ; default assume player is to the right and equal to or below enemy
     lda $0a               ; load closest player y position
     sec                   ; set carry flag in preparation for subtraction
-    sbc $08               ; subract enemy y position from player y position
+    sbc $08               ; subtract enemy y position from player y position
     bcs @shift_get_x_diff ; branch if no overflow occurred (enemy above player or same vertical position)
     eor #$ff              ; enemy below player, handle overflow, flip all bits and add one
     adc #$01
@@ -10477,33 +10476,33 @@ get_quadrant_aim_dir:
     iny           ; if y was 0, now is 2, if y was 1, now is 3
 
 @continue:
-    lsr                                 ; shift the difference between player and enemy x difference 6 bits
-    lsr                                 ; (every #$40 pixels difference is a new horizontal direction)
+    lsr                                     ; shift the difference between player and enemy x difference 6 bits
+    lsr                                     ; (every #$40 pixels difference is a new horizontal direction)
     lsr
     lsr
     lsr
-    sty $07                             ; store position of player relative to enemy in $07 (above/below, left/right)
-    lsr                                 ; push bit 5 to the carry flag for use after plp instruction below
-    sta $0b                             ; overwrite player x position with shifted bits 6 and 7
-                                        ; (values [#$00-#$03]) of horizontal distance
-    php                                 ; backup CPU status flags on stack
-    lda $0f                             ; load which of the #$03 tables from quadrant_aim_dir_lookup_tbl to use
-    asl                                 ; double since each entry is #$2 bytes
-    tay                                 ; transfer to offset register
-    lda quadrant_aim_dir_lookup_tbl,y   ; get low byte of quadrant_aim_dir_xx address
-    sta $0c                             ; store low byte of pointer address in $0c
-    lda quadrant_aim_dir_lookup_tbl+1,y ; get high byte of quadrant_aim_dir_xx address
-    sta $0d                             ; store high byte of pointer address in $0d
-    lda $0a                             ; load y difference to determine row offset
+    sty $07                                 ; store position of player relative to enemy in $07 (above/below, left/right)
+    lsr                                     ; push bit 5 to the carry flag for use after plp instruction below
+    sta $0b                                 ; overwrite player x position with shifted bits 6 and 7
+                                            ; (values [#$00-#$03]) of horizontal distance
+    php                                     ; backup CPU status flags on stack
+    lda $0f                                 ; load which of the #$03 tables from quadrant_aim_dir_lookup_ptr_tbl to use
+    asl                                     ; double since each entry is #$2 bytes
+    tay                                     ; transfer to offset register
+    lda quadrant_aim_dir_lookup_ptr_tbl,y   ; get low byte of quadrant_aim_dir_xx address
+    sta $0c                                 ; store low byte of pointer address in $0c
+    lda quadrant_aim_dir_lookup_ptr_tbl+1,y ; get high byte of quadrant_aim_dir_xx address
+    sta $0d                                 ; store high byte of pointer address in $0d
+    lda $0a                                 ; load y difference to determine row offset
     asl
-    asl                                 ; quadruple since each entry is #$04 bytes to get correct row
-    adc $0b                             ; add the x distance between player and enemy as offset into the entry to load
-                                        ; this gets the column of the aim direction
-    tay                                 ; transfer to offset register
-    lda ($0c),y                         ; load specific byte
-    plp                                 ; restore CPU status flags from stack
-    bcs @set_and_exit                   ; branch if bit 5 of difference between player and enemy was set
-    lsr                                 ; this segments screen into bands for which nibble to use
+    asl                                     ; quadruple since each entry is #$04 bytes to get correct row
+    adc $0b                                 ; add the x distance between player and enemy as offset into the entry to load
+                                            ; this gets the column of the aim direction
+    tay                                     ; transfer to offset register
+    lda ($0c),y                             ; load specific byte
+    plp                                     ; restore CPU status flags from stack
+    bcs @set_and_exit                       ; branch if bit 5 of difference between player and enemy was set
+    lsr                                     ; this segments screen into bands for which nibble to use
     lsr
     lsr
     lsr
@@ -10512,8 +10511,8 @@ get_quadrant_aim_dir:
     and #$0f ; keep low nibble
     rts
 
-; pointer table for set of quadran aim directions (#$3 * #$2 = #$6 bytes)
-quadrant_aim_dir_lookup_tbl:
+; pointer table for set of quadrant aim directions (#$3 * #$2 = #$6 bytes)
+quadrant_aim_dir_lookup_ptr_tbl:
     .addr quadrant_aim_dir_00 ; CPU address $f5b2 (soldiers, weapon boxes, red turrets, wall core)
     .addr quadrant_aim_dir_01 ; CPU address $f5d2 (rotating gun, wall turrets, sniper, eye projectile, spinning bubbles, jumping soldier, white blob)
     .addr quadrant_aim_dir_02 ; CPU address $f5f2 (dragon arm seeking)

@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.2
+; Contra US Disassembly - v1.3
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 0 is used exclusively for enemy routines. Enemy routines are the logic
 ; controlling enemy behaviors, AI, movements, and attack patterns. Almost every
@@ -2800,7 +2800,7 @@ eye_projectile_routine_00:
     lda #$06                            ; a = #$06 (projectile speed)
     sta $06
     lda #$01                            ; a = #$01 (quadrant_aim_dir_01)
-    sta $0f                             ; quadrant_aim_dir_lookup_tbl offset
+    sta $0f                             ; quadrant_aim_dir_lookup_ptr_tbl offset
     jsr get_quadrant_aim_dir_for_player ; set a to the aim direction within a quadrant
                                         ; based on source position ($09, $08) targeting player index $0a
     jsr set_bullet_velocities           ; set the projectile X and Y velocities (both high and low) based on register a (#$01)
@@ -5688,7 +5688,7 @@ spinning_bubbles_routine_00:
     lda spinning_bubbles_speed_tbl,y    ; load bullet velocity routine table value (bullet_velocity_adjust_xx)
     sta $06                             ; store bullet direction velocity routine value (bullet_velocity_adjust_xx) in $06
     lda #$01                            ; a = #$01 (quadrant_aim_dir_01)
-    sta $0f                             ; set quadrant_aim_dir_lookup_tbl offset to #$01
+    sta $0f                             ; set quadrant_aim_dir_lookup_ptr_tbl offset to #$01
     jsr get_quadrant_aim_dir_for_player ; set a to the aim direction within a quadrant
                                         ; based on source position ($09, $08) targeting player index $0a
     pha                                 ; push quadrant aim dir to the stack

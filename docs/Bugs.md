@@ -16,7 +16,6 @@ player is in water and presses the d-pad down button.
 |-------------------------------------|-------------------------------------|-------------------------------------|-------------------------------------|
 | ![0](attachments/pw_0.png?raw=true) | ![1](attachments/pw_1.png?raw=true) | ![2](attachments/pw_2.png?raw=true) | ![3](attachments/pw_3.png?raw=true) |
 
-
 ```
 @set_enter_water_sprite:
   ...

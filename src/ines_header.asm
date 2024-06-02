@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.2
+; Contra US Disassembly - v1.3
 ; https://github.com/vermiceli/nes-contra-us
 
 .segment        "HEADER"

@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.2
+; Contra US Disassembly - v1.3
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 3 starts with the data that specifies which pattern table tiles comprises
 ; super-tiles along with the color palettes.  This bank also has the routines

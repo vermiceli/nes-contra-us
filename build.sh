@@ -105,6 +105,7 @@ done < $ASSETS_NAME
 echo "$GAME" > $ASSET_GAME_TYPE
 
 echo "Assembling PRG Rom Banks"
+ca65 -D $GAME --debug-info -o obj/ram.o src/ram.asm
 ca65 -D $GAME --debug-info -o obj/constants.o src/constants.asm
 ca65 -D $GAME --debug-info -o obj/ines_header.o src/ines_header.asm
 ca65 -D $GAME --debug-info -o obj/bank0.o src/bank0.asm
@@ -117,7 +118,7 @@ ca65 -D $GAME --debug-info -o obj/bank6.o src/bank6.asm
 ca65 -D $GAME --debug-info -o obj/bank7.o src/bank7.asm
 
 echo "Creating .nes ROM"
-ld65 -C contra.cfg --dbgfile $DBG_NAME ./obj/constants.o ./obj/ines_header.o ./obj/bank0.o ./obj/bank1.o ./obj/bank2.o ./obj/bank3.o ./obj/bank4.o ./obj/bank5.o ./obj/bank6.o ./obj/bank7.o -o $ROM_NAME
+ld65 -C contra.cfg --dbgfile $DBG_NAME ./obj/ram.o ./obj/constants.o ./obj/ines_header.o ./obj/bank0.o ./obj/bank1.o ./obj/bank2.o ./obj/bank3.o ./obj/bank4.o ./obj/bank5.o ./obj/bank6.o ./obj/bank7.o -o $ROM_NAME
 
 if test -f $ROM_NAME
 then

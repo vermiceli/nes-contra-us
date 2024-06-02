@@ -110,6 +110,7 @@ Write-Output "Assembling PRG Rom Banks"
 
 # show commands run in output
 Set-PSDebug -Trace 1
+ca65 -D $Game --debug-info -o obj\ram.o src\ram.asm
 ca65 -D $Game --debug-info -o obj\constants.o src\constants.asm
 ca65 -D $Game --debug-info -o obj\ines_header.o src\ines_header.asm
 ca65 -D $Game --debug-info -o obj\bank0.o src\bank0.asm
@@ -127,7 +128,7 @@ Set-PSDebug -Trace 0
 Write-Output "Creating .nes ROM"
 
 Set-PSDebug -Trace 1
-ld65 -C contra.cfg --dbgfile $DBG_NAME .\obj\constants.o .\obj\ines_header.o .\obj\bank0.o .\obj\bank1.o .\obj\bank2.o .\obj\bank3.o .\obj\bank4.o .\obj\bank5.o .\obj\bank6.o .\obj\bank7.o -o $ROM_NAME
+ld65 -C contra.cfg --dbgfile $DBG_NAME .\obj\ram.o .\obj\constants.o .\obj\ines_header.o .\obj\bank0.o .\obj\bank1.o .\obj\bank2.o .\obj\bank3.o .\obj\bank4.o .\obj\bank5.o .\obj\bank6.o .\obj\bank7.o -o $ROM_NAME
 
 # compare assembled ROM hash to expected hash if file exists
 Set-PSDebug -Trace 0

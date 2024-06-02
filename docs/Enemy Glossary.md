@@ -1200,7 +1200,6 @@ Other Names: Gordea, JJ, Jumping Joey, Jumping Jack Flash, Giant Boss Robot,
 No attributes exist for this enemy.  His health is calculated based on player's
 `PLAYER_WEAPON_STRENGTH` value.  The formula is below
 
-
 #### Logic
 
 * `ENEMY_VAR_1` - random number used to control boss action: jump, attack,

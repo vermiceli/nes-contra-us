@@ -128,7 +128,6 @@ game by various other sounds.
 | #$5c  | n/a           | high hat                                             | n/a           | n/a  | low          | delta modulation |
 | #$ff  | n/a           | snowfield boss defeated door open (bug)              | n/a           | n/a  | low          | delta modulation |
 
-
 The sound for pausing the game is not in the sound mode menu, presumably to not
 confuse players into thinking the game is paused.  As for names, I can guess at
 some of the abbreviations and name meanings.

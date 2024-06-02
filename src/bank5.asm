@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.2
+; Contra US Disassembly - v1.3
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 5 mostly contains compressed graphic data.  The rest of bank 5 is the
 ; code and lookup tables for automated input for the 3 demo (attract) levels.
@@ -86,15 +86,16 @@ graphic_data_17:
 graphic_data_18:
     .incbin "assets/graphic_data/graphic_data_18.bin"
 
-; run as part of showing the demo
-; DEMO_FIRE_DELAY_TIMER starts at 0 increments to #$ff and stops
+; simulates player input for demo levels for both players
+; begins firing after #$e0 frames (see DEMO_FIRE_DELAY_TIMER)
 load_demo_input_table:
     lda CONTROLLER_STATE_DIFF ; get player input
     and #$30                  ; start and select button
     bne end_demo_level        ; exit demo if player has pressed start or select
-    inc DEMO_FIRE_DELAY_TIMER ; increase DEMO_FIRE_DELAY_TIMER by 1
+    inc DEMO_FIRE_DELAY_TIMER ; starts at 0 increments to #$ff and stops
+                              ; used by demo logic to wait #$e0 frames until begin firing
     bne @player_loop          ; branch when DEMO_FIRE_DELAY_TIMER is not 0 (hasn't wrapped around)
-    dec DEMO_FIRE_DELAY_TIMER ; decrease DEMO_FIRE_DELAY_TIMER by 1 (setting to -1), this means delay is complete
+    dec DEMO_FIRE_DELAY_TIMER ; wrapped around, pin to #$ff
 
 @player_loop:
     ldx #$01 ; initialize X to 1 (player loop starting at player 2)
@@ -163,7 +164,7 @@ set_player_demo_input:
 ; for non M, nor L weapon, press b button every #$07 frames
 @fire_weapon_input:
     lda FRAME_COUNTER                ; load frame counter
-    and #$07                         ; checking every 7th frame
+    and #$07                         ; checking every 8th frame
     bne player_demo_input_chg_player ; move to next player without firing weapon
     lda CONTROLLER_STATE_DIFF,x      ; load current controller input
     ora #$40                         ; press b button
@@ -195,7 +196,7 @@ demo_input_pointer_table:
 ;  * second byte is number of even-numbered frames to apply the input for
 ; while possible, player firing isn't specified in these input tables
 ; instead, that is handled automatically as part of running the demo
-;  * m or l weapons are always firing, other weapons fire every #$07 frames
+;  * m or l weapons are always firing, other weapons fire every #$08 frames
 ; $00, $00 is filler so the demo level doesn't end by reading a #$ff
 ; input table for level 1 player 1 for demo (#$5A bytes)
 demo_input_tbl_l1_p1:

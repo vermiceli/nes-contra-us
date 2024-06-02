@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.2
+; Contra US Disassembly - v1.3
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 6 contains compressed graphics data, data for short text sequences like
 ; level names and menu options.  Bank 6 also contains the code for the players'
@@ -289,7 +289,7 @@ intro_background_palette2:
 ; ensure player in valid state to fire a bullet, e.g. not being electrocuted
 check_player_fire:
     lda PLAYER_HIDDEN,x        ; 0 - visible; #$01/#$ff = invisible (any non-zero)
-    ora $c8,x                  ; counter for electrocution
+    ora ELECTROCUTED_TIMER,x   ; counter for electrocution
     bne check_player_fire_exit ; exit if being electrocuted or $ba,x is set
     lda PLAYER_WATER_STATE,x   ; see if player in water
     beq @player_shoot_test
@@ -862,7 +862,7 @@ set_bullet_velocity:
     asl                             ; double twice to get correct offset
     tay
     lda ($01),y                     ; load x velocity fast value
-    sta PLAYER_BULLET_VEL_X_FAST,x  ; store x velocity fast value
+    sta PLAYER_BULLET_X_VEL_FAST,x  ; store x velocity fast value
     iny                             ; increment velocity table read offset
     lda ($01),y                     ; load x fractional velocity value
     sta PLAYER_BULLET_X_VEL_FRACT,x ; store x fractional velocity value
@@ -1000,7 +1000,7 @@ set_indoor_bullet_vel:
 @set_x_vel:
     jsr @set_vel_for_speed_code     ; determine fast and fractional velocity based on a and whether rapid fire is enabled
     lda $0f                         ; load resulting fast velocity
-    sta PLAYER_BULLET_VEL_X_FAST,x  ; set indoor bullet fast x velocity
+    sta PLAYER_BULLET_X_VEL_FAST,x  ; set indoor bullet fast x velocity
     lda $0e                         ; load resulting fractional velocity
     sta PLAYER_BULLET_X_VEL_FRACT,x ; set indoor bullet fractional x velocity
     rts
@@ -1118,7 +1118,7 @@ s_weapon_init_bullet_velocities:
     lda ($04),y
     sta PLAYER_BULLET_Y_VEL_FAST,x
     lda ($06),y
-    sta PLAYER_BULLET_VEL_X_FAST,x
+    sta PLAYER_BULLET_X_VEL_FAST,x
     rts
 
 ; table for player aim direction (#$c bytes)
@@ -1651,7 +1651,7 @@ update_player_fs_bullet_x_pos:
     adc PLAYER_BULLET_X_VEL_FRACT,x    ; add x fractional velocity, noting the carry being set if overflow
     sta PLAYER_BULLET_VEL_FS_X_ACCUM,x ; add accumulated value back
     lda PLAYER_BULLET_FS_X,x
-    adc PLAYER_BULLET_VEL_X_FAST,x     ; add fast X velocity and any carry from accumulator
+    adc PLAYER_BULLET_X_VEL_FAST,x     ; add fast X velocity and any carry from accumulator
     sta PLAYER_BULLET_FS_X,x
     rts
 
@@ -1660,19 +1660,19 @@ update_player_bullet_pos:
     jsr check_bullet_solid_bg_collision ; if specified, check for bullet collision with solid background
                                         ; and if so move bullet routine to player_bullet_collision_routine
     bmi bullet_logic_exit               ; exit if bullet collided with solid object
-    lda PLAYER_BULLET_VEL_X_ACCUM,x     ; load accumulator value for bullet X velocity
+    lda PLAYER_BULLET_X_VEL_ACCUM,x     ; load accumulator value for bullet X velocity
     clc                                 ; clear carry in preparation for addition
     adc PLAYER_BULLET_X_VEL_FRACT,x     ; add x fractional velocity, noting the carry being set if overflow
-    sta PLAYER_BULLET_VEL_X_ACCUM,x     ; add accumulated value back
+    sta PLAYER_BULLET_X_VEL_ACCUM,x     ; add accumulated value back
     lda PLAYER_BULLET_X_POS,x           ; load bullet X position
-    adc PLAYER_BULLET_VEL_X_FAST,x      ; add fast X velocity and any carry from accumulator
+    adc PLAYER_BULLET_X_VEL_FAST,x      ; add fast X velocity and any carry from accumulator
     sta PLAYER_BULLET_X_POS,x           ; set new X position
 
 update_player_bullet_y_pos:
     clc                             ; clear carry in preparation for addition
-    lda PLAYER_BULLET_VEL_Y_ACCUM,x ; load accumulator value for bullet Y velocity
+    lda PLAYER_BULLET_Y_VEL_ACCUM,x ; load accumulator value for bullet Y velocity
     adc PLAYER_BULLET_Y_VEL_FRACT,x ; add y fractional velocity, noting the carry being set if overflow
-    sta PLAYER_BULLET_VEL_Y_ACCUM,x ; add accumulated value back
+    sta PLAYER_BULLET_Y_VEL_ACCUM,x ; add accumulated value back
     lda PLAYER_BULLET_Y_POS,x       ; load bullet Y position
     adc PLAYER_BULLET_Y_VEL_FAST,x  ; add fast Y velocity and any carry from accumulator
     sta PLAYER_BULLET_Y_POS,x       ; set new Y position
@@ -1726,7 +1726,7 @@ clear_bullet_values:
     sta PLAYER_BULLET_F_RAPID,x
     sta PLAYER_BULLET_DIST,x
     sta PLAYER_BULLET_AIM_DIR,x
-    sta PLAYER_BULLET_VEL_X_FAST,x
+    sta PLAYER_BULLET_X_VEL_FAST,x
     sta PLAYER_BULLET_X_VEL_FRACT,x
     sta PLAYER_BULLET_Y_VEL_FAST,x
     sta PLAYER_BULLET_Y_VEL_FRACT,x
@@ -1822,7 +1822,7 @@ update_s_bullet_indoor_pos:
     lda PLAYER_BULLET_VEL_FS_X_ACCUM,x ; ignore, no affect
     clc                                ; ignore, no affect
     adc PLAYER_BULLET_S_ADJ_ACCUM,x    ; ignore, no affect
-    sta PLAYER_BULLET_VEL_X_ACCUM,x    ; unused result, never read for S indoor bullets !(WHY?)
+    sta PLAYER_BULLET_X_VEL_ACCUM,x    ; unused result, never read for S indoor bullets !(WHY?)
     lda PLAYER_BULLET_FS_X,x           ; load center x position on screen f bullet swirls around
     clc                                ; clear carry in preparation for addition
     adc PLAYER_BULLET_S_INDOOR_ADJ,x   ; add the indoor adjustment

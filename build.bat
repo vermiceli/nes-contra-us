@@ -68,6 +68,7 @@ rem show commands run in output
 echo Assembling PRG Rom Banks
 
 @echo on
+ca65 -D %GAME% --debug-info -o obj\ram.o src\ram.asm
 ca65 -D %GAME% --debug-info -o obj\constants.o src\constants.asm
 ca65 -D %GAME% --debug-info -o obj\ines_header.o src\ines_header.asm
 ca65 -D %GAME% --debug-info -o obj\bank0.o src\bank0.asm
@@ -85,5 +86,5 @@ rem link assemblies together to single .nes ROM
 echo "Creating .nes ROM"
 
 @echo on
-ld65 -C contra.cfg --dbgfile %DBG_NAME% .\obj\constants.o .\obj\ines_header.o .\obj\bank0.o .\obj\bank1.o .\obj\bank2.o .\obj\bank3.o .\obj\bank4.o .\obj\bank5.o .\obj\bank6.o .\obj\bank7.o -o %ROM_NAME%
+ld65 -C contra.cfg --dbgfile %DBG_NAME% .\obj\ram.o .\obj\constants.o .\obj\ines_header.o .\obj\bank0.o .\obj\bank1.o .\obj\bank2.o .\obj\bank3.o .\obj\bank4.o .\obj\bank5.o .\obj\bank6.o .\obj\bank7.o -o %ROM_NAME%
 @echo off

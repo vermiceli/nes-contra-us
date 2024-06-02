@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.2
+; Contra US Disassembly - v1.3
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 2 starts with RLE-encoded level data (graphic super tiles for the level
 ; screens).  It then contains compressed tile data and alternate tile data and
