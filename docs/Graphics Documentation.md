@@ -185,25 +185,14 @@ is 4 columns wide and 4 columns tall, a single super-tile has 4 collision code
 points: top left, middle left, middle top, and middle middle.
 
 Each byte in `BG_COLLISION_DATA` can be broken down into 4 collision codes.
-Every 2 bits represents the collision code (0, 1, 2, or 3) for one of the 4
-points in the super-tile. The first 8 bytes are for the top rows of collision
-points for a single nametable row. The next 8 bytes are the  middle collision
-points.  This pattern repeats until all of the first nametable data is specified
-and then is repeated for the 2nd nametable.  For a given background collision
-entry, add #$04 to determine the next row down.  The following is an example of
-the byte offsets from `BG_COLLISION_DATA` for the top left nametable.  Note that
-next nametable starts at offset #$40 and not #$38.
-
-Note that this is similar in structure to the attribute table.
-  * Each byte contains data for a #$0f (16) nametable tiles
-  * Each 2 bits within the byte specifies data for 4 nametable table tiles (2x2
-    area).
-
-However, the offsets within the structure refer to different areas of the
-nametable.  Unlike the attribute table, where each byte specifies a 4x4 area of
-pattern table tiles, the background collision data byte specifies data for a 2x8
-area of pattern table tiles.  The table below shows how the background collision
-data is arranged on the nametable.
+Every 2 bits represents the collision code (0, 1, 2, or 3) for every other
+pattern table tile. The first 4 bytes are for the top row of collision points
+for a single nametable row. The next 4 bytes are the next nametable row of
+pattern table tiles.  This pattern repeats until all of the first nametable data
+is specified and then is repeated for the 2nd nametable.  For a given background
+collision index, add #$04 to determine the next row down.  The following is an
+example of the byte offsets from `BG_COLLISION_DATA` for the top left nametable.
+Note that next nametable starts at offset #$40 and not #$38.
 
 ```
 00 00 00 00 01 01 01 01 02 02 02 02 03 03 03 03
