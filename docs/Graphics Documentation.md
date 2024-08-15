@@ -450,7 +450,7 @@ Below is an example of un-compressed graphics data
 When compressed, it becomes
 
 ```
-#$06 #$00 #$85 #$0e #$1f #$07 #$0f #$c0 #$ff
+#$06 #$00 #$85 #$0e #$1f #$07 #$04 #$c0 #$ff
 ```
 
 The special codes in this sequence are #$06, #$85, and #$ff

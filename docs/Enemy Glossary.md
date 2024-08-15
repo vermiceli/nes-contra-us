@@ -821,7 +821,7 @@ Value is an offset into `spinning_bullet_spin_tbl`.
 
 ### 1E - Garth
 
-Other Names: Blue Jumping Guy, Boss Blue Soldier, Blue Soldier
+Other Names: Blue Jumping Guy, Boss Blue Soldier, Blue Soldier, Birdman
 
 ![sprite_85](sprite_library/contra_sprites/sprite_85.png?raw=true "sprite_85")
 ![sprite_86](sprite_library/contra_sprites/sprite_86.png?raw=true "sprite_86")

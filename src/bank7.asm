@@ -3867,16 +3867,21 @@ set_frame_scroll_draw_player_bullets:
 ; draw half the bullets, every other frame
 ; if only one bullet drawn every other frame
 draw_player_bullet_sprites:
-    ldy #$07 ; maximum of #$08 player bullets
+    ldy #$07 ; maximum of #$08 player bullets drawn per frame
 
 ; loads bullets to sprite buffer
+; on even frames, loops through #$0e, #$0c, #$0a, #$08, #$06, #$04, #$02, #$00
+; on odd frames, loops through #$0f, #$0d, #$0b, #$09, #$07, #$05, #$03, #$01
+; double y then set bit 0 based on frame number
 @player_bullet_loop:
-    tya                             ; transfer player bullet offset to a
-    asl                             ; shift bullet offset to the left by one bit
+    tya                             ; transfer bullet draw counter to a
+    asl                             ; double to get bullet offset
     sta $08                         ; store shifted value into $08
     lda FRAME_COUNTER               ; load the frame counter
     and #$01                        ; only care about bit 0 (odd/even)
     ora $08                         ; merge shifted bullet offset with frame counter odd/even flag
+                                    ; if even frame, bullet index doesn't change
+                                    ; if odd frame, adds one to bullet index
     tax                             ; move specified bullet in memory into CPU_SPRITE_BUFFER so it can be drawn
     lda PLAYER_BULLET_SPRITE_CODE,x ; load sprite code for specified bullet
     sta PLAYER_SPRITES+2,y          ; update bullet sprite in PLAYER_SPRITES

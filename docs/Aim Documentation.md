@@ -25,19 +25,22 @@ Aiming direction values start at #$00, which represents 3 o'clock.  Incrementing
 the aiming directions moves the direction clockwise.
 
 The main method to determine what value within a quadrant to aim is
-`get_quadrant_aim_dir`. This method targets the location ($0b, $0a) from
-position ($09, $08).  This location is almost always the location of the closest
-player to the enemy on the x-axis, which is determined by the method
-`player_enemy_x_dist`.  However, white blobs (enemy type = #$13) will target
-players randomly based on the frame counter.
+`get_quadrant_aim_dir`.  I refer to this value as the "quadrant aim direction"
+as specifies the index within a quadrant to aim.  The quadrant aim direction
+along with the quadrant is combined to determine the full aim direction.
 
-`get_quadrant_aim_dir` determines where the player is in relation to the enemy,
-i.e. above or below, to the left or to the right.  It will also calculate an
-index into a single quadrant that most closely targets the player position based
-on `quadrant_aim_dir_xx`.  The quadrant aim direction is then converted to a
-full aim direction according to the table below. Essentially, the quadrant code
-is either added or subtracted from the x-axis aim direction depending on the
-relative quadrant of the player in relation to the enemy.
+The `get_quadrant_aim_dir` method targets the location ($0b, $0a) from position
+($09, $08).  This location is almost always the location of the closest player
+to the enemy on the x-axis, which is determined by the method
+`player_enemy_x_dist`.  However, white blobs (enemy type = #$13) will target
+players randomly based on the frame counter.  `get_quadrant_aim_dir` determines
+where the player is in relation to the enemy, i.e. above or below, to the left
+or to the right.  It will also calculate an index into a single quadrant that
+most closely targets the player position based on `quadrant_aim_dir_xx`.  The
+quadrant aim direction is then converted to a full aim direction according to
+the table below. Essentially, the quadrant code is either added or subtracted
+from the x-axis aim direction depending on the relative quadrant of the player
+in relation to the enemy.
 
 | Quadrant | Math                                                  | Description                                    |
 |----------|-------------------------------------------------------|------------------------------------------------|
@@ -178,7 +181,7 @@ if(player_left_of_enemy) {
 
 if(player_above_enemy) {
   if(quadrant_aim_dir != 0x00) {
-    new_aim_dir = max_aim_dir - quadrant_aim_dir;
+    new_aim_dir = max_aim_dir - new_aim_dir;
   } else {
     new_aim_dir = 0x00;
   }
