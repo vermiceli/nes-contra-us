@@ -2,7 +2,7 @@
 
 _Contra_ is already a challenging game.  However, it gets even more difficult
 the more times you beat the game.  This documents the ways in which beating the
-game affects the behavior of subsequent playthoughs.
+game affects the behavior of subsequent playthroughs.
 
 The game keeps track of the number of times the player(s) beat the game in the
 variable `GAME_COMPLETION_COUNT`, located at CPU memory address `$31`.

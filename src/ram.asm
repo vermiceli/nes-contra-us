@@ -268,7 +268,7 @@ CURRENT_LEVEL:
 GAME_COMPLETION_COUNT:
     .res 1
 
-; $32 -P1 number of lives, #$00 is last life, on game over stays #$00
+; $32 - P1 number of lives, #$00 is last life, on game over stays #$00
 ; but P1_GAME_OVER_STATUS becomes #$01
 P1_NUM_LIVES:
     .res 1

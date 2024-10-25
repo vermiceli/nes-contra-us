@@ -347,8 +347,8 @@ article on this.  These specifics are also outlined below.
 
 When the first byte of the sprite code is #$fe, the sprite is a "small" sprite.
 Small sprites are composed of #$3 bytes, including the #$fe byte.  Small sprites
-always have their X position set to #$fc (-4) and their Y position set to #$f8
-(-8).
+always have their X position shifted left by #$04 and their Y position shifted
+up byte #$08.
 
   * Byte 0 is #$fe and signifies the sprite is a small sprite
   * Byte 1 specifies the tile number

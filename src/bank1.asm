@@ -4179,7 +4179,7 @@ load_sprite_to_cpu_mem:
 ; the second byte is the pattern table tile, and the third byte is the sprite attributes
 ; the X position is set to #$fc (-4 decimal) and the Y position is set to #$f8 (-8 decimal) from SPRITE_Y_POS.
 @load_small_sprite:
-    ldx $04                   ; load sprite y position
+    ldx $04                   ; load OAM write offset
     lda #$f8                  ; a = -#$08
     clc                       ; clear carry in preparation for addition
     adc $01                   ; subtract #$08 from y position
