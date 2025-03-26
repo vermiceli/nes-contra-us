@@ -4463,7 +4463,7 @@ handle_player_state:
     cmp #$04                           ; see if pressing the down d-pad button
     bne set_jump_status_and_y_velocity ; branch if not only down is pressed
                                        ; to initialize PLAYER_JUMP_STATUS, animation frame index, and negative y velocity
-    lda #$02                           ; only down button pressed,a = #$02 (sprite sequence to crouching)
+    lda #$02                           ; only down button pressed, a = #$02 (sprite sequence to crouching)
     sta PLAYER_SPRITE_SEQUENCE,x       ; set sprite sequence to crouching
     jsr can_player_drop_down           ; determines if player can drop down (d-pad down and A)
     bcs player_sprite_animation_exit   ; branch if player cannot drop down (nothing below player to land on and not vertical level)
@@ -9047,11 +9047,11 @@ bank_7_unused_label_07:
 clear_sprite_clear_enemy_pt_3:
     lda #$00             ; a = #$00
     sta ENEMY_SPRITES,x  ; write enemy sprite code to CPU buffer
-    beq clear_enemy_pt_3
+    beq clear_enemy_pt_3 ; always branch
 
 clear_enemy_custom_vars:
     lda #$00             ; a = #$00
-    beq clear_enemy_pt_4 ; always jump
+    beq clear_enemy_pt_4 ; always branch
 
 ; clear many of the enemy variables
 clear_enemy:

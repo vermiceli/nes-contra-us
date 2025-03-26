@@ -1118,6 +1118,12 @@ SOUND_VOL_ENV:
     .res 2
 
 ; $0120 - the current sound slot [#$00-#$05]
+;  * #$00 = pulse 1 channel
+;  * #$01 = pulse 2 channel
+;  * #$02 = triangle channel
+;  * #$03 = noise and dmc channel
+;  * #$04 = pulse 1
+;  * #$05 = noise channel
 SOUND_CURRENT_SLOT:
     .res 1
 

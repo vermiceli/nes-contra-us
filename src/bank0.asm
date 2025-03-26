@@ -646,8 +646,8 @@ play_explosion_sound:
     jsr create_two_explosion_89       ; create explosion #$89 at location ($09, $08)
     lda ENEMY_ATTRIBUTES,x            ; load enemy attributes
     and #$07                          ; keep bits .... .xxx
-    sta ENEMY_ATTRIBUTES,x
-    jsr clear_sprite_clear_enemy_pt_3
+    sta ENEMY_ATTRIBUTES,x            ; store specific weapon item to create
+    jsr clear_sprite_clear_enemy_pt_3 ; create weapon item
     lda #$01                          ; a = #$01
     sta ENEMY_ROUTINE,x               ; enemy routine index
     lda #$00                          ; a = #$00
@@ -2427,7 +2427,7 @@ indoor_soldier_gen_routine_01:
     bne indoor_soldier_gen_exit   ; if GRENADE_LAUNCHER_FLAG exists on screen, exit
     dec ENEMY_ANIMATION_DELAY,x   ; decrement enemy animation frame delay counter
     bne indoor_soldier_gen_exit   ; exit if the animation delay hasn't elapsed
-    lda ENEMY_ATTRIBUTES,x        ; load the soldier attributes (byte 2 of level_x_enemy_screen_xx for enemy)
+    lda ENEMY_ATTRIBUTES,x        ; load the soldier generation attributes (byte 2 of level_x_enemy_screen_xx for enemy)
     asl                           ; disregard bit 7 and double bit 0, which is used as offset indoor_enemy_gen_tbl
     tay                           ; transfer
     lda indoor_enemy_gen_tbl,y    ; pointer to table entry, low byte
@@ -2443,15 +2443,15 @@ indoor_soldier_gen_routine_01:
     lda ($0a),y                   ; load the high byte of the lvl_x_enemy_gen_tbl address
     sta $09                       ; store in $09
     ldy ENEMY_VAR_1,x             ; load current screen's enemy offset
-    lda ($08),y                   ; read the first byte
+    lda ($08),y                   ; read the first byte (indoor soldier type and attributes)
     and #$3f                      ; keep bits 0 to 5 (ENEMY_ATTRIBUTES)
     sta $0a                       ; store ENEMY_ATTRIBUTES
-    lda ($08),y                   ; re-read the first byte
+    lda ($08),y                   ; re-read the first byte (indoor soldier type and attributes)
     rol                           ; look at bits 6 and 7 to see enemy type
     rol                           ; (0 = indoor soldier, 1 = jumping soldier, 2 = group of four, 3 = grenade launcher)
     rol                           ; rotate until top 2 bits are bits 0 and bit 1
     and #$03                      ; keep bits .... ..xx (enemy type)
-    sta $0b                       ; set current enemy type (#$00-#$03)
+    sta $0b                       ; set current indoor soldier type (#$00-#$03)
                                   ; #$00 - running guy, #$01 - jumping guy, #$02 - group of 4, #$03 - grenade launcher
     iny                           ; increment lvl_x_enemy_gen_screen_xx read offset
     lda ($08),y                   ; read next byte (delay byte)
@@ -2540,30 +2540,35 @@ lvl_2_enemy_gen_tbl:
 ; byte 0
 ; - xx.. .... type (0 = indoor soldier, 1 = jumping soldier, 2 = group of four, 3 = grenade launcher)
 ; - ..xx xxxx enemy attributes, different per enemy type
+;   ..xx xx..   - for red jumping soldier, ENEMY_ATTRIBUTES of generated weapon item (weapon item type)
 ; byte 1
-;  * bit 7 = 0, don't increment INDOOR_ENEMY_ATTACK_COUNT
-;  * bits 0-6 = delay
+;  * bit 7: 1 = increment INDOOR_ENEMY_ATTACK_COUNT
+;  * bits 0-6: delay
 lvl_2_enemy_gen_screen_00:
-    .byte $42,$30 ; jumping soldier, regular bullet, from right
+    .byte $42,$30 ; jumping soldier (when red drops R weapon), regular bullet, from right
     .byte $01,$01 ; indoor soldier, regular bullet, from left
     .byte $00,$c0 ; indoor soldier, regular bullet, from right
+                  ; increments INDOOR_ENEMY_ATTACK_COUNT
 
 lvl_2_enemy_gen_screen_01:
-    .byte $46,$30 ; jumping soldier
+    .byte $46,$30 ; jumping soldier (when red drops M weapon)
     .byte $81,$50 ; group of 4
     .byte $01,$10 ; indoor soldier
     .byte $00,$30 ; indoor soldier
     .byte $00,$10 ; indoor soldier
     .byte $01,$e0 ; indoor soldier
+                  ; increments INDOOR_ENEMY_ATTACK_COUNT
 
 lvl_2_enemy_gen_screen_02:
     .byte $00,$30 ; indoor soldier
     .byte $c5,$a0 ; grenade launcher
+                  ; increments INDOOR_ENEMY_ATTACK_COUNT
 
 lvl_2_enemy_gen_screen_03:
-    .byte $46,$20 ; jumping soldier
+    .byte $46,$20 ; jumping soldier (when red drops M weapon)
     .byte $81,$60 ; group of 4
     .byte $c3,$e1 ; grenade launcher
+                  ; increments INDOOR_ENEMY_ATTACK_COUNT
 
 lvl_2_enemy_gen_screen_04:
     .byte $40,$30 ; jumping soldier
@@ -2572,8 +2577,9 @@ lvl_2_enemy_gen_screen_04:
     .byte $03,$30 ; indoor soldier
     .byte $02,$10 ; indoor soldier
     .byte $01,$40 ; indoor soldier
-    .byte $47,$10 ; jumping soldier
-    .byte $4a,$e0 ; jumping soldier
+    .byte $47,$10 ; jumping soldier (can't be red, since next jumping soldier is red first)
+    .byte $4a,$e0 ; red jumping soldier (drops F weapon)
+                  ; increments INDOOR_ENEMY_ATTACK_COUNT
 
 ; pointer table for level 4 enemy cycles (#$8 * #$2 = #$10 bytes)
 lvl_4_enemy_gen_tbl:
@@ -2594,60 +2600,69 @@ lvl_4_enemy_gen_screen_00:
     .byte $02,$30 ; indoor soldier
     .byte $03,$60 ; indoor soldier
     .byte $80,$e0 ; group of 4
+                  ; increments INDOOR_ENEMY_ATTACK_COUNT
 
+; somewhere here drops a F weapon
 ; (#$e bytes)
 lvl_4_enemy_gen_screen_01:
-    .byte $4a,$50 ; jumping soldier
+    .byte $4a,$50 ; jumping soldier (when red drops F weapon)
     .byte $c3,$20 ; grenade launcher
     .byte $c2,$20 ; grenade launcher
     .byte $04,$20 ; indoor soldier
     .byte $05,$50 ; indoor soldier
-    .byte $47,$50 ; jumping soldier
+    .byte $47,$50 ; jumping soldier (can't be red, since first jumping soldier is red first)
     .byte $c2,$b0 ; grenade launcher
+                  ; increments INDOOR_ENEMY_ATTACK_COUNT
 
 ; (#$8 bytes)
 lvl_4_enemy_gen_screen_02:
     .byte $05,$40 ; indoor soldier
     .byte $80,$60 ; group of 4
-    .byte $53,$60 ; jumping soldier
+    .byte $53,$60 ; jumping soldier (when red drops L weapon)
     .byte $80,$e0 ; group of 4
+                  ; increments INDOOR_ENEMY_ATTACK_COUNT
 
 ; (#$8 bytes)
 lvl_4_enemy_gen_screen_03:
-    .byte $57,$60 ; jumping soldier
+    .byte $57,$60 ; jumping soldier (when red drops B weapon)
     .byte $40,$60 ; jumping soldier
     .byte $41,$60 ; jumping soldier
     .byte $40,$e0 ; jumping soldier
+                  ; increments INDOOR_ENEMY_ATTACK_COUNT
 
 ; (#$6 bytes)
 lvl_4_enemy_gen_screen_04:
     .byte $05,$30 ; indoor soldier
     .byte $04,$60 ; indoor soldier
-    .byte $42,$e0 ; jumping soldier
+    .byte $42,$e0 ; jumping soldier (when red drops R weapon)
+                  ; increments INDOOR_ENEMY_ATTACK_COUNT
 
 ; (#$8 bytes)
 lvl_4_enemy_gen_screen_05:
-    .byte $4e,$40 ; jumping soldier
+    .byte $4e,$40 ; jumping soldier (when red drops S weapon)
     .byte $81,$60 ; group of 4
     .byte $41,$60 ; jumping soldier
     .byte $40,$e0 ; jumping soldier
+                  ; increments INDOOR_ENEMY_ATTACK_COUNT
 
 ; (#$c bytes)
 lvl_4_enemy_gen_screen_06:
     .byte $04,$20 ; indoor soldier
     .byte $03,$40 ; indoor soldier
-    .byte $4b,$60 ; jumping soldier
+    .byte $4b,$60 ; jumping soldier (when red drops F weapon)
     .byte $07,$20 ; indoor soldier
     .byte $02,$40 ; indoor soldier
-    .byte $4b,$e0 ; jumping soldier
+    .byte $4b,$e0 ; jumping soldier (can't be red, since previous jumping soldier is red first)
+                  ; increments INDOOR_ENEMY_ATTACK_COUNT
 
 ; (#$a bytes)
 lvl_4_enemy_gen_screen_07:
     .byte $02,$30 ; indoor soldier
-    .byte $47,$40 ; jumping soldier
+    .byte $47,$40 ; jumping soldier (when red drops R weapon)
     .byte $80,$60 ; group of 4
     .byte $03,$20 ; indoor soldier
     .byte $04,$d0 ; indoor soldier
+                  ; increments INDOOR_ENEMY_ATTACK_COUNT
 
 ; pointer table for base i boss eye (#$7 * #$2 = #$e bytes)
 boss_eye_routine_ptr_tbl:
@@ -3524,7 +3539,7 @@ jumping_soldier_routine_ptr_tbl:
     .addr jumping_soldier_routine_01   ; CPU address $93a5 - set sprite, and perform jump animation
     .addr shared_enemy_routine_00      ; CPU address $9346 - soldier has been hit by player bullet
     .addr shared_enemy_routine_01      ; CPU address $9360 - perform enemy hit by bullet animation, then advance routine
-    .addr jumping_soldier_routine_04   ; CPU address $9437 - soldier destroyed, if red soldier play explosion
+    .addr jumping_soldier_routine_04   ; CPU address $9437 - soldier destroyed, if red soldier play explosion and create weapon item
     .addr enemy_routine_init_explosion ; CPU address $e74b from bank 7
     .addr shared_enemy_routine_03      ; CPU address $e7aa from bank 7  - show explosion_type_02
     .addr enemy_routine_remove_enemy   ; CPU address $e806 from bank 7
@@ -3536,7 +3551,7 @@ jumping_soldier_routine_00:
     lsr                             ; shift bit 1 into carry. This specifies if jumping soldier is red (drops a weapon item)
     bcc @init_enemy_adv_routine     ; branch if jumping soldier is not red
     lda INDOOR_RED_SOLDIER_CREATED  ; jumping soldier is red, see if one has already been created
-    bne @clear_red_soldier_continue ; jumping red soldier has been created, don't create another
+    bne @clear_red_soldier_continue ; red jumping soldier has been created, don't create another
     lda INDOOR_ENEMY_ATTACK_COUNT   ; load the total number of enemy attack rounds for the screen
     beq @clear_red_soldier_continue ; don't have red jumping soldier on the first round of attacks
     lda #$01                        ; a = #$01

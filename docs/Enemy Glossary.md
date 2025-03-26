@@ -623,7 +623,27 @@ Runs from one side of the screen to the other
 
 Other Names: Jumping Guy, Jumping Guy
 
-Travels across the screen while jumping
+Travels across the screen while jumping.  When red, will drop a weapon item when
+destroyed.  Red jumping soldiers will not appear until after the first "cycle"
+of soldiers has been shown (see `lvl_x_enemy_gen_screen_xx`).
+
+Red Jumping Soldiers appear on most screens, but not every
+
+* Level 2
+  * Screen 1: drops R weapon
+  * Screen 2: drops M weapon
+  * Screen 3: no red jumping soldier
+  * Screen 4: drops M weapon
+  * Screen 5: drops F weapon
+* Level 4
+  * Screen 1: no red jumping soldier
+  * Screen 2: drops F weapon
+  * Screen 3: drops L weapon
+  * Screen 4: drops B weapon
+  * Screen 5: drops R weapon
+  * Screen 6: drops S weapon
+  * Screen 7: drops F weapon
+  * Screen 8: drops M weapon
 
 ![sprite_97](sprite_library/contra_sprites/sprite_97.png?raw=true "sprite_97")
 ![sprite_98](sprite_library/contra_sprites/sprite_98.png?raw=true "sprite_98")
@@ -634,8 +654,9 @@ Travels across the screen while jumping
 #### Attributes
 
 * `...x xx..` - weapon type
-* `.... ..x.` - soldier will be red in second enemy cycle (drop rapid fire
-  weapon item)
+* `.... ..x.` - 0 = regular jumping soldier
+                1 = red jumping soldier
+                only valid when INDOOR_ENEMY_ATTACK_COUNT is non-zero
 * `.... ...x` - direction (0 = from right, 1 = from left)
 
 #### Logic

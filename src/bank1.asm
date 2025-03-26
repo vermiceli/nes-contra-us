@@ -223,7 +223,7 @@ handle_sound_code:
                                ; also sets y to point to beginning, i.e. #$00
     lda SOUND_FLAGS,x          ; load the current sound slot's sound flags
                                ; (0 = sound_xx command byte >= #$30, 1 = sound_xx command byte 0 < #$30)
-    dec SOUND_CMD_LENGTH,x     ; decrement the number of video frames that the current sound code should execute for
+    dec SOUND_CMD_LENGTH,x     ; decrement the remaining number of video frames sound should play for
                                ; before continuing to the next sound command
     bne @pulse_vol_and_vibrato ; branch if sound command hasn't finished executing
     jmp read_sound_command_00  ; finished with any previous sound command (or first command), read next/first sound command
@@ -1707,7 +1707,6 @@ play_sound_code_exit:
 @load_entry:
     jmp load_sound_code_entry
 
-; update
 ; input
 ;  * a - sound slot index
 ;  * x - sound slot
