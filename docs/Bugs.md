@@ -223,3 +223,35 @@ that never happens.  So, the shoulder doesn't know to destroy itself.  Instead
 the shoulder operates as if it wasn't destroyed and when it decides that a
 projectile should be created, that overwrites the hand with a different enemy
 type, and clears all the links between the hand and the arm.
+
+# 5. 2 Player Moving Cart Scroll Bug
+
+When playing a 2 player game, _Contra_ will ensure that if one player is causing
+a scroll, the other player's position on the screen is compensated so that,
+relatively speaking, the player stays in the same location in the level.  The
+game logic assumes that for horizontal scrolling, the scroll speed will always
+be 1px per frame.  However, this isn't true when a player is moving to the right
+while standing on a moving cart in level 7 hangar.  When a player is moving
+right while on a moving cart and causing scroll, the scroll speed will actually
+be 2px per frame.  When this happens, the player that is not causing scroll will
+not have their X position properly adjusted and will be 'dragged' forward at a
+rate of 1px per frame.  Thanks to @archycoffee for reporting this bug.
+
+This bug occurs in the `scroll_player` logic.
+
+```
+scroll_player:
+  ...
+  dec SPRITE_X_POS,x          ; move player that isn't causing scroll back
+```
+
+Below is the corrected implementation.
+
+```
+scroll_player:
+  ...
+  lda SPRITE_X_POS,x
+  sec
+  sbc FRAME_SCROLL
+  sta SPRITE_X_POS,x
+```

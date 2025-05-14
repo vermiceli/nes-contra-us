@@ -3996,7 +3996,12 @@ scroll_player:
     jsr find_scrolled_player    ; find the player that isn't causing scroll and needs to be scrolled
     beq @exit                   ; exit if both players are causing scroll, don't cause any player to be scrolled
     dec SPRITE_X_POS,x          ; move player that isn't causing scroll back
-                                ; other player will remain at same relative position on screen
+                                ; causing the player to remain at same relative position on screen
+                                ; !(BUG?) assumes player causing scroll can only cause 1px of horizontal scroll per frame
+                                ; when player causing scroll is on a moving cart and moving right, FRAME_SCROLL will be #$02
+                                ; due to this bug, the player on the moving cart will cause other player to be dragged forward
+                                ; 1px for each frame the player is causing scroll while on moving cart
+                                ; thanks @archycoffee
 
 @exit:
     rts

@@ -1,6 +1,6 @@
 -- used for testing to show enemy data
 
-function display_enemy_data()
+function Main()
     for i = 0,0xf do
         local ENEMY_X_POS = emu.read(0x033e + i, emu.memType.cpu)
         local ENEMY_Y_POS = emu.read(0x0324 + i, emu.memType.cpu)
@@ -28,10 +28,6 @@ function display_enemy_data()
         -- change variable to interested variable for studying
         emu.drawString(ENEMY_X_POS, ENEMY_Y_POS, string.format("%x", ENEMY_HP))
     end
-end
-
-function Main()
-    display_enemy_data()
 end
 
 emu.addEventCallback(Main, emu.eventType.endFrame)

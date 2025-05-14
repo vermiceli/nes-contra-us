@@ -2,9 +2,9 @@
 -- floor, water, solid, or empty
 
 function get_bg_collision(x, y)
-    local VERTICAL_SCROLL = emu.read(0xfc, emu.memType.cpu)
-    local HORIZONTAL_SCROLL = emu.read(0xfd, emu.memType.cpu)
-    local PPUCTRL_SETTINGS = emu.read(0xff, emu.memType.cpu)
+    local VERTICAL_SCROLL = emu.read(0xfc, emu.memType.nesMemory)
+    local HORIZONTAL_SCROLL = emu.read(0xfd, emu.memType.nesMemory)
+    local PPUCTRL_SETTINGS = emu.read(0xff, emu.memType.nesMemory)
     local adjusted_y = y + VERTICAL_SCROLL
     local adjusted_x = x + HORIZONTAL_SCROLL
 
@@ -27,7 +27,7 @@ function get_bg_collision(x, y)
         bg_collision_offset = bg_collision_offset | 0x40;
     end
 
-    local collisionCodeByte = emu.read(0x680 + bg_collision_offset, emu.memType.cpu)
+    local collisionCodeByte = emu.read(0x680 + bg_collision_offset, emu.memType.nesMemory)
     adjusted_x = adjusted_x & 0x03;
     local collisionCode = 0
     if adjusted_x == 0 then
@@ -60,8 +60,8 @@ function get_bg_collision(x, y)
 end
 
 function Main()
-    local VERTICAL_SCROLL = emu.read(0xfc, emu.memType.cpu)
-    local HORIZONTAL_SCROLL = emu.read(0xfd, emu.memType.cpu)
+    local VERTICAL_SCROLL = emu.read(0xfc, emu.memType.nesMemory)
+    local HORIZONTAL_SCROLL = emu.read(0xfd, emu.memType.nesMemory)
     for i = 0,300,16 do
         for j = 0,300,16 do
            get_bg_collision(i - math.fmod(HORIZONTAL_SCROLL, 16), j - math.fmod(VERTICAL_SCROLL, 16))
