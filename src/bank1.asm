@@ -1380,7 +1380,7 @@ sound_cmd_ptr_tbl:
 ; the output frequency (f) of the generator can be determined by the 11-bit period value (f_pulse) written to $4002-$4003/$4006-$4007
 ; note that triangle channel is one octave lower
 ; frequency = cpu_speed / (#$0f * (f_pulse + 1))
-; ex: 1789773 / (#$0f * (#$06ae + 1)) => 65.38 Hz
+; ex: 1789773 / (#$10 * (#$06ae + 1)) => 65.38 Hz
 note_period_tbl:
     .byte $ae,$06 ; $06AE - 1,710 - 65.38 Hz (c 2/deep c)
     .byte $4e,$06 ; $064E - 1,614 - 69.26 Hz (c#/d flat 2)

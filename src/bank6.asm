@@ -358,12 +358,13 @@ run_create_bullet_routine:
     sty $0a                  ; store jump status in $0a
     beq @fire_weapon_routine ; branch if PLAYER_JUMP_STATUS is #$00 (not jumping)
     cmp #$04                 ; see if shooting down facing right while jumping
-    beq @continue            ; branch if shooting down
+    beq @jump_shoot_down     ; branch if shooting down
     cmp #$05                 ; branch if shooting down facing left while jumping
     bne @fire_weapon_routine ; branch if not shooting down and to the left
 
-@continue:
-    lda #$0b ; a = #$0b
+@jump_shoot_down:
+    lda #$0b ; jumping and firing down, use bullet_velocity index #$0b
+             ; e.g. bullet_velocity_normal offset #$0b is 0 X velocity, -3 Y velocity
 
 ; runs the appropriate weapon routine, based on current weapon type (Standard, M, F, S, L)
 @fire_weapon_routine:
@@ -858,6 +859,7 @@ set_bullet_velocity:
     lda bullet_velocity_ptr_tbl+1,y ; load appropriate table of velocities high byte
     sta $02
     lda $0b                         ; load player aim direction
+                                    ; set in @run_create_bullet_routine
     asl                             ; each entry is #$04 bytes
     asl                             ; double twice to get correct offset
     tay
@@ -894,18 +896,18 @@ bullet_velocity_ptr_tbl:
 ; for angled shots use sin(45 deg) = 0.707
 ; 768 * 0.707 = 543 -> #$21f
 bullet_velocity_normal:
-    .byte $00,$00,$fd,$00 ;  #$00  , -#$300 - up facing right
-    .byte $02,$1f,$fd,$e1 ;  #$21f , -#$21f - up right
-    .byte $03,$00,$00,$00 ;  #$300 ,  #$000 - right
-    .byte $02,$1f,$02,$1f ;  #$21f ,  #$21f - right down
-    .byte $03,$00,$00,$00 ;  #$300 ,  #$000 - down facing right
-    .byte $fd,$00,$00,$00 ; -#$300 ,  #$000 - down facing left
-    .byte $fd,$e1,$02,$1f ; -#$21f ,  #$21f - down left
-    .byte $fd,$00,$00,$00 ; -#$300 ,  #$000 - left
-    .byte $fd,$e1,$fd,$e1 ; -#$21f , -#$21f - up left
-    .byte $00,$00,$fd,$00 ;  #$000 , -#$300 - up facing left
-    .byte $00,$00,$fd,$00 ;  #$000 , -#$300 - unused
-    .byte $00,$00,$03,$00 ;  #$000 ,  #$300 - unused
+    .byte $00,$00,$fd,$00 ; (0,-3)         - up facing right
+    .byte $02,$1f,$fd,$e1 ; (2.12, -2.121) - up right
+    .byte $03,$00,$00,$00 ; (3, 0)         - right
+    .byte $02,$1f,$02,$1f ; (2.12, 2.12)   - right down
+    .byte $03,$00,$00,$00 ; (3, 0)         - crouch facing right
+    .byte $fd,$00,$00,$00 ; (-3, 0)        - crouch facing left
+    .byte $fd,$e1,$02,$1f ; (-2.12, 2.12)  - down left
+    .byte $fd,$00,$00,$00 ; (-3, 0)        - left
+    .byte $fd,$e1,$fd,$e1 ; (-2.12, -2.12) - up left
+    .byte $00,$00,$fd,$00 ; (0, -3)        - up facing left
+    .byte $00,$00,$fd,$00 ; (0, -3)        - unused
+    .byte $00,$00,$03,$00 ; (0, 3)         - jumping shooting down facing right or left
 
 ; player bullet velocity - standard, and m weapon - rapid fire (#$30 bytes)
 ; l weapon uses this table for both normal and rapid fire
@@ -919,18 +921,18 @@ bullet_velocity_normal:
 ; for angled shots use sin(45 deg) = 0.707
 ; 1024 * 0.707 = 724 -> #$2d4
 bullet_velocity_rapid:
-    .byte $00,$00,$fc,$00 ;  #$000 , -#$400 - up facing right
-    .byte $02,$d4,$fd,$2c ;  #$2d4 , -#$2d4 - up right
-    .byte $04,$00,$00,$00 ;  #$400 ,  #$000 - right
-    .byte $02,$d4,$02,$d4 ;  #$2d4 ,  #$2d4 - right down
-    .byte $04,$00,$00,$00 ;  #$400 ,  #$000 - down facing right
-    .byte $fc,$00,$00,$00 ; -#$400 ,  #$000 - down facing left
-    .byte $fd,$2c,$02,$d4 ; -#$2d4 ,  #$2d4 - down left
-    .byte $fc,$00,$00,$00 ; -#$400 ,  #$000 - left
-    .byte $fd,$2c,$fd,$2c ; -#$2d4 , -#$2d4 - up left
-    .byte $00,$00,$fc,$00 ;  #$000 , -#$400 - up facing left
-    .byte $00,$00,$fc,$00 ; - unused
-    .byte $00,$00,$04,$00 ; - unused
+    .byte $00,$00,$fc,$00 ; (0, -4)        - up facing right
+    .byte $02,$d4,$fd,$2c ; (2.82, -2.82)  - up right
+    .byte $04,$00,$00,$00 ; (4, 0)         - right
+    .byte $02,$d4,$02,$d4 ; (2.82, 2.82)   - right down
+    .byte $04,$00,$00,$00 ; (4, 0)         - crouch facing right
+    .byte $fc,$00,$00,$00 ; (-4, 0)        - crouch facing left
+    .byte $fd,$2c,$02,$d4 ; (-2.82, 2.82)  - down left
+    .byte $fc,$00,$00,$00 ; (-4, 0)        - left
+    .byte $fd,$2c,$fd,$2c ; (-2.82, -2.82) - up left
+    .byte $00,$00,$fc,$00 ; (0, -4)        - up facing left
+    .byte $00,$00,$fc,$00 ; unused
+    .byte $00,$00,$04,$00 ; (0, 4)         - jumping shooting down facing right or left
 
 ; player bullet velocity - f weapon - rapid fire (#$30 bytes)
 ; #$4 bytes per angle (#$2 bytes for x, #$2 bytes for y)
@@ -943,18 +945,18 @@ bullet_velocity_rapid:
 ; for angled shots use sin(45 deg) = 0.707
 ; 512 * 0.707 = 362 -> #$16a
 bullet_velocity_f_rapid:
-    .byte $00,$00,$fe,$00 ;  #$000 , -#$200 ; up facing left
-    .byte $01,$6a,$fe,$96 ;  #$16a , -#$16a ; up right
-    .byte $02,$00,$00,$00 ;  #$200 ,  #$000 ; right
-    .byte $01,$6a,$01,$6a ;  #$16a ,  #$16a ; right down
-    .byte $02,$00,$00,$00 ;  #$200 ,  #$000 ; down facing right
-    .byte $fe,$00,$00,$00 ; -#$200 ,  #$000 ; down facing left
-    .byte $fe,$96,$01,$6a ; -#$16a ,  #$16a ; down left
-    .byte $fe,$00,$00,$00 ; -#$200 ,  #$000 ; left
-    .byte $fe,$96,$fe,$96 ; -#$16a , -#$16a ; up left
-    .byte $00,$00,$fe,$00 ;  #$000 , -#$200 ; up facing left
-    .byte $00,$00,$fe,$00 ;  #$000 , -#$200 ; unused
-    .byte $00,$00,$02,$00 ;  #$000 ,  #$200 ; unused
+    .byte $00,$00,$fe,$00 ; (0, -2)       - up facing right
+    .byte $01,$6a,$fe,$96 ; (1.41, -1.41) - up right
+    .byte $02,$00,$00,$00 ; (2, 0)        - right
+    .byte $01,$6a,$01,$6a ; (1.41, 1.41)  - right down
+    .byte $02,$00,$00,$00 ; (2, 0)        - crouch facing right
+    .byte $fe,$00,$00,$00 ; (-2, 0)       - crouch facing left
+    .byte $fe,$96,$01,$6a ; (-1.41, 1.41) - down left
+    .byte $fe,$00,$00,$00 ; (-2, 0)       - left
+    .byte $fe,$96,$fe,$96 ; (1.41, -1.41) - up left
+    .byte $00,$00,$fe,$00 ; (0, -2)       - up facing left
+    .byte $00,$00,$fe,$00 ; (0, -2)       - unused
+    .byte $00,$00,$02,$00 ; (0, 2)        - jumping shooting down facing right or left
 
 ; player bullet velocity - f weapon - normal (#$30 bytes)
 ; #$4 bytes per angle (#$2 bytes for x, #$2 bytes for y)
@@ -967,18 +969,18 @@ bullet_velocity_f_rapid:
 ; for angled shots use sin(45 deg) = 0.707
 ; 384 * 0.707 = 271 -> #$10f
 bullet_velocity_f:
-    .byte $00,$00,$fe,$80 ;  #$000 , -#$180 ; up facing left
-    .byte $01,$0f,$fe,$f1 ;  #$10f , -#$10f ; up right
-    .byte $01,$80,$00,$00 ;  #$180 ,  #$000 ; right
-    .byte $01,$0f,$01,$0f ;  #$10f ,  #$10f ; right down
-    .byte $01,$80,$00,$00 ;  #$180 ,  #$000 ; down facing right
-    .byte $fe,$80,$00,$00 ; -#$180 ,  #$000 ; down facing left
-    .byte $fe,$f1,$01,$0f ; -#$10f ,  #$10f ; down left
-    .byte $fe,$80,$00,$00 ; -#$180 ,  #$000 ; left
-    .byte $fe,$f1,$fe,$f1 ; -#$10f , -#$10f ; up left
-    .byte $00,$00,$fe,$80 ;  #$000 , -#$180 ; up facing left
-    .byte $00,$00,$fe,$80 ;  #$000 , -#$180 ; unused
-    .byte $00,$00,$01,$80 ;  #$000 ,  #$180 ; unused
+    .byte $00,$00,$fe,$80 ; (0,-1.5)     - up facing right
+    .byte $01,$0f,$fe,$f1 ; (1.06,-1.06) - up right
+    .byte $01,$80,$00,$00 ; (1.5,0)      - right
+    .byte $01,$0f,$01,$0f ; (1.06,1.06)  - right down
+    .byte $01,$80,$00,$00 ; (1.5,0)      - crouch facing right
+    .byte $fe,$80,$00,$00 ; (-1.5,0)     - crouch facing left
+    .byte $fe,$f1,$01,$0f ; (-1.06,1.06) - down left
+    .byte $fe,$80,$00,$00 ; (-1.5,0)     - left
+    .byte $fe,$f1,$fe,$f1 ; (1.06,-1.06) - up left
+    .byte $00,$00,$fe,$80 ; (0,-1.5)     - up facing left
+    .byte $00,$00,$fe,$80 ; (0,-1.5)     - unused
+    .byte $00,$00,$01,$80 ; (0,1.5)      - jumping shooting down facing right or left
 
 set_indoor_bullet_vel:
     lda #$00                        ; a = #$00
