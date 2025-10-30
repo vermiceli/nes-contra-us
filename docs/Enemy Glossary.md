@@ -1221,6 +1221,30 @@ Other Names: Gordea, JJ, Jumping Joey, Jumping Jack Flash, Giant Boss Robot,
 No attributes exist for this enemy.  His health is calculated based on player's
 `PLAYER_WEAPON_STRENGTH` value.  The formula is below
 
+```mermaid
+flowchart TD
+    A[Set Random Move] -->B{Evaluate Move}
+    B --> |"25%"|D[Walk]
+    B --> |"50%"|E[Throw Saucer]
+    B --> |"25%"|C[Jump]
+    D --> |"50%"|J[Walk Left]
+    D --> |"50%"|K[Walk Right]
+    K --> L[Walked to Edge]
+    J --> L
+    C --> |"25%"|F[Jump Left]
+    C --> |"50%"|G[Jump Up]
+    C --> |"25%"|H[Jump Right]
+    F --> I[Land]
+    G --> I[Land]
+    H --> I[Land]
+    L --> M[Go to Set Random Move]
+    I --> N[Go to Set Random Move]
+    E --> O[Go to Set Random Move]
+    P[If JJ throws 4 saucers with no jump, he will no longer throw saucers until he jumps agian.]:::sticky
+
+    classDef sticky fill:#FFFFA7
+```
+
 #### Logic
 
 * `ENEMY_VAR_1` - random number used to control boss action: jump, attack,
@@ -1229,7 +1253,9 @@ No attributes exist for this enemy.  His health is calculated based on player's
 * `ENEMY_VAR_2`
   * delay between steps
   * y position of door when opening
-* `ENEMY_VAR_3` - delay timer between sections of the door before opening
+* `ENEMY_VAR_3`
+  * when walking, used to animate frames of giant boss robot steps
+  * delay timer between sections of the door before opening
 * `ENEMY_VAR_4` - number of consecutive thrown saucers
 * `ENEMY_HP` - (`PLAYER_WEAPON_STRENGTH` * #$08) + #$40
 

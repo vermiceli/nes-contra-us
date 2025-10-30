@@ -7472,18 +7472,18 @@ fire_beam_not_firing_sprite_tbl:
 
 ; pointer table for boss robot (#$a * #$2 = #$14 bytes)
 boss_giant_soldier_routine_ptr_tbl:
-    .addr boss_giant_soldier_routine_00 ; CPU address $ab93 - set hp sprite, y position and animation delay
-    .addr boss_giant_soldier_routine_01 ; CPU address $abb3 - wait for animation delay
-    .addr boss_giant_soldier_routine_02 ; CPU address $abbf
-    .addr boss_giant_soldier_routine_03 ; CPU address $ac7b
-    .addr boss_giant_soldier_routine_04 ; CPU address $acd4
-    .addr boss_giant_soldier_routine_05 ; CPU address $ad16
-    .addr boss_giant_soldier_routine_06 ; CPU address $ad49
+    .addr boss_giant_soldier_routine_00 ; CPU address $ab93 - set hp, sprite, random seed, y position and animation delay, advance routine
+    .addr boss_giant_soldier_routine_01 ; CPU address $abb3 - wait for delay, advance routine
+    .addr boss_giant_soldier_routine_02 ; CPU address $abbf - perform random action, set next routine
+    .addr boss_giant_soldier_routine_03 ; CPU address $ac7b - wait for delay, throw spiked projectile, set routine to boss_giant_soldier_routine_02
+    .addr boss_giant_soldier_routine_04 ; CPU address $acd4 - wait for landing, play landing sound, set routine to boss_giant_soldier_routine_02
+    .addr boss_giant_soldier_routine_05 ; CPU address $ad16 - walk until hit wall, then set routine to boss_giant_soldier_routine_02
+    .addr boss_giant_soldier_routine_06 ; CPU address $ad49 - boss destroyed
     .addr boss_giant_soldier_routine_07 ; CPU address $ad61
     .addr boss_giant_soldier_routine_08 ; CPU address $ad9b
     .addr boss_giant_soldier_routine_09 ; CPU address $adad
 
-; boss robot - pointer 0 - set hp sprite, y position and animation delay
+; boss robot - pointer 0 - set hp, sprite, random seed, y position and animation delay, advance routine
 boss_giant_soldier_routine_00:
 .ifdef Probotector
     stx ENEMY_CURRENT_SLOT              ; backup current enemy slot number
@@ -7498,18 +7498,19 @@ boss_giant_soldier_routine_00:
     asl
     asl
     adc #$40
-    sta ENEMY_HP,x                      ; set enemy hp (40 + wsc * 8)
+    sta ENEMY_HP,x                      ; set enemy hp (#$40 + pws * #$08)
     lda RANDOM_NUM                      ; load random number
     sta ENEMY_VAR_1,x                   ; store random number in ENEMY_VAR_1
+                                        ; this is used to determine the giant boss' first random move
     lda #$b8                            ; a = #$b8 (sprite_b8) giant boss soldier standing
     sta ENEMY_SPRITES,x                 ; write enemy sprite code to CPU buffer
     lda #$9b                            ; a = #$9b (initial boss y position)
     sta ENEMY_Y_POS,x                   ; enemy y position on screen
     lda #$31                            ; a = #$31 (initial boss delay waiting)
     sta ENEMY_ANIMATION_DELAY,x         ; set enemy animation frame delay counter
-    bne giant_soldier_adv_enemy_routine
+    bne giant_soldier_adv_enemy_routine ; always branch to advance enemy routine
 
-; boss robot - pointer 1 - wait for delay
+; boss robot - pointer 1 - wait for delay, advance routine
 boss_giant_soldier_routine_01:
     jsr update_enemy_pos                ; apply velocities and scrolling adjust
     dec ENEMY_ANIMATION_DELAY,x         ; decrement enemy animation frame delay counter
@@ -7519,62 +7520,74 @@ boss_giant_soldier_routine_01:
 giant_soldier_adv_enemy_routine:
     jmp advance_enemy_routine ; advance to next routine
 
-; boss robot - pointer 2
+; boss robot - pointer 2 - perform random action, advance routine
+; if staying still (thrown 4 saucers) go to routine boss_giant_soldier_routine_02
 boss_giant_soldier_routine_02:
-    jsr update_enemy_pos                 ; apply velocities and scrolling adjust
-    lda ENEMY_VAR_1,x                    ; load initialized random number
-    and #$03                             ; keep bits .... ..xx
-    bne begin_giant_soldier_attack       ; 3/4 chance of branching
-    jsr giant_soldier_face_random_player ; 1/4 chance of happening, walk towards player
-    lda #$f9                             ; a = #$f9
-    sta ENEMY_Y_VELOCITY_FAST,x          ; set initial y fast velocity when jumping
-    lda #$80                             ; a = #$80
-    sta ENEMY_Y_VELOCITY_FRACT,x         ; set initial y fractional velocity when jumping
-    lda RANDOM_NUM                       ; load random number
-    adc FRAME_COUNTER                    ; add random number to frame counter
-    and #$03                             ; keep bits .... ..xx
-    asl                                  ; strip #$00 to #$04 to just either #$00 or #$02
-    tay                                  ; transfer #$00 or #$02 to y
-    lda boss_giant_soldier_x_vel_tbl,y   ; load x velocity fast byte
-    sta ENEMY_X_VELOCITY_FAST,x          ; store in x velocity fast byte
-    lda boss_giant_soldier_x_vel_tbl+1,y ; load x fractional velocity byte
-    sta ENEMY_X_VELOCITY_FRACT,x         ; store in x fractional velocity byte
-    lda #$00                             ; a = #$00
-    sta ENEMY_VAR_4,x                    ; initialize number of thrown saucers to #$00
-    lda #$ba                             ; a = #$ba (sprite_ba) sprite code while jumping
-    sta ENEMY_SPRITES,x                  ; set sprite code to sprite_ba
-    lda #$05                             ; a = #$05 (advance to boss_giant_soldier_routine_04)
+    jsr update_enemy_pos                      ; apply velocities and scrolling adjust
+    lda ENEMY_VAR_1,x                         ; load random number to determine next move
+    and #$03                                  ; strip to random value between #$00 and #$03 inclusively
+                                              ; #$00 - jump
+                                              ; #$01 - attack (throw saucer)
+                                              ; #$02 - walk in random direction until edge
+                                              ; #$03 - walk in random direction until edge
+    bne boss_giant_attack_or_walk             ; 3/4 chance of branching to either walk or throw a saucer
+    jsr giant_soldier_face_random_player      ; #$00 - 1/4 chance of happening, jump
+    lda #$f9                                  ; a = #$f9
+    sta ENEMY_Y_VELOCITY_FAST,x               ; set initial y fast velocity when jumping
+    lda #$80                                  ; a = #$80
+    sta ENEMY_Y_VELOCITY_FRACT,x              ; set initial y fractional velocity when jumping
+    lda RANDOM_NUM                            ; load random number
+    adc FRAME_COUNTER                         ; add random number to frame counter
+    and #$03                                  ; generate new random number between #$00 and #$03 inclusively
+    asl                                       ; double since each entry is a #$02 byte velocity
+    tay                                       ; transfer to offset register
+    lda boss_giant_soldier_jump_x_vel_tbl,y   ; load x velocity fast byte
+    sta ENEMY_X_VELOCITY_FAST,x               ; store in x velocity fast byte
+    lda boss_giant_soldier_jump_x_vel_tbl+1,y ; load x fractional velocity byte
+    sta ENEMY_X_VELOCITY_FRACT,x              ; store in x fractional velocity byte
+    lda #$00                                  ; a = #$00
+    sta ENEMY_VAR_4,x                         ; reset number of thrown saucers to #$00
+    lda #$ba                                  ; a = #$ba (sprite_ba) sprite code while jumping
+    sta ENEMY_SPRITES,x                       ; set sprite code to sprite_ba
+    lda #$05                                  ; a = #$05
+                                              ; advancing to boss_giant_soldier_routine_04 to wait for landing
 
 giant_soldier_set_enemy_routine_a:
     jmp set_enemy_routine_to_a ; set enemy routine index to a
 
-begin_giant_soldier_attack:
+; either walk or throw a saucer, set animation delay, set routine
+boss_giant_attack_or_walk:
     cmp #$01                             ; probability of attacking (1/4)
-    bne @walk_to_player                  ; don't attack
-    jsr giant_soldier_face_random_player ; attack
+    bne @walk                            ; branch if walking
+    jsr giant_soldier_face_random_player ; attacking, target random player and face that player
     inc ENEMY_VAR_4,x                    ; increment number of thrown saucers
-    lda ENEMY_VAR_4,x                    ; load number of thrown saucers
+    lda ENEMY_VAR_4,x                    ; load number of thrown saucers since jumping
     cmp #$04                             ; max number of consecutive thrown saucers
-    bcs giant_soldier_stay_still         ; stay still if thrown #$04 consecutive saucers
-    lda #$20                             ; a = #$20 (delay before throwing position)
+    bcs giant_soldier_stay_still         ; branch to stay still if thrown #$04 consecutive saucers
+    lda #$20                             ; haven't thrown #$04 saucers
+                                         ; load delay before throwing position
     sta ENEMY_ANIMATION_DELAY,x          ; set enemy animation frame delay counter
-    bne giant_soldier_adv_enemy_routine  ; go to boss_giant_soldier_routine_03
+    bne giant_soldier_adv_enemy_routine  ; always branch set routine to boss_giant_soldier_routine_03
+                                         ; to start throwing a projectile next frame
 
-@walk_to_player:
-    jsr giant_soldier_face_random_player
+; walk in random direction (left or right), set routine to boss_giant_soldier_routine_05
+; to continue walking until hit edge
+@walk:
+    jsr giant_soldier_face_random_player      ; walking, target random player and face that player
     lda RANDOM_NUM                            ; load random number
-    and #$01                                  ; keep bits .... ...x
-    asl
-    tay
+    and #$01                                  ; strip to either 0 or 1
+    asl                                       ; double since each entry is a #$02 byte velocity
+    tay                                       ; transfer to offset register
     lda boss_giant_soldier_walk_x_vel_tbl,y   ; load walking x velocity fast byte
     sta ENEMY_X_VELOCITY_FAST,x               ; store walking x velocity fast byte
     lda boss_giant_soldier_walk_x_vel_tbl+1,y ; load walking x fractional velocity byte
-    sta ENEMY_X_VELOCITY_FRACT,x              ; store walking x fractional velocity byte
+    sta ENEMY_X_VELOCITY_FRACT,x              ; store walking x fractional velocity byte (1.09 or -1.09)
     lda #$0c                                  ; a = #$0c
     sta ENEMY_VAR_2,x                         ; delay for first step of walking
     lda #$06                                  ; a = #$06
-    bne giant_soldier_set_enemy_routine_a     ; go to boss_giant_soldier_routine_05
+    bne giant_soldier_set_enemy_routine_a     ; always branch to set boss_giant_soldier_routine_05
 
+; clear velocity, set sprite, set new random attack value, set boss_giant_soldier_routine_02
 giant_soldier_stay_still:
     lda #$b8                              ; a = #$b8 (sprite_b8) giant boss soldier standing
     sta ENEMY_SPRITES,x                   ; write enemy sprite code to CPU buffer
@@ -7614,27 +7627,25 @@ giant_soldier_face_random_player:
     rts
 
 ; table for possible x velocities when jumping (#$8 bytes)
-; seems to happen rarely, only at the beginning
-; when he is not on his left or right limit (x position)
-boss_giant_soldier_x_vel_tbl:
-    .byte $00,$80
-    .byte $00,$00
-    .byte $00,$00
-    .byte $ff,$80
+boss_giant_soldier_jump_x_vel_tbl:
+    .byte $00,$80 ;  0.5
+    .byte $00,$00 ;  0.0
+    .byte $00,$00 ;  0.0
+    .byte $ff,$80 ; -0.5
 
 ; table for level 6 boss walking speed (#$4 bytes)
 boss_giant_soldier_walk_x_vel_tbl:
-    .byte $01,$18
-    .byte $fe,$e8
+    .byte $01,$18 ;  1.09
+    .byte $fe,$e8 ; -1.09
 
-; boss robot - pointer 3
-; creates spiked projectiles
+; boss robot - pointer 3 - wait for delay, throw spiked projectile, set routine to boss_giant_soldier_routine_02
 boss_giant_soldier_routine_03:
     jsr update_enemy_pos          ; apply velocities and scrolling adjust
     lda ENEMY_ATTACK_FLAG         ; see if enemies should attack
     beq boss_giant_stay_still     ; exit if enemies shouldn't attack
     dec ENEMY_ANIMATION_DELAY,x   ; decrement enemy animation frame delay counter
-    beq create_spiked_projectile  ; create the spiked projectile
+    beq create_spiked_projectile  ; branch if delay elapsed to create the spiked projectile
+                                  ; and start next random action
     lda ENEMY_ANIMATION_DELAY,x   ; attack delay not elapsed, load enemy animation frame delay counter
     cmp #$0f                      ; (determines delay for throw stance)
     bcs set_giant_soldier_palette ; change palette according to hp (every #$04 frames)
@@ -7666,6 +7677,7 @@ set_giant_soldier_palette:
     ldx ENEMY_CURRENT_SLOT
     rts
 
+; create spiked projectile, set routine to boss_giant_soldier_routine_02
 create_spiked_projectile:
     lda #$14                  ; a = #$14 (14 = spiked disk projectile)
     sta $0a                   ; set enemy type for projectile
@@ -7673,6 +7685,7 @@ create_spiked_projectile:
     ldy #$e8                  ; y = #$e8 (initial relative y position)
     jsr generate_enemy_at_pos ; generate enemy type $0a at relative position a,y
     bne boss_giant_stay_still ; exit if unable to create spiked disk projectile
+                              ; to set routine to boss_giant_soldier_routine_02 to perform the next action
     lda ENEMY_SPRITE_ATTR,x   ; load boss giant's ENEMY_SPRITE_ATTR
     and #$40                  ; load boss giant's horizontal flip bit
     beq boss_giant_stay_still ; branch if boss giant facing left
@@ -7680,10 +7693,12 @@ create_spiked_projectile:
     adc #$30                  ; add 30 to x position if facing right
     sta ENEMY_X_POS,y         ; set spiked saucer x position on screen
 
+; clear velocity, set sprite, set new random attack value, set boss_giant_soldier_routine_02
+; to perform next random action next frame
 boss_giant_stay_still:
     jmp giant_soldier_stay_still
 
-; boss robot - pointer 4
+; boss robot - pointer 4 - wait for landing, play landing sound, set routine to boss_giant_soldier_routine_02
 boss_giant_soldier_routine_04:
     jsr set_giant_soldier_palette ; change palette according to hp (every #$04 frames)
     jsr @apply_gravity            ; apply gravity and x boundaries check
@@ -7702,7 +7717,8 @@ boss_giant_soldier_routine_04:
     sta ENEMY_Y_POS,x           ; set enemy y position on screen to ground
     lda #$b8                    ; a = #$b8 (sprite_b8) (same as sprite_b7)
     sta ENEMY_SPRITES,x         ; write enemy sprite code to CPU buffer
-    bne boss_giant_stay_still
+    bne boss_giant_stay_still   ; clear velocity, set sprite, set new random attack value, set boss_giant_soldier_routine_02
+                                ; to perform next random action next frame
 
 ; apply gravity and x boundaries check
 @apply_gravity:
@@ -7726,19 +7742,23 @@ boss_giant_soldier_routine_04:
 @exit:
     rts
 
-; boss robot - pointer 5
+; boss robot - pointer 5 - walk until hit wall, then set routine to boss_giant_soldier_routine_02
 boss_giant_soldier_routine_05:
     jsr set_giant_soldier_palette ; change palette according to hp (every #$04 frames)
     jsr update_enemy_pos          ; apply velocities and scrolling adjust
     lda ENEMY_X_POS,x             ; load enemy x position on screen
     cmp #$20                      ; left limit when walking
-    bcc @stay_still
+    bcc @stay_still               ; branch if at left edge
+                                  ; to clear velocity, and set routine to boss_giant_soldier_routine_02
     cmp #$c0                      ; right limit when walking
-    bcs @stay_still
+    bcs @stay_still               ; branch if at right edge
+                                  ; to clear velocity, and set routine to boss_giant_soldier_routine_02
     dec ENEMY_VAR_2,x             ; decrement delay between steps
-    beq @continue                 ; branch if delay has elapsed
+    beq @continue                 ; branch if delay has elapsed and haven't reached edge
+                                  ; to animate walk
     rts
 
+; clear velocity, set sprite, set new random attack value, set boss_giant_soldier_routine_02
 @stay_still:
     jmp giant_soldier_stay_still
 
@@ -7747,14 +7767,15 @@ boss_giant_soldier_routine_05:
     sta ENEMY_VAR_4,x   ; clear number of consecutive thrown saucers
     lda #$0c            ; a = #$0c (delay between steps)
     sta ENEMY_VAR_2,x   ; initialize delay between steps
-    inc ENEMY_VAR_3,x
+    inc ENEMY_VAR_3,x   ; increment animation sprite offset
     lda ENEMY_VAR_3,x
-    and #$01            ; keep bits .... ...x
+    and #$01            ; alternate between 0 and 1
     clc                 ; clear carry in preparation for addition
     adc #$b8            ; load sprite_b8 (sprite_b7) or sprite_b9
     sta ENEMY_SPRITES,x ; write enemy sprite code to CPU buffer
     rts
 
+; boss destroyed
 boss_giant_soldier_routine_06:
     jsr init_APU_channels
     lda #$55                        ; a = #$55 (sound_55)
