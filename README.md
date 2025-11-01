@@ -8,6 +8,9 @@ A special thanks goes to Trax.  This project would not have gotten started
 without the amazing initial disassembly by him for his [Revenge of the Red
 Falcon](https://www.romhacking.net/hacks/2701/) project.
 
+For the disassembly of _Contra_'s sequel, see
+https://github.com/vermiceli/nes-super-c/
+
 ```
 |-- docs - supplemental documentation
 |   |-- attachments - files used in other documentation
