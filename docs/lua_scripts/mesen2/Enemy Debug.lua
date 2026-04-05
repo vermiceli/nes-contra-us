@@ -4,6 +4,7 @@ function Main()
     for i = 0,0xf do
         local ENEMY_X_POS = emu.read(0x033e + i, emu.memType.nesMemory)
         local ENEMY_Y_POS = emu.read(0x0324 + i, emu.memType.nesMemory)
+        local ENEMY_TYPE = emu.read(0x0528 + i, emu.memType.nesMemory)
         local ENEMY_ANIMATION_DELAY = emu.read(0x0538 + i, emu.memType.nesMemory)
         local ENEMY_ATTRIBUTES = emu.read(0x05a8 + i, emu.memType.nesMemory)
         local ENEMY_FRAME = emu.read(0x0568 + i, emu.memType.nesMemory)

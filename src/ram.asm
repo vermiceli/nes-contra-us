@@ -32,6 +32,7 @@
 .exportzp P1_NUM_LIVES                   ; $32
 .exportzp P2_NUM_LIVES                   ; $33
 .exportzp RANDOM_NUM                     ; $34
+.exportzp OAMDMA_CPU_BUFFER_OFFSET       ; $35
 .exportzp NUM_PALETTES_TO_LOAD           ; $36
 .exportzp INDOOR_SCREEN_CLEARED          ; $37
 .exportzp P1_GAME_OVER_STATUS            ; $38
@@ -283,7 +284,8 @@ RANDOM_NUM:
     .res 1
 
 ; OAMDMA_CPU_BUFFER write offset
-.res 1
+OAMDMA_CPU_BUFFER_OFFSET:
+    .res 1
 
 ; $36 - the number of palettes to load into CPU memory
 NUM_PALETTES_TO_LOAD:

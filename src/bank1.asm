@@ -145,7 +145,7 @@ sound_check_pause:
     lda SOUND_FLAGS+4         ; still playing game pausing jingle, load sound slot #$04 (pulse 1 channel) read index
                               ; this is the channel that the pause jingle uses
     bpl @unmute_pulse_2       ; branch if still playing the game pausing jingle
-    lda $012d
+    lda PULSE_VOL_DURATION+3
     sta APU_PULSE_SWEEP
 
 ; unpausing in middle of pause jingle
@@ -1440,8 +1440,8 @@ init_pulse_and_noise_channels:
     inx
     cpx #$06
     bcc @loop
-    sta $0140
-    sta $013e
+    sta UNKNOWN_SOUND_01+4
+    sta UNKNOWN_SOUND_01+2
     sta UNKNOWN_SOUND_01      ; adjusts pulse channel control (see set_pulse_config)
     jsr init_triangle_channel ; re-initialize triangle channel
     lda #$30                  ; both duty cycle bits set to 1 (%0011 0000)
@@ -1501,10 +1501,10 @@ bank_1_unused_label_00:
 
 ; dead code, never called !(UNUSED)
 bank_1_unused_label_01:
-    sta $013e
-    sta $0141
-    lda #$00             ; a = #$00
-    sta UNKNOWN_SOUND_01 ; reset pulse channel adjustment (see set_pulse_config)
+    sta UNKNOWN_SOUND_01+2
+    sta UNKNOWN_SOUND_01+5
+    lda #$00               ; a = #$00
+    sta UNKNOWN_SOUND_01   ; reset pulse channel adjustment (see set_pulse_config)
     rts
 
 ; plays the specified sound
@@ -1644,7 +1644,7 @@ load_sound_code_entry:
     dey                      ; control code greater than or equal to #$30
                              ; y will be #$00 for setting SOUND_FLAGS,x
                              ; indicating to use read_high_sound_cmd
-    sty $013e
+    sty UNKNOWN_SOUND_01+2
     sty UNKNOWN_SOUND_01
 
 @config_channel:
@@ -3983,13 +3983,13 @@ sound_4d_part_01:
 ; when SPRITE_LOAD_TYPE is #01, then the sprites on top of the screen (medals, game over)
 ; CPU address $ae97
 draw_sprites:
-    lda $35                      ; OAMDMA_CPU_BUFFER write offset
+    lda OAMDMA_CPU_BUFFER_OFFSET ; OAMDMA_CPU_BUFFER write offset
     clc                          ; clear carry in preparation for addition
     adc #$4c                     ; add #$4c to OAMDMA_CPU_BUFFER, this is to support "sprite cycling"/"sprite flickering"
                                  ; since the NES can draw a maximum of 8 sprites per scan line, Contra adjusts the starting locations
                                  ; so that sprites move around in PPU memory. This will allow different sprites to load each frame
                                  ; on the same scan line. Human eyes won't notice a sprite not visible for a single frame
-    sta $35                      ; OAMDMA_CPU_BUFFER write offset
+    sta OAMDMA_CPU_BUFFER_OFFSET ; OAMDMA_CPU_BUFFER write offset
     sta $04                      ; store OAMDMA_CPU_BUFFER write offset to $04
     ldy #$3f                     ; y = #$3f (maximum number of sprite pattern tiles that NES supports)
     sty $07                      ; set maximum number of sprites in $07

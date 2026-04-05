@@ -7182,12 +7182,12 @@ fire_beam_add_pos_set_delay:
     and #$03                       ; keep bits .... ..xx
     tay                            ; set ... xx.. from enemy attributes to y
     lda fire_beam_anim_delay_tbl,y ; load animation delay
-    sta ENEMY_VAR_A,x              ; storey in ENEMY_VAR_A
+    sta ENEMY_VAR_A,x              ; store in ENEMY_VAR_A
 
 fire_beam_set_delay_adv_routine:
     jmp set_enemy_delay_adv_routine ; set ENEMY_ANIMATION_DELAY counter to a; advance enemy routine
 
-; table for fire beams delay between bursts (#$4 bytes)
+; table for fire beams delay between bursts (#$04 bytes)
 fire_beam_anim_delay_tbl:
     .byte $00,$20,$40,$60
 
@@ -7382,7 +7382,7 @@ draw_fire_beam_if_anim_elapsed:
     bne set_fire_beam_anim_delay_exit
     lda ENEMY_VAR_3,x                 ; either ENEMY_VAR_3 or ENEMY_VAR_4 contain fire beam length
     ora ENEMY_VAR_4,x                 ; merge horizontal and vertical fire beam length
-    beq @draw_fire_beam_section       ;
+    beq @draw_fire_beam_section
     iny                               ; fire beam length isn't #$00, increment fire_beam_tile_tbl offset
 
 @draw_fire_beam_section:

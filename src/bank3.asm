@@ -1364,7 +1364,7 @@ end_of_lvl_routine_lvl_1_01:
     bne routine_lvl_1_adv_lvl_state_exit ; exit if jump already started
     lda #$81                             ; need to jump, set controller input A button and right arrow button pressed
     sta CONTROLLER_STATE,x               ; store this value into player input
-    sta $f5,x                            ; store this value into player input
+    sta CONTROLLER_STATE_DIFF,x          ; store this value into player input
     rts
 
 ; press the d-pad right button to move the player to the right

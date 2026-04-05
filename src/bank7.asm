@@ -455,7 +455,9 @@ clear_memory:
 
 ; ROM address $c139
 ; backs up the currently-loaded bank number into PREVIOUS_ROM_BANK ($07ec)
-; updates the currently-loaded bank to Y
+; updates the currently-loaded bank to y
+; input
+;  * y - bank number to load
 load_bank_number:
     lda BANK_NUMBER       ; load the currently-loaded bank number (address $8000)
                           ; first byte of every bank is the bank number
@@ -1004,6 +1006,9 @@ set_player_input:
 ; stores the inputs in a bit field in $04 and $05 respectively
 ; from msb to lsb: A, B, select, start, up, down, left, right
 ; sets and immediately clears strobe bit to read from controllers
+; output
+;  * $04 - player 1 controller input
+;  * $05 - player 2 controller input
 read_controller_state:
     ldx #$01
     stx CONTROLLER_1 ; set the strobe bit so controller input for both controllers can be read
@@ -1169,7 +1174,7 @@ init_player_num_lives:
     bpl init_player_lives       ; if more another player to set score, jump
     lda #$c8                    ; set default high score. #$c8 is 200 decimal
     sta EXTRA_LIFE_SCORE_LOW    ; starting score for extra life (20,000)
-    sta $3e                     ; player 2 default score for extra life
+    sta EXTRA_LIFE_SCORE_HIGH+1 ; player 2 default score for extra life
     lda #$00
     sta EXTRA_LIFE_SCORE_HIGH   ; clear high byte of score for extra life
     sta KONAMI_CODE_NUM_CORRECT ; clear number of successful inputs to Konami code
@@ -1191,7 +1196,7 @@ p2_game_over_status_tbl:
 clear_memory_3:
     ldx #$28
 
-; clears memory [x-$f0) and [$300-$700]
+; clears memory [x-$f0) and [$300-$700)
 ; input
 ;  * x - starting memory address to clear (inclusive)
 clear_memory_starting_at_x:
@@ -1212,13 +1217,13 @@ clear_memory_starting_at_x:
 ; clear blocks of memory specified by the 2-byte $00 address
 ; clears until the memory address $X00, specified by the x register
 ; in this case clear memory from CPU_SPRITE_BUFFER to $06FF
-clear_memory_block:
+@clear_memory_block:
     sta ($00),y
     iny
-    bne clear_memory_block
+    bne @clear_memory_block
     inc $01
     cpx $01
-    bne clear_memory_block
+    bne @clear_memory_block
 
 add_player_score_exit:
     rts
@@ -2120,7 +2125,7 @@ ending_graphic_data:
 ; first 2 bytes are the memory address to load
 ; last byte specifies 2 things
 ;   * bits 0-3 specify the rom bank to have loaded
-;     the exception is 0 means bank 7 instead of bank 0)
+;     (the exception is 0 means bank 7 instead of bank 0)
 ;   * bit 7 is stored in $04, when set it means all tiles from
 ;     the graphic data must be flipped horizontally
 graphic_data_ptr_tbl:
@@ -3405,7 +3410,7 @@ level_routine_0a:
 ; plays sound if entering pause
 check_for_pause:
     lda DEMO_MODE             ; #$00 not in demo mode, #$01 demo mode on
-    ora $26
+    ora $26                   ; !(UNUSED) probably mean to be player 2 pause state
     ora PPU_READY             ; #$00 when PPU is ready, > #$00 otherwise
     bne pause_exit_00         ; if in demo, PPU isn't ready, or $26 > 0, then exit
     lda CONTROLLER_STATE_DIFF ; controller 1 buttons pressed
@@ -5752,7 +5757,7 @@ handle_indoor_scroll:
                                                ; begin advancing background animation
     sta PPU_WRITE_TILE_OFFSET                  ; initialize PPU_WRITE_TILE_OFFSET to #$00
     sta PPU_WRITE_ADDRESS_LOW_BYTE             ; initialize PPU_WRITE_ADDRESS_LOW_BYTE to #$00
-    sta $66                                    ; !(UNUSED) not sure of use, only ever set to #$00 or #$c0, never read
+    sta ATTRIBUTE_TBL_WRITE_LOW_BYTE
     lda #$20
     sta LEVEL_TRANSITION_TIMER                 ; set initial advancing animation timer to #$20
     lda PPU_WRITE_ADDRESS_HIGH_BYTE
@@ -7305,10 +7310,10 @@ collision_box_codes_04:
 
 ; execute all enemy routines
 exe_all_enemy_routine:
-    lda #$00            ; a = #$00
-    sta PLAYER_ON_ENEMY ; clear player on non-dangerous enemy flag
-    sta $b7
-    ldx #$0f            ; x = #$0f
+    lda #$00              ; a = #$00
+    sta PLAYER_ON_ENEMY   ; clear player on non-dangerous enemy flag
+    sta PLAYER_ON_ENEMY+1 ; clear player on non-dangerous enemy flag for player 2
+    ldx #$0f              ; x = #$0f
 
 exe_enemy_routine_loop:
     lda ENEMY_ROUTINE,x     ; enemy routine index

@@ -183,13 +183,14 @@ the debugging information.
 [FCEUX](https://fceux.com/web/home.html) doesn't support reading the debugger
 symbols, but you can load NameList (`.nl`) files.  These files aren't as fully
 featured as the debugging symbols file, but does at least allow you to label
-jump/branch locations.  It doesn't easily support comments on individual lines.
+jump/branch locations and ram addresses.  It doesn't easily support comments on
+individual lines.
 
-I've included the `.nl` files in `docs/debugging/fceux_namelists`.  These files
-were generated from the `-Ln contra.labels.txt` command line parameter to
-`ld65`.  Then the that file was converted to the `.nl` files with a custom
-script.  I can't promise to keep these up to date as the source labels change,
-but I will try to.
+I've included the `.nl` files in `docs/debugging/fceux_namelists` for both
+_Contra_ and _Probotector_.  These files were generated from the
+`-m contra.txt -vm` command line parameter to `ld65`.  Then the that file was
+converted to the `.nl` files with a custom script.  I can't promise to keep
+these up to date as the source labels change, but I will try to.
 
 # Project History
 I first became interested in this project after watching the
