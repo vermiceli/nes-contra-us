@@ -735,7 +735,7 @@ level_2_4_boss_supertiles_screen_01:
 graphic_data_02:
     .incbin "assets/graphic_data/graphic_data_02.bin"
 
-; compressed alternate graphics data for level 1 (length ?)
+; compressed alternate graphics data for level 1 (#$580 bytes)
 ; CPU address $9252
 alt_graphic_data_00:
     .incbin "assets/graphic_data/alt_graphic_data_00.bin"

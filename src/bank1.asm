@@ -102,7 +102,7 @@ mute_pulse_channel:
     jsr wait                       ; execute #$0a nop instructions
     bne set_pulse_timer_and_length ; always branch to set pulse timer and length
 
-; muse/unmutes pulse wave channel based on pause state
+; mute/unmutes pulse wave channel based on pause state
 ; input
 ;  * x - sound register offset
 mute_unmute_pulse_channel:
@@ -1557,7 +1557,7 @@ init_sound_code_vars:
 ; jungle, hangar, and waterfall
 @init_dmc_sample_value:
     lda #$00            ; a = #$00
-    sta APU_DMC_COUNTER ; reset DMC starting vale for sample
+    sta APU_DMC_COUNTER ; reset DMC starting value for sample
 
 @play_sound:
     txa                        ; backup x to a
@@ -1762,9 +1762,9 @@ play_dpcm_sample:
 ; byte 2 - APU_DMC_SAMPLE_ADDR
 ; byte 3 - APU_DMC_SAMPLE_LEN
 dpcm_sample_data_tbl:
-    .byte $0f,$2f,$f0,$05 ; #$5a - sample address $fc00 (dpcm_sample_00) (#$51 bytes)
-    .byte $0f,$75,$f3,$25 ; #$5b - sample address $fcc0 (dpcm_sample_01) (#$251 bytes)
-    .byte $0f,$00,$f0,$05 ; #$5c - sample address $fc00 (dpcm_sample_00) (end of level)
+    .byte $0f,$2f,$f0,$05 ; sound_5a - sample address $fc00 (dpcm_sample_00) (#$51 bytes)
+    .byte $0f,$75,$f3,$25 ; sound_5b - sample address $fcc0 (dpcm_sample_01) (#$251 bytes)
+    .byte $0f,$00,$f0,$05 ; sound_5c - sample address $fc00 (dpcm_sample_00) (#$51 bytes)
     .byte $0f
 
 ; CPU address $88e8

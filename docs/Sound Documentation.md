@@ -141,6 +141,24 @@ some of the abbreviations and name meanings.
   * PL - player
   * TYPE - keyboard typing
 
+# Delta Pulse Coded Modulation (DPCM) Samples
+
+There are 2 delta pulse coded modulation (DPCM) samples in _Contra_ totaling
+674 bytes. The 2 samples are played for 3 different sounds. All samples are
+played back at a 33.1 kHz sample rate.
+
+There are 316 unused bytes of presumably DPCM sample data that aren't used due
+to the length specified in `dpcm_sample_data_tbl`: 110 bytes after
+`dpcm_sample_00` and 206 bytes after `dpcm_sample_01`.  If the lengths were
+increased, more DPCM sample data is played.
+
+* `sound_5a` plays `dpcm_sample_00` at a 33.1 kHz sample rate for 0.02 seconds
+  with a length of 81 bytes and has an initial output level of #$2f.
+* `sound_5b` plays `dpcm_sample_01` at a 33.1 kHz sample rate for 0.14 seconds
+  with a length of 593 bytes.
+* `sound_5c` plays `dpcm_sample_00` at a 33.1 kHz sample rate for 0.02 seconds
+  with a length of 81 bytes and has an initial output level of #$00.
+
 # sound_code Parsing
 
 Every video frame, the game loops through each sound slot to see if a sound is
@@ -302,4 +320,3 @@ Percussion commands are recursively read until Case 1 or Case 3 is reached.
       * 4 - `sound_5b` and `sound_02`
       * 5 - `sound_25`
       * 6 - `sound_5c` and `sound_02`
-      * 7 - `sound_5d` and `sound_02`

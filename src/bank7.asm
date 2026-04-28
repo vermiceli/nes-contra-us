@@ -409,6 +409,7 @@ configure_PPU:
     rts
 
 ; set PPU write address to $2000. This is the start of the nametables in the PPU
+; also set the PPU scroll based on HORIZONTAL_SCROLL and VERTICAL_SCROLL
 set_ppu_addr_to_nametables:
     lda PPUSTATUS ; read PPUSTATUS to reset PPU latch
                   ; setting the PPUADDR takes two writes, one for high byte and one for low
@@ -2932,34 +2933,35 @@ animate_indoor_fence:
     asl               ; double to get #$00, #$08, #$10, or #$18 (offset into pattern_tile_fence_tbl)
 
 @continue:
-    sta $14                     ; set pattern_tile_fence_tbl offset
-    ldx GRAPHICS_BUFFER_OFFSET  ; load graphics buffer offset
-    lda #$01                    ; a = #$01
-    sta CPU_GRAPHICS_BUFFER,x   ; set VRAM address increment to 0 (write across)
-    sta CPU_GRAPHICS_BUFFER+2,x ; set number of groups to #$01 group
-    inx                         ; increment graphics buffer write offset
-    lda #$40                    ; a = #$40
-    sta CPU_GRAPHICS_BUFFER,x   ; set to group size to #$40
-    inx                         ; increment graphics buffer write offset
-    inx                         ; increment graphics buffer write offset
-    lda #$1f                    ; a = #$1f
-    sta CPU_GRAPHICS_BUFFER,x   ; set ppu address high byte to #$1f
-    inx                         ; increment graphics buffer write offset
-    lda #$c0                    ; a = #$c0
-    sta CPU_GRAPHICS_BUFFER,x   ; set ppu address low byte to #$c0
-                                ; last #$04 bytes of pattern table 1 and then #$3c pattern tiles (PPU address $1fc0)
-    inx                         ; increment graphics buffer write offset
-    lda pattern_tile_bg_tbl     ; load low byte of pattern_tile_bg_00 address
-    sta $10                     ; store low byte of pattern_tile_bg_00 address
-    lda pattern_tile_bg_tbl+1   ; load high byte of pattern_tile_bg_00 address
-    sta $11                     ; store high byte of pattern_tile_bg_00 address
-    lda #$07                    ; a = #$07
-    sta $13                     ; set base address to CPU_GRAPHICS_BUFFER ($0700)
-    stx $12                     ; store graphics buffer write offset
-                                ; use ($12),y in @write_to_graphics_buffer instead of CPU_GRAPHICS_BUFFER,x
-                                ; because x will be used for something else
-    ldx $14                     ; load pattern_tile_fence_tbl offset
-    ldy #$00                    ; y = #$00
+    sta $14                           ; set pattern_tile_fence_tbl offset
+    ldx GRAPHICS_BUFFER_OFFSET        ; load graphics buffer offset
+    lda #$01                          ; a = #$01
+    sta CPU_GRAPHICS_BUFFER,x         ; set VRAM address increment to 0 (write across)
+    sta CPU_GRAPHICS_BUFFER+2,x       ; set number of groups to #$01 group
+    inx                               ; increment graphics buffer write offset
+    lda #$40                          ; a = #$40
+    sta CPU_GRAPHICS_BUFFER,x         ; set to group size to #$40
+    inx                               ; increment graphics buffer write offset
+    inx                               ; increment graphics buffer write offset
+    lda #$1f                          ; a = #$1f
+    sta CPU_GRAPHICS_BUFFER,x         ; set ppu address high byte to #$1f
+    inx                               ; increment graphics buffer write offset
+    lda #$c0                          ; a = #$c0
+    sta CPU_GRAPHICS_BUFFER,x         ; set ppu address low byte to #$c0
+                                      ; last #$04 bytes of pattern table 1 and then #$3c pattern tiles (PPU address $1fc0)
+    inx                               ; increment graphics buffer write offset
+    lda pattern_tile_bg_tbl           ; load low byte of pattern_tile_bg_00 address
+    sta $10                           ; store low byte of pattern_tile_bg_00 address
+    lda pattern_tile_bg_tbl+1         ; load high byte of pattern_tile_bg_00 address
+    sta $11                           ; store high byte of pattern_tile_bg_00 address
+    lda #.HIBYTE(CPU_GRAPHICS_BUFFER) ; a = #$07
+    sta $13                           ; set base address to CPU_GRAPHICS_BUFFER ($0700)
+    stx $12                           ; store graphics buffer write offset
+                                      ; use ($12),y in @write_to_graphics_buffer instead of CPU_GRAPHICS_BUFFER,x
+                                      ; because x will be used for something else
+                                      ; no need to add LOBYTE of CPU_GRAPHICS_BUFFER since it's #$00
+    ldx $14                           ; load pattern_tile_fence_tbl offset
+    ldy #$00                          ; y = #$00
 
 @write_to_graphics_buffer:
     lda ($10),y                   ; load pattern_tile_bg_00 byte
@@ -2976,7 +2978,8 @@ animate_indoor_fence:
     bcc @write_to_graphics_buffer ; branch if more tiles to write
     tya
     clc                           ; clear carry in preparation for addition
-    adc $12
+    adc $12                       ; update graphics buffer write offset
+                                  ; no need to subtract low byte of CPU_GRAPHICS_BUFFER since it's #$00
     sta GRAPHICS_BUFFER_OFFSET
 
 @exit:
