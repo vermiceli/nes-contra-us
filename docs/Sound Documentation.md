@@ -155,7 +155,7 @@ increased, more DPCM sample data is played.
 * `sound_5a` plays `dpcm_sample_00` at a 33.1 kHz sample rate for 0.02 seconds
   with a length of 81 bytes and has an initial output level of #$2f.
 * `sound_5b` plays `dpcm_sample_01` at a 33.1 kHz sample rate for 0.14 seconds
-  with a length of 593 bytes.
+  with a length of 593 bytes and has an initial output level of #$75.
 * `sound_5c` plays `dpcm_sample_00` at a 33.1 kHz sample rate for 0.02 seconds
   with a length of 81 bytes and has an initial output level of #$00.
 

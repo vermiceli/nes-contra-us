@@ -1758,9 +1758,9 @@ play_dpcm_sample:
 ; table for APU configuration (#$d bytes)
 ; byte 0 - APU_DMC - sampling rate (how many CPU cycles happen between playback samples), no looping
 ;        - always $0f, highest sampling rate. NTSC 33,143.9 Hz, PAL 33,252.1 Hz
-; byte 1 - APU_DMC_COUNTER
-; byte 2 - APU_DMC_SAMPLE_ADDR
-; byte 3 - APU_DMC_SAMPLE_LEN
+; byte 1 - APU_DMC_COUNTER - initial sample level
+; byte 2 - APU_DMC_SAMPLE_ADDR - starting memory address of sample: $c000 + (value * #$40)
+; byte 3 - APU_DMC_SAMPLE_LEN - length in bytes: value * #$10 + 1
 dpcm_sample_data_tbl:
     .byte $0f,$2f,$f0,$05 ; sound_5a - sample address $fc00 (dpcm_sample_00) (#$51 bytes)
     .byte $0f,$75,$f3,$25 ; sound_5b - sample address $fcc0 (dpcm_sample_01) (#$251 bytes)
@@ -2988,6 +2988,7 @@ sound_32_part_05:
 
 sound_32_part_06:
     .incbin "assets/audio_data/sound_32_part_06.bin"
+    .addr sound_32_part_06
 
 ; CPU address $9cd7
 sound_32_part_07:
@@ -3025,6 +3026,7 @@ sound_33_part_01:
 
 sound_33_part_02:
     .incbin "assets/audio_data/sound_33_part_02.bin"
+    .addr sound_33_part_02
 
 ; CPU address $9d65
 sound_33_part_03:
@@ -3039,6 +3041,7 @@ sound_33_part_04:
 
 sound_33_part_05:
     .incbin "assets/audio_data/sound_33_part_05.bin"
+    .addr sound_33_part_01
 
 ; BGM 3 - level 5 snow field music (triangle channel)
 ; CPU address $9d9a
@@ -3339,30 +3342,35 @@ sound_3a_part_04:
 sound_3a_part_05:
     .incbin "assets/audio_data/sound_3a_part_05.bin"
 
-; CPU address $a114
 sound_3a_part_06:
     .incbin "assets/audio_data/sound_3a_part_06.bin"
     .addr sound_3a_part_06
-
-sound_3a_part_07:
     .incbin "assets/audio_data/sound_3a_part_07.bin"
 
-; CPU address $a143
+; CPU address $a114
 sound_3a_part_08:
     .incbin "assets/audio_data/sound_3a_part_08.bin"
     .addr sound_3a_part_08
 
-; CPU address $a14b
 sound_3a_part_09:
     .incbin "assets/audio_data/sound_3a_part_09.bin"
 
-; CPU address $a15a
+; CPU address $a143
 sound_3a_part_0a:
     .incbin "assets/audio_data/sound_3a_part_0a.bin"
     .addr sound_3a_part_0a
 
+; CPU address $a14b
 sound_3a_part_0b:
     .incbin "assets/audio_data/sound_3a_part_0b.bin"
+
+; CPU address $a15a
+sound_3a_part_0c:
+    .incbin "assets/audio_data/sound_3a_part_0c.bin"
+    .addr sound_3a_part_0c
+
+sound_3a_part_0d:
+    .incbin "assets/audio_data/sound_3a_part_0d.bin"
     .addr sound_3a_part_00
 
 ; BGM 5 - level 8 alien's lair music (pulse 2 channel)
@@ -3406,13 +3414,18 @@ sound_3c_part_02:
 sound_3c_part_03:
     .incbin "assets/audio_data/sound_3c_part_03.bin"
 
-; CPU address $a30a
 sound_3c_part_04:
     .incbin "assets/audio_data/sound_3c_part_04.bin"
     .addr sound_3c_part_04
-
-sound_3c_part_05:
     .incbin "assets/audio_data/sound_3c_part_05.bin"
+
+; CPU address $a30a
+sound_3c_part_06:
+    .incbin "assets/audio_data/sound_3c_part_06.bin"
+    .addr sound_3c_part_06
+
+sound_3c_part_07:
+    .incbin "assets/audio_data/sound_3c_part_07.bin"
     .addr sound_3c_part_00
 
 ; BGM 5 - level 8 alien's lair music (noise/dmc channel)

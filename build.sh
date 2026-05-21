@@ -33,7 +33,8 @@ romHasher() {
 }
 
 setBytes(){
-    if test -f $3
+    # check if output exists and is the same size
+    if [ -f "$3" ] && [ "$(wc -c < "$3")" -eq "$2" ]
     then
         return
     fi

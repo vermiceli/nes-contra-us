@@ -9942,7 +9942,7 @@ alien_spider_routine_ptr_tbl:
     .addr alien_spider_routine_01      ; CPU address $bb44 - set score and collision code, set sprite to egg, set x velocity to -.3125 and y velocity to +-4, advance to alien_spider_routine_02
     .addr alien_spider_routine_02      ; CPU address $bb68 - alien spider while it's still an egg, float to ceiling or fall to ground, once close spawn from egg
     .addr alien_spider_routine_03      ; CPU address $ba8c - alien spider is on the ground/ceiling, or just landing on the ground/ceiling
-    .addr alien_spider_routine_04      ; CPU address $bb2a - spider is jumping, check for groud/ceiling collision and if collided, go back to alien_spider_routine_03
+    .addr alien_spider_routine_04      ; CPU address $bb2a - spider is jumping, check for ground/ceiling collision and if collided, go back to alien_spider_routine_03
     .addr enemy_routine_init_explosion ; CPU address $e74b from bank 7
     .addr enemy_routine_explosion      ; CPU address $e7b0 from bank 7
     .addr enemy_routine_remove_enemy   ; CPU address $e806 from bank 7
@@ -10074,7 +10074,7 @@ alien_spider_routine_03:
     bcc @continue          ; branch to continue if higher than #$b8 on screen (smaller y)
     lda #$38               ; spider higher than #$b8, set a = #$38 (spider on ceiling y position)
     cmp ENEMY_Y_POS,x      ; compare #$38 to enemy y position on screen
-    bcc @update_pos_stop_y ; branch if spider's y position is greather than #$38 (below ceiling)
+    bcc @update_pos_stop_y ; branch if spider's y position is greater than #$38 (below ceiling)
 
 ; spider's y position is either
 ;  1. higher than #$b8 (above the ground)
@@ -10086,7 +10086,7 @@ alien_spider_routine_03:
     jsr update_enemy_pos          ; apply velocities and scrolling adjust
     jmp set_enemy_y_velocity_to_0 ; set y velocity to zero
 
-; spider is jumping, check for groud/ceiling collision and if collided, go back to alien_spider_routine_03
+; spider is jumping, check for ground/ceiling collision and if collided, go back to alien_spider_routine_03
 alien_spider_routine_04:
     jsr init_vars_get_enemy_bg_collision ; initialize required memory and call get_enemy_bg_collision to determine bg collision
     bcc @update_pos                      ; branch if no collision with the ground

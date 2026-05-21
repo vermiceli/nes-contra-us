@@ -1317,6 +1317,9 @@ SOLDIER_GEN_SCREEN:
 SCREEN_GEN_SOLDIERS:
     .res 1
 
+; $0197 - reserved for stack
+; technically stack is $01ff down to $0100 but Contra assumes stack will never
+; underflow into the solder generation memory
 .res 105
 
 ; $0200 - $0200-$02ff OAMDMA (sprite) read data, read once per frame, populated

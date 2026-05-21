@@ -29,8 +29,11 @@ assembling.
 function Set-Bytes {
     param ($Skip, $Take, $Output)
 
+    # check if output exists and is the same size
     IF (Test-Path -Path $Output) {
-        return
+        IF ((Get-Item $Output).Length -eq $Take) {
+            return
+        }
     }
 
     # only read baserom.nes once for speed improvements

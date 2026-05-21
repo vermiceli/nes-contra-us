@@ -3059,8 +3059,11 @@ level_8_enemy_screen_09:
     .byte $e0,$15,$40 ; spider spawn (enemy type #$15), attribute: 000, location: (#$e0, #$40)
     .byte $e2,$15,$c0 ; spider spawn (enemy type #$15), attribute: 000, location: (#$e2, #$c0)
 
-; unused #$2c4 bytes out of #$4,000 bytes total (95.68% full)
-; unused 708 bytes out of 16,384 bytes total (95.68% full)
-; filled with 708 #$ff bytes by contra.cfg configuration
+; share level_8_enemy_screen_09 end of data byte with empty screen
 level_8_enemy_screen_0a:
+    .byte $ff
+
+; unused #$2c3 bytes out of #$4,000 bytes total (95.68% full)
+; unused 707 bytes out of 16,384 bytes total (95.68% full)
+; filled with 707 #$ff bytes by contra.cfg configuration
 bank_2_unused_space:
