@@ -12,9 +12,9 @@ code that there was an attempt to show `sprite_18` (frame 3 in the table below)
 as part of the animation sequence.  `sprite_18` is the same sprite as when the
 player is in water and presses the d-pad down button.
 
-| Frame 1                             | Frame 2                             | Frame 3 (missing)                   | Frame 4                             |
-|-------------------------------------|-------------------------------------|-------------------------------------|-------------------------------------|
-| ![0](attachments/pw_0.png?raw=true) | ![1](attachments/pw_1.png?raw=true) | ![2](attachments/pw_2.png?raw=true) | ![3](attachments/pw_3.png?raw=true) |
+| Frame 1                    | Frame 2                    | Frame 3 (missing)          | Frame 4                    |
+|----------------------------|----------------------------|----------------------------|----------------------------|
+| ![0](attachments/pw_0.png) | ![1](attachments/pw_1.png) | ![2](attachments/pw_2.png) | ![3](attachments/pw_3.png) |
 
 ```
 @set_enter_water_sprite:
@@ -60,7 +60,7 @@ Japanese version of the game because the `level_boss_defeated` is not
 responsible for playing the boss defeated sound.  This bug does exist in
 _Probotector_.
 
-Extracted sound sample: [sound_ff.mp3](attachments/sound_ff.mp3?raw=true)
+Extracted sound sample: [sound_ff.mp3](attachments/sound_ff.mp3)
 
 Note that the boss defeated audio (`sound_55`) is still played because the enemy
 defeated routine is set to `boss_ufo_routine_09` (see
@@ -255,3 +255,58 @@ scroll_player:
   sbc FRAME_SCROLL
   sta SPRITE_X_POS,x
 ```
+
+# 6. Incorrectly Encoded DPCM Sound Samples
+
+It's likely that when encoding the 2 sound samples to the NES' DPCM format
+([Differential Pulse Code Modulation](https://en.wikipedia.org/wiki/Differential_pulse-code_modulation)),
+the bits were encoded backwards.  This was a common problem as documented on
+_The Cutting Room Floor_'s website in an article called
+[Common Things/Bit Reversal](https://tcrf.net/The_Cutting_Room_Floor:Common_Things/Bit_Reversal).
+
+DPCM encodes changes between consecutive audio samples instead of the raw values
+directly.  The NES is a 1-bit [delta modulation](https://en.wikipedia.org/wiki/Differential_pulse-code_modulation)
+system.  This means that each bit either increases or decreases the sound
+amplitude.  For example, suppose a sound sample has a starting amplitude of 30,
+and we had the following bits `01101110`, then, reading from left to right, we
+get the following sound sample values. (all values in decimal)
+
+```
+Waveform:
+30 28 30 32 30 32 34 36 34
+
+Delta Modulation Bits
+    0  1  1  0  1  1  1  0
+```
+
+A 0 means to go down by 2, and a 1 means to increase by 2.  With delta
+modulation, the NES encodes 8 different waveform values with a single byte.
+The NES reads these bits from right to left and not left to right like in the
+example above.  Many games incorrectly converted the raw, quantized sound
+samples assuming the bits were read from the left.  The overall shape of the
+sound wave will be the same since no matter which way you encode the bytes,
+every 8 bits will have the same number of increases or decreases.  However, the
+quality of the sound sample is reduced.  Some sound samples are more obvious
+than others.  I think that the most obvious example is in the game
+[Double Dribble](https://tcrf.net/The_Cutting_Room_Floor:Common_Things/Bit_Reversal#Double_Dribble).
+
+The sound samples used in _Contra_ are all very short so the difference is
+harder to notice.  When isolated, however, it becomes clearer.  Below is the
+start of the sound sample used in `sound_5b` (33.1 kHz playback, starting level
+of #$75)
+
+| Version       | Picture                                                        | .mp3                                                         |
+|---------------|----------------------------------------------------------------|--------------------------------------------------------------|
+| From Game     | ![From Game](attachments/dpcm_sample_01_from_game.png)         | [Download mp3](attachments/dpcm_sample_01_from_game.mp3)     |
+| Bits Reversed | ![Bits Reversed](attachments/dpcm_sample_01_bits_reversed.png) | [Download mp3](attachments/dpcm_sample_01_bits_reversed.mp3) |
+
+You can see the differences in the waveform more clearly in this animation
+
+![Animation](attachments/dm_encoding_diff_animation.gif)
+
+When listening, I think that the samples with the bits reversed sound clearer.
+While not scientific, the waveforms in the bits reversed version looks smoother,
+with fewer minor deviations from the trend.
+
+A really good video going over the DMC channel is Displaced Gamers' video titled
+[NES Sound: The DMC - Behind the Code](https://www.youtube.com/watch?v=mJnz6dEWwIw).

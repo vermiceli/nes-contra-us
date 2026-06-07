@@ -356,7 +356,7 @@ set_weapon_item_sprite:
     rts
 
 ; table for item sprite codes (#$07 bytes)
-; #$33 - sprite code for r weapon (sprite_33)
+; #$33 - sprite code for R weapon (sprite_33)
 ; #$34 - sprite code for M weapon (sprite_34)
 ; #$31 - sprite code for F weapon (sprite_31)
 ; #$2f - sprite code for S weapon (sprite_2f)

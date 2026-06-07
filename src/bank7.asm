@@ -6920,7 +6920,7 @@ pick_up_weapon_item:
     sta INVINCIBILITY_TIMER,x
     jmp remove_current_enemy
 
-; r weapon
+; R weapon
 @set_rapid_flag:
     lda #$10               ; a = #$10
     sta $08
