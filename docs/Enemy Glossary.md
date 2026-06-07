@@ -131,7 +131,7 @@ representing the weapon type surrounded by wings.
 
 #### Logic
 
-* `ENEMY_VAR_1` for indoor levels, stores initial y position
+* `ENEMY_VAR_1` for indoor levels, stores initial Y position
 * `ENEMY_VAR_B` is the vertical velocity coefficient for indoor arcs when
   falling towards the player. Negative goes up, positive goes down.
 
@@ -257,7 +257,7 @@ A soldier that can move to attack
 #### Logic
 
 * `ENEMY_VAR_1` - soldier fire recoil timer
-* `ENEMY_VAR_2` - soldier x direction #$00 is left, #$01 is right
+* `ENEMY_VAR_2` - soldier X direction #$00 is left, #$01 is right
 * `ENEMY_VAR_3`
   * `soldier_routine_02` - whether or not the soldier is jumping
   * `soldier_routine_03` - track number of bullets to soldier will fire
@@ -327,7 +327,7 @@ Only least significant bit is used
 
 #### Logic
 
-* `ENEMY_VAR_1` - bullet initial x, y offsets (#$6 bytes)
+* `ENEMY_VAR_1` - bullet initial X, Y offsets (#$06 bytes)
 
 ### 08 - Wall Cannon
 
@@ -545,7 +545,7 @@ No attributes exist for this enemy.
 
 #### Logic
 
-* `ENEMY_VAR_1` - grenade y position
+* `ENEMY_VAR_1` - grenade Y position
 * `ENEMY_VAR_2` - used in calculating falling arc position
 * `ENEMY_VAR_3` - used in calculating falling arc position
 * `ENEMY_VAR_4` - used in calculating falling arc position
@@ -661,7 +661,7 @@ Red Jumping Soldiers appear on most screens, but not every
 
 #### Logic
 
-* `ENEMY_VAR_1` - y velocity index. Offset into `jumping_soldier_y_vel_tbl`
+* `ENEMY_VAR_1` - Y velocity index. Offset into `jumping_soldier_y_vel_tbl`
 
 ### 17 - Grenade Launcher
 
@@ -780,24 +780,24 @@ However, the destroyed routine `boss_gemini_routine_03` will check `ENEMY_VAR_4`
 for the boss gemini helmet's actual HP.
 
 Note that this enemy uses `ENEMY_Y_VELOCITY_FRACT` and `ENEMY_Y_VELOCITY_FAST`
-not for anything with the y velocity, but rather to control speed of x movement
-and keep track of x distance from initial position respectively.
+not for anything with the Y velocity, but rather to control speed of X movement
+and keep track of X distance from initial position respectively.
 
 * `ENEMY_FRAME` - offset into `boss_gemini_sprite_tbl`, which contains the exact
   sprite code: `sprite_68`, `sprite_69`, `sprite_6a`, `sprite_6b`, `sprite_6c`.
-* `ENEMY_VAR_1` - initial x position
+* `ENEMY_VAR_1` - initial X position
 * `ENEMY_VAR_2` - timer after being hit - #$10 down to #$00
 * `ENEMY_VAR_3` - whether or not the boss gemini's health is low (less than
   #$07).  Used to show a red brain instead of a green one.
 * `ENEMY_VAR_4` - actual representation of ENEMY_HP, initialized to #$0a
 * `ENEMY_X_VELOCITY_FRACT` - always #$80 (.50).  Used with
   `ENEMY_Y_VELOCITY_FRACT` to move gemini by 1 every #$02 frames
-* `ENEMY_X_VELOCITY_FAST` - x direction of boss gemini
+* `ENEMY_X_VELOCITY_FAST` - X direction of boss gemini
   * #$00 - boss gemini are traveling away from center
   * #$ff - boss gemini are traveling towards center
 * `ENEMY_Y_VELOCITY_FRACT` - alternates every frame between #$00 and #$80.  Used
   with `ENEMY_Y_VELOCITY_FRACT` to move gemini by 1 every #$02 frames
-* `ENEMY_Y_VELOCITY_FAST` - offset from initial x position.  Either added to or
+* `ENEMY_Y_VELOCITY_FAST` - offset from initial X position.  Either added to or
   subtracted `ENEMY_VAR_1` based on whether the frame is even or odd.  Goes from
   #$00 to #$30
 * `ENEMY_HP` - always #$01 until hit by bullet. The 'enemy destroyed' routine
@@ -857,7 +857,7 @@ Other Names: Blue Jumping Guy, Boss Blue Soldier, Blue Soldier, Birdman
 #### Attributes
 
 * `.... ..xx` - specifies initial position (see `red_blue_soldier_init_pos_tbl`)
-  and initial x velocity (see `red_blue_soldier_init_vel_tbl`). When bit 0 is
+  and initial X velocity (see `red_blue_soldier_init_vel_tbl`). When bit 0 is
   clear, the blue soldier is coming from the right. When bit 0 is set, the blue
   soldier is coming from the left.
 
@@ -886,7 +886,7 @@ Other Names: Red Shooting Guy, Boss Red Soldier, Red Soldier
 #### Attributes
 
 * `.... ..xx` - specifies initial position (see `red_blue_soldier_init_pos_tbl`)
-  and initial x velocity (see `red_blue_soldier_init_vel_tbl`). When bit 0 is
+  and initial X velocity (see `red_blue_soldier_init_vel_tbl`). When bit 0 is
   clear, the red soldier is coming from the right. When bit 0 is set, the red
   soldier is coming from the left.  When bit 1 is clear, the horizontal distance
   between the player and the enemy before attacking is #$10 pixels. Otherwise,
@@ -906,7 +906,7 @@ Other Names: Red Blue Soldier Generator
 **ENEMY HP**: n/a
 
 Generates Garth and Rangel enemies following a pattern specified in
-`red_blue_solider_data_tbl`.
+`red_blue_soldier_data_tbl`.
 
 * red soldier (x4), #$a0 delay
 * blue soldier (x2), #$40 delay
@@ -922,7 +922,7 @@ No attributes exist for this enemy.
 
 * `ENEMY_VAR_1` - the read offset into the table specifying the red and blue
   soldiers generation behavior.  After all the soldiers are generated (based on
-  `red_blue_solider_data_tbl`), then the number is reset and the soldier
+  `red_blue_soldier_data_tbl`), then the number is reset and the soldier
   generation pattern is repeated.
 
 ## Level 3 - Waterfall
@@ -971,7 +971,7 @@ Other Names: Boulder
 
 #### Logic
 
-* `ENEMY_VAR_1` - y position of most recent ground collision
+* `ENEMY_VAR_1` - Y position of most recent ground collision
 
 ### 14 - Dragon
 
@@ -1104,9 +1104,9 @@ Other Names: Dogra
   repeatedly until `ENEMY_VAR_4` elapsed.
 * `ENEMY_VAR_4` - timer before stopped tank continues advancing
 * `ENEMY_X_VEL_ACCUM` - whether or not the tank is on the screen
-  * #$01 - off screen to the right
+  * #$01 - off-screen to the right
   * #$00 - visible on screen
-  * #$ff - off screen to the left (starts when first wheel is off screen)
+  * #$ff - off-screen to the left (starts when first wheel is off screen)
 
 ### 13 - Ice Separator
 
@@ -1252,7 +1252,7 @@ flowchart TD
   For `boss_giant_soldier_routine_09` used to animate door opening.
 * `ENEMY_VAR_2`
   * delay between steps
-  * y position of door when opening
+  * Y position of door when opening
 * `ENEMY_VAR_3`
   * when walking, used to animate frames of giant boss robot steps
   * delay timer between sections of the door before opening
@@ -1622,8 +1622,8 @@ first routine.  When spawned by Eggron (enemy type #$15), the first routine is
 * `ENEMY_VAR_2` - whether or not the alien spider will jump
   * #$00 - will not jump
   * #$02 - will jump
-* `ENEMY_VAR_3` - y fast velocity of spider
-* `ENEMY_VAR_4` - y fractional velocity of spider
+* `ENEMY_VAR_3` - Y fast velocity of spider
+* `ENEMY_VAR_4` - Y fractional velocity of spider
 
 ### 15 - Eggron
 

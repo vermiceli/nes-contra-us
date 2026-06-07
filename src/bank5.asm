@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.3
+; Contra US Disassembly - v1.4
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 5 mostly contains compressed graphic data.  The rest of bank 5 is the
 ; code and lookup tables for automated input for the 3 demo (attract) levels.
@@ -17,7 +17,7 @@
 ; Every PRG ROM bank starts with a single byte specifying which number it is
 .byte $05 ; The PRG ROM bank number (5)
 
-; compressed graphics data - Code 05 (#$A60 bytes)
+; compressed graphics data - Code 05 (#$a60 bytes)
 ; Level 1 bridge, mountain, and water tiles
 ; writes to same PPU addresses as graphic_data_07 and graphic_data_0b
 ; pattern table data - writes addresses
@@ -29,8 +29,8 @@
 graphic_data_05:
     .incbin "assets/graphic_data/graphic_data_05.bin"
 
-; compressed graphics data - Code 07 (#$97F bytes)
-; level 3
+; compressed graphics data - Code 07 (#$97f bytes)
+; Level 3
 ; writes to same PPU addresses as graphic_data_05 and graphic_data_0b
 ; pattern table data - writes addresses
 ; * [$09a0-$0a80)
@@ -42,12 +42,12 @@ graphic_data_07:
     .incbin "assets/graphic_data/graphic_data_07.bin"
 
 ; compressed graphics data - Code 0B (#$f3b bytes)
-; CPU address $93e0
 ; pattern table data - writes addresses
 ; * [$09a0-$0a80)
 ; * [$0dc0-$1200)
 ; * [$1320-$1600)
 ; * [$1bd0-$2000)
+; CPU address $93e0
 graphic_data_0b:
     .incbin "assets/graphic_data/graphic_data_0b.bin"
 
@@ -72,7 +72,7 @@ graphic_data_14:
     .incbin "assets/graphic_data/graphic_data_14.bin"
 
 ; compressed graphics data - Code 17 (#$52e bytes)
-; End Scene
+; end scene
 ; pattern table data - writes addresses
 ; * [$0a60-$0fe0)
 ; * [$15b0-$18a0)
@@ -90,10 +90,10 @@ graphic_data_18:
 ; begins firing after #$e0 frames (see DEMO_FIRE_DELAY_TIMER)
 load_demo_input_table:
     lda CONTROLLER_STATE_DIFF ; get player input
-    and #$30                  ; start and select button
+    and #$30                  ; start and select buttons
     bne end_demo_level        ; exit demo if player has pressed start or select
-    inc DEMO_FIRE_DELAY_TIMER ; starts at 0 increments to #$ff and stops
-                              ; used by demo logic to wait #$e0 frames until begin firing
+    inc DEMO_FIRE_DELAY_TIMER ; starts at 0, increments to #$ff, and stops
+                              ; used by demo logic to wait #$e0 frames before firing begins
     bne @player_loop          ; branch when DEMO_FIRE_DELAY_TIMER is not 0 (hasn't wrapped around)
     dec DEMO_FIRE_DELAY_TIMER ; wrapped around, pin to #$ff
 
@@ -101,41 +101,41 @@ load_demo_input_table:
     ldx #$01 ; initialize X to 1 (player loop starting at player 2)
 
 ; sets values specific for demo player input
-; x is player number, starts at 1 and goes to 0
-; $2c stores the temporary value of A before
+; input
+;  * x - player index (0 = p1, 1 = p2)
 set_player_demo_input:
     lda FRAME_COUNTER                ; frame counter
     lsr                              ; shift right, pushing lsb (0th bit) to carry flag
     bcc @continue                    ; skip for even-numbered frames, don't decrement DEMO_INPUT_NUM_FRAMES
     lda DEMO_INPUT_NUM_FRAMES,x      ; load into accumulator the number of frames for the demo input table
     bne @dec_input_frame_count       ; if number of frames from previous input hasn't completed, then skip reading next input instruction
-    lda CURRENT_LEVEL                ; current the current level
+    lda CURRENT_LEVEL                ; load the current level
     asl                              ; each entry in demo_input_pointer_table is 2 bytes, so double
     asl                              ; since each level has 2 entries (1 for each player), double again. This determines the player 1 entry for the level
     sta $08                          ; store demo_input_pointer_table entry offset into $08
     txa                              ; move player number to A
-    asl                              ; if player 1, nothing happens, but if player 2, then double offset since each entry is #$2 bytes
+    asl                              ; if player 1, nothing happens, but if player 2, then double offset since each entry is #$02 bytes
     adc $08                          ; add result to demo_input_pointer_table entry offset into $08 to get player-specific offset
     tay                              ; move result to Y
     lda demo_input_pointer_table,y   ; read low byte of input pointer table
     sta $08                          ; store pointer address value in $08
-    lda demo_input_pointer_table+1,y ; load high byte of input pointer table (demo_input_pointer_table + 1)
+    lda demo_input_pointer_table+1,y ; load high byte of input pointer table
     sta $09                          ; store pointer address value in $09
-    ldy DEMO_INPUT_TBL_INDEX,x       ; the offset into demo_input_tbl_lX_pX of to read
+    ldy DEMO_INPUT_TBL_INDEX,x       ; the offset into demo_input_tbl_lX_pX to read from
     lda ($08),y                      ; load the 1-byte controller input from the 2-byte address
                                      ; ($08 and $09) from the input table offset by Y
                                      ; this is indirect indexed addressing mode
     cmp #$ff                         ; #$ff signals end of demo input
-    beq end_demo_level               ; set DEMO_LEVEL_END_FLAG to #$01 and exit if we've read $ff byte (end of code)
+    beq end_demo_level               ; set DEMO_LEVEL_END_FLAG to #$01 and exit if we've read $ff byte (end of input data)
     sta DEMO_INPUT_VAL,x             ; store the controller input for the demo input table
-    iny                              ; increment 1 to get the number of frames
+    iny                              ; increment by 1 to get the number of frames
     lda ($08),y                      ; load the 1-byte number of frames to use input from the 2-byte address
                                      ; ($08 and $09) from the input table offset by Y
                                      ; this is indirect indexed addressing mode
     sta DEMO_INPUT_NUM_FRAMES,x      ; store the number of frames for the input
     iny                              ; increment table read offset
     tya
-    sta DEMO_INPUT_TBL_INDEX,x       ; increment byte read offset into demo_input_tbl_lX_pX
+    sta DEMO_INPUT_TBL_INDEX,x       ; store read index into demo_input_tbl_lX_pX
 
 @dec_input_frame_count:
     dec DEMO_INPUT_NUM_FRAMES,x ; decrement number of frames to press input
@@ -154,14 +154,14 @@ set_player_demo_input:
     cmp #$04                         ; see if laser
     bne @fire_weapon_input           ; branch if not laser
 
-; hold down b button for m or laser weapon during demo
+; hold down b button for M or L weapon during demo
 @m_or_laser:
     lda CONTROLLER_STATE,x
-    ora #$40                         ; set 6th bit to 1 (b button), this is used later in run_create_bullet_routine (bank 6)
+    ora #$40                         ; set bit 6 to 1 (b button), this is used later in run_create_bullet_routine (bank 6)
     sta CONTROLLER_STATE,x           ; save toggled flag back to CONTROLLER_STATE
     bne player_demo_input_chg_player ; go to next player (always jumps due to ora instruction)
 
-; for non M, nor L weapon, press b button every #$07 frames
+; for weapons other than M or L, press b button every #$08 frames
 @fire_weapon_input:
     lda FRAME_COUNTER                ; load frame counter
     and #$07                         ; checking every 8th frame
@@ -172,8 +172,8 @@ set_player_demo_input:
 
 player_demo_input_chg_player:
     dex                       ; go from player 2 to player 1
-    bpl set_player_demo_input ; continue loop until x is 0
-    rts                       ; x is 0, done
+    bpl set_player_demo_input ; loop back for player 1, exit when done
+    rts                       ; done with both players
 
 ; finished reading all of demo data, end demo for level
 end_demo_level:
@@ -196,9 +196,9 @@ demo_input_pointer_table:
 ;  * second byte is number of even-numbered frames to apply the input for
 ; while possible, player firing isn't specified in these input tables
 ; instead, that is handled automatically as part of running the demo
-;  * m or l weapons are always firing, other weapons fire every #$08 frames
+;  * M or L weapons are always firing, other weapons fire every #$08 frames
 ; $00, $00 is filler so the demo level doesn't end by reading a #$ff
-; input table for level 1 player 1 for demo (#$5A bytes)
+; input table for level 1 player 1 for demo (#$5a bytes)
 demo_input_tbl_l1_p1:
     .byte $00,$21,$01,$03,$00,$0e,$01,$3d,$04,$06,$05,$33,$00,$0e,$04,$0a
     .byte $05,$01,$01,$29,$09,$01,$08,$02,$09,$08,$08,$0f,$09,$18,$01,$05
@@ -235,7 +235,7 @@ demo_input_tbl_l2_p2:
     .byte $00,$1e,$02,$15,$00,$06,$02,$04,$00,$0b,$04,$19,$00,$3a,$08,$03
     .byte $00,$2e,$ff,$ff
 
-;input table for level 3 player 1 for demo (#$72 bytes)
+; input table for level 3 player 1 for demo (#$72 bytes)
 demo_input_tbl_l3_p1:
     .byte $00,$17,$01,$29,$81,$05,$01,$13,$00,$1b,$80,$0d,$00,$13,$80,$0b
     .byte $00,$1a,$80,$12,$00,$0d,$80,$12,$00,$0b,$80,$0a,$81,$03,$01,$0d
@@ -258,7 +258,7 @@ demo_input_tbl_l3_p2:
     .byte $82,$0f,$02,$04,$00,$4a,$81,$0b,$01,$04,$00,$11,$80,$0d,$00,$00
     .byte $ff,$ff
 
-; unused #$9cc bytes out of #$4,000 bytes total (84.70% full)
+; unused #$9cc bytes out of #$4000 bytes total (84.70% full)
 ; unused 2,508 bytes out of 16,384 bytes total (84.70% full)
 ; filled with 2,508 #$ff bytes by contra.cfg configuration
 bank_5_unused_space:

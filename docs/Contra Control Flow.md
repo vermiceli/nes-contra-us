@@ -61,7 +61,7 @@ will
   * Load demo level and plays the level
   * Stop level when demo timer elapsed and loads next level to demo (only
     levels 0-2)
-  * Reset `GAME_ROUTINE_INDEX` to #$0 between demo levels to reshow intro
+  * Reset `GAME_ROUTINE_INDEX` to #$00 between demo levels to reshow intro
     scroll and player select
 
 ## game_routine_03

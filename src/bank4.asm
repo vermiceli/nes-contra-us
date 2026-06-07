@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.3
+; Contra US Disassembly - v1.4
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 4 mostly contains compressed graphic data. The rest of bank 4 is the code
 ; for the ending scene animation and the ending credits, including the ending
@@ -92,7 +92,7 @@ graphic_data_0f:
     .incbin "assets/graphic_data/graphic_data_0f.bin"
 
 ; compressed graphics data - code 11 (#$559 bytes)
-; right pattern table data - writes addresses [$a120-$2000)
+; right pattern table data - writes addresses [$1a20-$2000)
 ; CPU address $a3e7
 graphic_data_11:
     .incbin "assets/graphic_data/graphic_data_11.bin"
@@ -100,13 +100,13 @@ graphic_data_11:
 ; compressed graphics data - code 12 (#$ed bytes)
 ; Base 2 Graphics
 ; right pattern table data - writes addresses [$1b90-$1ca0)
-; CPU Address $a940
+; CPU address $a940
 graphic_data_12:
     .incbin "assets/graphic_data/graphic_data_12.bin"
 
 ; compressed graphics data - code 01 (#$e8c bytes)
-; Used for intro screen, level title screens, and game over screens.
-; Contains Contra logo, Bill and Lance (both sprite and pattern)
+; used for intro screen, level title screens, and game over screens.
+; contains Contra logo, Bill and Lance (both sprite and pattern table),
 ; all the letters and numbers, as well as falcon selector cursor tiles.
 ; used by graphic_data_02 nametable data
 ; pattern table data - writes addresses [$0ce0-$1f80)
@@ -117,9 +117,9 @@ graphic_data_01:
 
 run_game_end_routine:
     lda GAME_END_ROUTINE_INDEX
-    jsr run_routine_from_tbl_below ; run routine a in the following table (game_end_routine_tbl)
+    jsr run_routine_from_tbl_below ; run routine specified in the following table (game_end_routine_tbl)
 
-; pointer table for ending (6 * 2 = c bytes)
+; pointer table for ending (#$06 * #$02 = #$0c bytes)
 ; CPU address $b8be
 game_end_routine_tbl:
     .addr game_end_routine_00 ; CPU address $b8ca (fade away)
@@ -133,11 +133,11 @@ game_end_routine_tbl:
 game_end_routine_00:
     lda #$08                                   ; a = #$08
     sta CURRENT_LEVEL                          ; set current level to 'level 9' (special ending level)
-    dec GRAPHICS_BUFFER_MODE                   ; set GRAPHICS_BUFFER_MODE to #$ff to prepare writing tile data
+    dec GRAPHICS_BUFFER_MODE                   ; set GRAPHICS_BUFFER_MODE to #$ff to prepare to write tile data
     jmp init_game_routine_reset_timer_low_byte ; set timer and increment GAME_END_ROUTINE_INDEX
 
 game_end_routine_01:
-    lda $40                         ; for end of game sequence, this is used to know which part of screen to blank
+    lda $40                         ; for end of game sequence, this is used to know which part of the screen to blank
     asl                             ; and no longer means location type
     tay
     ldx GRAPHICS_BUFFER_OFFSET      ; load graphics buffer offset
@@ -161,7 +161,7 @@ game_end_routine_01:
     lda #$00                        ; a = #$00
     inx
 
-; writes a blank tile #$20 tiles to CPU_GRAPHICS_BUFFER
+; writes #$20 blank tiles to CPU_GRAPHICS_BUFFER
 @write_tile_to_buffer:
     sta CPU_GRAPHICS_BUFFER,x
     inx
@@ -192,7 +192,7 @@ game_end_routine_01:
     jmp load_A_offset_graphic_data             ; load ending_graphic_data
 
 ; a list of PPU write addresses for use to clear the screen a portion at a time
-; PPU write low byte, then high (#$8 items * #$02 = #$10 bytes)
+; PPU write low byte, then high (#$08 items * #$02 = #$10 bytes)
 screen_melt_ppu_add_tbl:
     .byte $00,$10
     .byte $00,$14
@@ -209,9 +209,9 @@ game_end_routine_02:
 game_end_routine_03:
     jsr load_palette_indexes       ; load the palette colors
     lda END_LEVEL_ROUTINE_INDEX    ; routine index for ending scene
-    jsr run_routine_from_tbl_below ; run routine a in the following table (end_game_sequence_ptr_tbl)
+    jsr run_routine_from_tbl_below ; run routine specified in the following table (end_game_sequence_ptr_tbl)
 
-; pointer table for ending scenes (#$03 * #$02 = #06 bytes)
+; pointer table for ending scenes (#$03 * #$02 = #$06 bytes)
 ; analogous to end_level_sequence_ptr_tbl, but for end of game
 ; CPU address $b949
 end_game_sequence_ptr_tbl:
@@ -226,12 +226,12 @@ end_game_sequence_00:
     lda #$c5                     ; a = #$c5 (green helicopter frame 1)
     sta ENEMY_SPRITES+9          ; helicopter sprite code
     lda #$ff                     ; a = #$ff
-    sta ENEMY_X_VELOCITY_FAST+9  ; helicopter x velocity (high byte)
-    sta ENEMY_Y_VELOCITY_FAST+9  ; helicopter y velocity (high byte)
+    sta ENEMY_X_VELOCITY_FAST+9  ; helicopter X velocity (high byte)
+    sta ENEMY_Y_VELOCITY_FAST+9  ; helicopter Y velocity (high byte)
     lda #$60                     ; a = #$60
-    sta ENEMY_X_VELOCITY_FRACT+9 ; helicopter x velocity (low byte)
+    sta ENEMY_X_VELOCITY_FRACT+9 ; helicopter X velocity (low byte)
     lda #$70                     ; a = #$70
-    sta ENEMY_Y_VELOCITY_FRACT+9 ; helicopter y velocity (low byte)
+    sta ENEMY_Y_VELOCITY_FRACT+9 ; helicopter Y velocity (low byte)
     ldx #$09                     ; x = #$09
     ldy #$00                     ; y = #$00
 
@@ -239,16 +239,16 @@ end_game_sequence_00:
     lda end_scene_sprite_anim_tbl,y
     sta ENEMY_ANIMATION_DELAY,x       ; set enemy animation frame delay counter
     lda end_scene_sprite_anim_tbl+1,y
-    sta ENEMY_X_POS,x                 ; set enemy x position on screen
+    sta ENEMY_X_POS,x                 ; set enemy X position on screen
     lda end_scene_sprite_anim_tbl+2,y
-    sta ENEMY_Y_POS,x                 ; enemy y position on screen
+    sta ENEMY_Y_POS,x                 ; set enemy Y position on screen
     iny
     iny
     iny
     dex
     bpl @set_ending_sprite_animations
 .ifdef Probotector
-                                      ; don't play helicopter sound for Probotector, ending animation uses jet
+                                      ; don't play helicopter sound for Probotector, ending animation has a jet
 .else
     lda #$21                          ; a = #$21 (sound_21)
     jsr play_sound                    ; play helicopter rotors sound
@@ -293,7 +293,7 @@ end_game_sequence_01:
     lsr
     lsr
     tay
-    lda helicopter_sprite_anim_tbl,y ; load  appropriate sprite for helicopter
+    lda helicopter_sprite_anim_tbl,y ; load appropriate sprite for helicopter
     sta ENEMY_SPRITES+9              ; update helicopter animation sprite
     lda FRAME_COUNTER                ; load frame counter
     and #$01                         ; keep bits .... ...x
@@ -316,7 +316,7 @@ ending_seq_enemy_loop:
     cmp #$60
     bcc @set_sprite_00_next_enemy       ; branch if animation delay is less than #$60
     cmp #$80
-    bcs @play_explosion                 ; branch if animation delay is between #$60 and #$80
+    bcs @play_explosion                 ; branch if animation delay is greater than or equal to #$80
     lsr
     lsr
     lsr
@@ -365,10 +365,10 @@ draw_destroyed_island:
     jmp sequence_01_next_enemy      ; go to next enemy in ending sequence
 
 adv_routine_exit:
-    inc END_LEVEL_ROUTINE_INDEX ; increment ending scene offset (end_game_sequence_ptr_tbl)
+    inc END_LEVEL_ROUTINE_INDEX ; increment ending scene index (end_game_sequence_ptr_tbl)
     rts
 
-; table for explosions sprite codes (#$4 bytes)
+; table for explosion sprite codes (#$04 bytes)
 ending_sequence_explosion_tbl:
     .byte $37,$36,$35,$37
 
@@ -400,10 +400,10 @@ destroyed_island_tile_tbl:
     .byte $aa,$aa,$aa
 .endif
 
-; tables for ending scene sprites (#$a * #$3 = #$1e bytes)
+; table for ending scene sprites (#$0a * #$03 = #$1e bytes)
 ; byte 0: delay
-; byte 1: x position
-; byte 2: y position
+; byte 1: X position
+; byte 2: Y position
 end_scene_sprite_anim_tbl:
     .byte $00,$80,$90 ; helicopter
     .byte $00,$50,$86 ; mountain peaks
@@ -435,12 +435,12 @@ game_end_routine_exit:
 game_end_routine_04:
     lda FRAME_COUNTER         ; load frame counter
     and #$03                  ; keep bits .... ..xx (speed of credits text)
-    bne game_end_routine_exit ; exit if not the 8th frame (scroll every 8 frames)
+    bne game_end_routine_exit ; exit if not the 4th frame (scroll every 4 frames)
     inc VERTICAL_SCROLL       ; vertical scroll offset
     lda VERTICAL_SCROLL
     cmp #$f0                  ; see if the view window needs to be set back to $2000 (scroll reached bottom of $2800 nametable)
     bne @continue             ; branch if no need to reset base nametable write address and vertical scroll
-    lda #$20                  ; initialize PPU write address to #$200 and set/reset VERTICAL_SCROLL
+    lda #$20                  ; initialize PPU write address to #$2000 and set/reset VERTICAL_SCROLL
     sta $44                   ; write nametable address high byte for PPU address #$2000
     lda #$00                  ; a = #$00
     sta $43                   ; write nametable address low byte for PPU address #$2000
@@ -451,7 +451,7 @@ game_end_routine_04:
     cmp #$04                    ; see if we need to draw the line of text
     beq @draw_next_line         ; if scroll offset ends in #$4, write next line of credits text
     cmp #$0c                    ; check to see if need to draw blank line between text when VERTICAL_SCROLL ends in #$0c
-    bne game_end_routine_exit_2 ; exit until scroll offset ends in #$c
+    bne game_end_routine_exit_2 ; exit until scroll offset ends in #$0c
     ldy #$00                    ; y = #$00 (first line of ending credits)
     beq load_credits_line_text  ; always branch to draw blank line of tiles (ending_credits_00)
 
@@ -518,7 +518,7 @@ game_end_routine_exit_2:
     rts
 
 ; delay before returning to intro screen
-; 300 = 768 frames / 60 = 12.8 seconds
+; #$0300 = 768 frames / 60 = 12.8 seconds
 ; the timer starts roughly 1 second before the text stops scrolling
 end_credits_text:
     sta DELAY_TIME_LOW_BYTE                    ; various delays (low byte)
@@ -531,7 +531,7 @@ draw_credits_space_characters:
     lda $02                           ; load the horizontal offset of the line of text
     beq game_end_routine_exit_2       ; if completed drawing blank space, exit
     lda #$00                          ; a = #$00
-    sta CPU_GRAPHICS_BUFFER,x         ; specify buffer to draw blank space (empty char) for left padding
+    sta CPU_GRAPHICS_BUFFER,x         ; write blank tile (#$00) to CPU_GRAPHICS_BUFFER for padding
     dec $02                           ; decrement horizontal offset of text
     inx                               ; increment loop value
     bne draw_credits_space_characters ; always loop
@@ -540,12 +540,12 @@ game_end_routine_05:
     jsr decrement_delay_timer   ; decrease delay by 1 (return 1 when delay is 0)
     bne game_end_routine_exit_2 ; exit if timer hasn't elapsed
     lda #$00                    ; a = #$00
-    sta GRAPHICS_BUFFER_MODE    ; set GRAPHICS_BUFFER_MODE to #$00 to prepare writing text to screen (write_text_palette_to_mem)
+    sta GRAPHICS_BUFFER_MODE    ; set GRAPHICS_BUFFER_MODE to #$00 to prepare to write text to screen (write_text_palette_to_mem)
     sta CURRENT_LEVEL           ; set current level to #$00
     dec GAME_ROUTINE_INDEX      ; set game routine to be game_routine_05 to start the first level
     rts
 
-; pointer table for ending credits text (#$49 * #$2 = #$90 bytes)
+; pointer table for ending credits text (#$49 * #$02 = #$92 bytes)
 ending_credits_ptr_tbl:
     .addr ending_credits_00 ; CPU address $bc27: blank line
     .addr ending_credits_01 ; CPU address $bd55: CONGRATULATIONS!
@@ -625,8 +625,8 @@ ending_credits_ptr_tbl:
 ending_credits_00:
     .byte $00,$20
 
-; Text Table
-; Same for Intro and Ending, except 87 (!) unique to Ending
+; text table
+; same for Intro and Ending, except #$87 (!) unique to Ending
 ; $00 = Space
 ; $30 = 0
 ; $31 = 1
@@ -671,7 +671,7 @@ ending_credits_00:
 ; $f7 = '
 ; ending credits text data
 ; byte 0: number of bytes to process after byte 1
-; byte 1: starting x position
+; byte 1: starting X position
 ; S T A F F
 ending_credits_05:
     .byte $09,$0b,$53,$00,$54,$00,$41,$00,$46,$00,$46
@@ -800,7 +800,7 @@ ending_credits_04:
     .byte $19,$01,$43,$4f,$4e,$53,$49,$44,$45,$52,$00,$59,$4f,$55,$52,$53
     .byte $45,$4c,$46,$00,$41,$00,$48,$45,$52,$4f,$40
 
-; unused #$23f bytes out of #$4,000 bytes total (96.50% full)
+; unused #$23f bytes out of #$4000 bytes total (96.50% full)
 ; unused 575 bytes out of 16,384 bytes total (96.50% full)
 ; filled with 575 #$ff bytes by contra.cfg configuration
 bank_4_unused_space:

@@ -1,8 +1,7 @@
-; Contra US Disassembly - v1.3
+; Contra US Disassembly - v1.4
 ; https://github.com/vermiceli/nes-contra-us
-; constants.asm contains the list of constants with meaningful names for the
-; memory addresses used by the game. It also contains constants for the various
-; palette colors.
+; constants.asm contains constants with meaningful names for memory addresses
+; used by the game. It also contains constants for the various palette colors.
 
 .importzp GAME_ROUTINE_INDEX             ; $18
 .importzp GAME_END_ROUTINE_INDEX         ; $19
@@ -159,7 +158,7 @@
 .import LVL_PULSE_VOL_INDEX          ; $012a
 .import PULSE_VOL_DURATION           ; $012a
 .import PAUSE_STATE_01               ; $012f
-.import DECRESCENDO_END_PAUSE        ; $0131
+.import DECRESCENDO_END_PAUSE        ; $0130
 .import SOUND_PITCH_ADJ              ; $0132
 .import UNKNOWN_SOUND_00             ; $0136
 .import UNKNOWN_SOUND_01             ; $013c

@@ -1,6 +1,6 @@
-; Contra US Disassembly - v1.3
+; Contra US Disassembly - v1.4
 ; https://github.com/vermiceli/nes-contra-us
-; ram.asm contains memory map used by the game.
+; ram.asm contains the memory map used by the game.
 
 .segment "ZEROPAGE"
 
@@ -161,7 +161,7 @@ GAME_END_ROUTINE_INDEX:
 GAME_ROUTINE_INIT_FLAG:
     .res 1
 
-; $1a - the frame counter loops from #$00 to #$ff increments once per frame
+; $1a - the frame counter loops from #$00 to #$ff and increments once per frame
 ; also known as the global timer
 FRAME_COUNTER:
     .res 1
@@ -176,28 +176,29 @@ NMI_CHECK:
 DEMO_MODE:
     .res 1
 
-; $1d - #$01 for 1 player, #$07 for 2 player
+; $1d - #$01 for 1 player, #$07 for 2 players
 ; not sure why developer just didn't use PLAYER_MODE instead
 PLAYER_MODE_1D:
     .res 1
 
 .res 1
 
-; $1f - whether or not demo for level is complete and new demo level should play
+; $1f - whether or not the demo for the level is complete and the new demo level
+; should play
 DEMO_LEVEL_END_FLAG:
     .res 1
 
-; $20 - #$00 when at least 5 executions of nmi_start have happened since last
-; configure_PPU call
+; $20 - #$00 when at least 5 executions of nmi_start have happened since the
+; last configure_PPU call
 PPU_READY:
     .res 1
 
-; $21 - current write offset into CPU_GRAPHICS_BUFFER
-; contains graphics write commands that are written to PPU
+; $21 - current write offset into CPU_GRAPHICS_BUFFER, which contains graphics
+; write commands that are written to the PPU
 GRAPHICS_BUFFER_OFFSET:
     .res 1
 
-; $22 - #$00 = single player, #$01 = 2 player
+; $22 - #$00 = single player, #$01 = 2 players
 PLAYER_MODE:
     .res 1
 
@@ -207,7 +208,7 @@ PLAYER_MODE:
 GRAPHICS_BUFFER_MODE:
     .res 1
 
-; $24 - #$00 not entered, #$01 entered, (30 lives code)
+; $24 - #$00 not entered, #$01 entered (30 lives code)
 KONAMI_CODE_STATUS:
     .res 1
 
@@ -224,7 +225,7 @@ DEMO_LEVEL:
 
 ; $28 - timer to prevent starting a level until the intro theme is complete
 ; (including explosion sound)
-; initialized to #a4, decrements every other frame for ~5 seconds for NTSC
+; initialized to #$a4, decrements every other frame for ~5 seconds for NTSC
 INTRO_THEME_DELAY:
     .res 1
 
@@ -249,7 +250,7 @@ LEVEL_ROUTINE_INDEX:
 END_LEVEL_ROUTINE_INDEX:
     .res 1
 
-; $2e - the number of frames since beginning of demo for level
+; $2e - the number of frames since the beginning of the demo for the level
 ; used to delay #$50 frames before firing
 DEMO_FIRE_DELAY_TIMER:
     .res 1
@@ -279,11 +280,11 @@ P1_NUM_LIVES:
 P2_NUM_LIVES:
     .res 1
 
-; $34 - random number increased in forever_loop
+; $34 - random number incremented in forever_loop
 RANDOM_NUM:
     .res 1
 
-; OAMDMA_CPU_BUFFER write offset
+; $35 - OAMDMA_CPU_BUFFER write offset
 OAMDMA_CPU_BUFFER_OFFSET:
     .res 1
 
@@ -291,8 +292,8 @@ OAMDMA_CPU_BUFFER_OFFSET:
 NUM_PALETTES_TO_LOAD:
     .res 1
 
-; $37 - whether indoor screen has had all cores destroyed
-; (0 = not cleared, 1 = cleared, #$80 = cleared and fence removed)
+; $37 - whether the indoor screen has had all cores destroyed
+; (#$00 = not cleared, #$01 = cleared, #$80 = cleared and fence removed)
 INDOOR_SCREEN_CLEARED:
     .res 1
 
@@ -325,16 +326,16 @@ EXTRA_LIFE_SCORE_HIGH:
     .res 2
 
 ; $3f - the number of successful inputs of the Konami code sequence
-; when value is #$0a then all input correctly inputted
-; also used as player 2's EXTRA_LIFE_SCORE_HIGH byte during game play
+; when value is #$0a then all inputs correctly entered
+; also used as player 2's EXTRA_LIFE_SCORE_HIGH byte during gameplay
 KONAMI_CODE_NUM_CORRECT:
     .res 1
 
 ; $40 - current level type
 ; * #$00 = outdoor
 ; * #$01 = indoor (base level)
-; * #$80 on indoor/base boss screen and indoor/base when players advancing to
-; next screen
+; * #$80 on indoor/base boss screen and indoor/base when players are advancing
+; to next screen
 LEVEL_LOCATION_TYPE:
     .res 1
 
@@ -354,12 +355,12 @@ LEVEL_SCREEN_SUPERTILES_PTR:
 LEVEL_SUPERTILE_DATA_PTR:
     .res 2
 
-; $46 - current level 2-byte pointer address to the palettes used for each
+; $46 - current level 2-byte pointer to the palettes used for each
 ; super-tile, each byte describes the 4 palettes for a single super-tile
 LEVEL_SUPERTILE_PALETTE_DATA:
     .res 2
 
-; $48 - how far into level (in number of screens) before loading alternate
+; $48 - how far into the level (in number of screens) before loading alternate
 ; graphic data
 LEVEL_ALT_GRAPHICS_POS:
     .res 1
@@ -380,7 +381,7 @@ COLLISION_CODE_2_TILE_INDEX:
     .res 1
 
 ; $4c - palette indexes into game_palettes to cycle through for the level for
-; the 4th nametable palette index [$4c-4f]
+; the 4th nametable palette index [$4c-$4f]
 LEVEL_PALETTE_CYCLE_INDEXES:
     .res 4
 
@@ -396,8 +397,8 @@ LEVEL_STOP_SCROLL:
 
 ; $59 - used to determine whether to check for bullet and weapon item solid bg
 ; collisions
-; 1. When non-zero, specifies weapon item should check for solid bg collisions
-;    (weapon_item_check_bg_collision)
+; 1. When non-zero, specifies that a weapon item should check for solid bg
+;    collisions (weapon_item_check_bg_collision)
 ; 2. When negative, used to let bullet (player and enemy) collision detection
 ;    code to know to look for bullet-solid background collisions
 ;    This is for levels 6 - energy zone and 7 - hangar. (see
@@ -406,8 +407,8 @@ LEVEL_SOLID_BG_COLLISION_CHECK:
     .res 1
 
 ; $5a - used to determine how many even-numbered frames to continue pressing the
-; button specified in $5c for demo
-; $5b the DEMO_INPUT_NUM_FRAMES for player 2
+; button specified in $5c for the demo
+; $5b is the DEMO_INPUT_NUM_FRAMES for player 2
 DEMO_INPUT_NUM_FRAMES:
     .res 2
 
@@ -416,15 +417,15 @@ DEMO_INPUT_NUM_FRAMES:
 DEMO_INPUT_VAL:
     .res 2
 
-; $5e - when in demo, stores the offset into specific demo_input_tbl_lX_pX table
+; $5e - when in demo, stores the offset into demo_input_tbl_lX_pX table
 ; $5f is for player 2
 DEMO_INPUT_TBL_INDEX:
     .res 2
 
 ; $60 - the current write offset of the super-tile data, number of tiles outside
 ; the current view.
-; * horizontal levels loops #$00 to #$1f
-; * vert starts with #$1d goes down to #$00 before looping
+; * horizontal levels loop #$00 to #$1f
+; * vertical levels start at #$1d and decrement to #$00 before looping
 PPU_WRITE_TILE_OFFSET:
     .res 1
 
@@ -449,18 +450,18 @@ LEVEL_SCREEN_NUMBER:
 ; $65 - the number of pixels into LEVEL_SCREEN_NUMBER the level has scrolled.
 ; Goes from #$00-#$ff for each screen (256 pixels)
 ; for horizontal levels, this is how many pixels scrolled to the right
-; for vertical levels, this is how many pixels up scrolled, note this value is
-; equal to #$f0 - VERTICAL_SCROLL
-; for indoor levels, after defeating a wall, increases from #$00 to #03
+; for vertical levels, this is how many pixels have been scrolled upward, note
+; this value is equal to #$f0 - VERTICAL_SCROLL
+; for indoor levels, after defeating a wall, increases from #$00 to #$03
 LEVEL_SCREEN_SCROLL_OFFSET:
     .res 1
 
-; $66 - the low byte of the attribute table write address to write to
+; $66 - the low byte of the attribute table write address
 ; (always #$c0, never read)
 ATTRIBUTE_TBL_WRITE_LOW_BYTE:
     .res 1
 
-; $67 - the high byte of the attribute table write address to write to
+; $67 - the high byte of the attribute table write address
 ATTRIBUTE_TBL_WRITE_HIGH_BYTE:
     .res 1
 
@@ -474,11 +475,11 @@ FRAME_SCROLL:
 ; $69 - base nametable offset into memory address into CPU graphics buffer
 ; starting at $0600 (LEVEL_SCREEN_SUPERTILES)
 ; always either #$00 (nametable 0) or #$40 (nametable 1)
-; points to area that contains the super-tile indexes for screen
+; points to area that contains the super-tile indexes for the screen
 SUPERTILE_NAMETABLE_OFFSET:
     .res 1
 
-; $6a - which sprites to load #$00 for normal sprites, #$01 for HUD sprites
+; $6a - which sprites to load, #$00 for normal sprites, #$01 for HUD sprites
 SPRITE_LOAD_TYPE:
     .res 1
 
@@ -490,7 +491,7 @@ CONT_END_SELECTION:
 .res 5
 
 ; $71 - #$00 means that the alternate graphics data should not be loaded
-; #$01 means it should be #$02 means it currently is being loaded
+; #$01 means it should be loaded, #$02 means it currently is being loaded
 ALT_GRAPHIC_DATA_LOADING_FLAG:
     .res 1
 
@@ -499,7 +500,7 @@ ALT_GRAPHIC_DATA_LOADING_FLAG:
 LEVEL_PALETTE_CYCLE:
     .res 1
 
-; $73 - scrolling on indoor level changes
+; $73 - scrolling state during indoor level screen transitions
 ; * #$00 = not scrolling
 ; * #$01 = scrolling
 ; * #$02 = finished scrolling
@@ -507,7 +508,7 @@ INDOOR_SCROLL:
     .res 1
 
 ; $74 - timer used for adjusting background palette colors (not sprite palettes)
-; Used for fade-in effect of dragon and boss ufo as well as indoor transitions
+; used for fade-in effect of dragon and boss UFO as well as indoor transitions
 BG_PALETTE_ADJ_TIMER:
     .res 1
 
@@ -527,7 +528,7 @@ TANK_AUTO_SCROLL:
 
 ; $78
 ; * #$00 - nametable palettes #$03 and #$04 will cycle colors like normal
-; * Non-zero values will pause palette color cycling (ice field tank pauses
+; * non-zero values will pause palette color cycling (ice field tank pauses
 ;   palette cycle)
 PAUSE_PALETTE_CYCLE:
     .res 1
@@ -539,16 +540,16 @@ SOLDIER_GENERATION_ROUTINE:
 
 ; $7a - a timer between soldier generation. #$00 means no generation
 ; see level_soldier_generation_timer.
-; When used in a level, every frame decrements by 2
+; when used in a level, every frame decrements by 2
 ; (unless scrolling, then only by 1)
 SOLDIER_GENERATION_TIMER:
     .res 1
 
-; $7b - the initial x position of the generated soldier
+; $7b - the initial X position of the generated soldier
 SOLDIER_GENERATION_X_POS:
     .res 1
 
-; $7c - the initial y position of the generated soldier
+; $7c - the initial Y position of the generated soldier
 SOLDIER_GENERATION_Y_POS:
     .res 1
 
@@ -559,11 +560,11 @@ FALCON_FLASH_TIMER:
 .res 1
 
 ; $7f - whether to have ice joint enemy move left while player walks right
-; to simulate being on the background
+; to move with the background
 TANK_ICE_JOINT_SCROLL_FLAG:
     .res 1
 
-; $80 - two byte address to enemy_routine_level_XX for the current level
+; $80 - two-byte address to enemy_routine_level_XX for the current level
 ; used to retrieve enemy routines for the level-specific enemies
 ENEMY_LEVEL_ROUTINES:
     .res 2
@@ -574,7 +575,7 @@ ENEMY_SCREEN_READ_OFFSET:
     .res 1
 
 ; $83 - when in use, specifies the current enemy slot that is being executed
-; used to be able to restore x register after method has used it
+; used to be able to restore x register after the routine has used it
 ENEMY_CURRENT_SLOT:
     .res 1
 
@@ -588,8 +589,8 @@ BOSS_AUTO_SCROLL_COMPLETE:
 BOSS_SCREEN_ENEMIES_DESTROYED:
     .res 1
 
-; $86 - remaining wall cores/wall platings to destroy until can advance screen
-; For level 4 boss, used to count remaining boss gemini
+; $86 - remaining wall cores/wall platings to destroy until player can advance
+; screen.  For level 4 boss, used to count remaining boss gemini
 WALL_CORE_REMAINING:
     .res 1
 
@@ -599,8 +600,8 @@ WALL_PLATING_DESTROYED_COUNT:
     .res 1
 
 ; $88 - used in indoor/base levels to specify how many 'rounds' of attack have
-; happened per screen, max #$07 before certain enemies no longer generate
-; indoor soldiers, jumping soldiers, indoor rollers, and wall core use this
+; happened per screen, max #$07 before certain enemies stop generating
+; indoor soldiers, jumping soldiers, indoor rollers, and wall cores use this
 INDOOR_ENEMY_ATTACK_COUNT:
     .res 1
 
@@ -611,7 +612,7 @@ INDOOR_RED_SOLDIER_CREATED:
 
 ; $8a - used in indoor/base levels to indicate that a grenade launcher enemy
 ; (ENEMY_TYPE #$17) is on the screen
-; Prevents other indoor enemies from being generated
+; prevents other indoor enemies from being generated
 GRENADE_LAUNCHER_FLAG:
     .res 1
 
@@ -622,7 +623,7 @@ ALIEN_FETUS_AIM_TIMER_INDEX:
 
 .res 2
 
-; $8e - whether or not enemies will fire at player, also whether or not random
+; $8e - whether or not enemies will fire, also whether or not random
 ; enemies are generated, bosses ignore this value
 ENEMY_ATTACK_FLAG:
     .res 1
@@ -630,7 +631,7 @@ ENEMY_ATTACK_FLAG:
 .res 1
 
 ; $90
-; * #$00 falling into level (only run once to init fall)
+; * #$00 falling into the level (only run once to init fall)
 ; * #$01 normal state
 ; * #$02 when dead
 ; * #$03 can't move
@@ -639,42 +640,42 @@ PLAYER_STATE:
     .res 2
 
 ; $92 - a variable to store INDOOR_TRANSITION_X_FRACT_VEL being added to itself
-; to account for overflow before adding to player x velocity when moving between
+; to account for overflow before adding to player X velocity when moving between
 ; screens on indoor/base levels
 ; $93 is for p2
 INDOOR_TRANSITION_X_ACCUM:
     .res 2
 
-; $94 - related to jump height (used by speed runners to jump higher)
+; $94 - related to jump height (used by speedrunners to jump higher)
 ; * https://www.youtube.com/watch?v=K7MjxHvWof8
 ; * https://www.youtube.com/watch?v=yrnW9yQXa9I
-; used to keep track of fractional y velocity on vertical levels for overflowing
+; used to keep track of fractional Y velocity on vertical levels for overflowing
 ; fractional velocity
-; Notably, this value isn't cleared between jumps
-; also used when walking into screen for indoor screen changes to keep track of
-; overflow of animation y fractional velocity
+; notably, this value is not cleared between jumps
+; also used when walking into a screen for indoor screen changes to keep track
+; of overflow of animation Y fractional velocity
 ; $95 is for player 2
 PLAYER_JUMP_COEFFICIENT:
     .res 2
 
-; $96 - indoor animation transition when walking into screen x fractional
+; $96 - indoor animation transition when walking into screen X fractional
 ; velocity
 ; $97 is for player 2
 INDOOR_TRANSITION_X_FRACT_VEL:
     .res 2
 
-; $98 - the player's fast x velocity (#$00, #$01, or #$ff)
+; $98 - the player's fast X velocity (#$00, #$01, or #$ff)
 ; $99 is for p2
 PLAYER_X_VELOCITY:
     .res 2
 
-; $9a - indoor animation transition when walking into screen y fractional
+; $9a - indoor animation transition when walking into screen Y fractional
 ; velocity
 ; $9b is for player 2
 INDOOR_TRANSITION_Y_FRACT_VEL:
     .res 2
 
-; $9c - indoor animation transition when walking into screen y fast velocity
+; $9c - indoor animation transition when walking into screen Y fast velocity
 ; $9d is for player 2
 INDOOR_TRANSITION_Y_FAST_VEL:
     .res 2
@@ -696,36 +697,36 @@ PLAYER_JUMP_STATUS:
     .res 2
 
 ; $a2 - how much player 1 is causing the frame to scroll by, see FRAME_SCROLL
-; $a3 is for player 2, larger of the 2 is set to FRAME_SCROLL
+; $a3 is for player 2, larger of the two is set to FRAME_SCROLL
 PLAYER_FRAME_SCROLL:
     .res 2
 
-; $a4 - similar to PLAYER_JUMP_STATUS. Used to start gravity pulling player down
-; if bit 7 set, then falling through platform
+; $a4 - similar to PLAYER_JUMP_STATUS. used to start gravity pulling player down
+; if bit 7 is set, then falling through platform
 ; if bit 6 is set, then walking left off edge
-; if bit 5 is set, then walking right off ledge
-; can change if change direction during fall
+; if bit 5 is set, then walking right off edge
+; can change if direction changes during fall
 ; bit 0 always set when EDGE_FALL_CODE non-zero
 ; $a5 is for player 2
 EDGE_FALL_CODE:
     .res 2
 
-; $a6 - which frame of the player animation. Depends on player state.
-; For example, if player is running, this cycles from #$00 to #$05
+; $a6 - which frame of the player animation. depends on player state.
+; for example, if the player is running, this cycles from #$00 to #$05
 ; $a7 is for player 2
 PLAYER_ANIMATION_FRAME_INDEX:
     .res 2
 
-; $a8 - the y position the player was at when they started walking into screen
-; after clearing an indoor level.
-; I believe it's always #$a8 since y pos is hard-coded for indoor levels
-; $a9 is player 2
+; $a8 - the Y position the player was at when they started walking into the
+; screen after clearing an indoor level.
+; I believe it's always #$a8 since Y position is hard-coded for indoor levels
+; $a9 is for player 2
 PLAYER_INDOOR_ANIM_Y:
     .res 2
 
 ; $aa - P1 current weapon and rapid fire flag (commonly abbreviated MFSL)
 ; low nibble is weapon
-; when high nibble is 1 rapid fire enabled;
+; when high nibble is 1, rapid fire enabled
 ; * #$00 - Regular
 ; * #$01 - Machine Gun
 ; * #$02 - Flame Thrower
@@ -737,7 +738,7 @@ P1_CURRENT_WEAPON:
 
 ; $ab - P2 current weapon and rapid fire flag (commonly abbreviated MFSL)
 ; low nibble is weapon
-; when high nibble is 1 rapid fire enabled;
+; when high nibble is 1, rapid fire enabled
 ; * #$00 - Regular
 ; * #$01 - Machine Gun
 ; * #$02 - Flame Thrower
@@ -747,9 +748,9 @@ P1_CURRENT_WEAPON:
 P2_CURRENT_WEAPON:
     .res 1
 
-; $ac - used when holding down the B button with the m weapon
-; high nibble is number of bullets generated (up to #$06)
-; low nibble is counter before next bullet is generated (up to #$07)
+; $ac - used when holding down the B button with the M weapon
+; high nibble is the number of bullets generated (up to #$06)
+; low nibble is a counter before the next bullet is generated (up to #$07)
 ; $ad is for player 2
 PLAYER_M_WEAPON_FIRE_TIME:
     .res 2
@@ -759,15 +760,15 @@ PLAYER_M_WEAPON_FIRE_TIME:
 NEW_LIFE_INVINCIBILITY_TIMER:
     .res 2
 
-; $b0 - timer for player invincibility (b (barrier) weapon)
+; $b0 - timer for player invincibility (B (barrier) weapon)
 ; (decreases every 8 frames)
-; usually set to #$80 except level 7 when set to #$90
+; usually set to #$80 except on level 7, where it is set to #$90
 ; $b1 is for player 2
 INVINCIBILITY_TIMER:
     .res 2
 
 ; $b2 - bit 1 - horizontal sprite flip flag
-; bit 2 - set when player in water, or exiting water
+; bit 2 - set when the player is in water, or exiting water
 ; bit 3 - player is walking out of water
 ; bit 4 - finished initialization for entering water
 ; bit 7 - player is walking out of water
@@ -776,28 +777,28 @@ PLAYER_WATER_STATE:
     .res 2
 
 ; $b4
-; * bit 0 specifies whether player has died
-; * bit 1 specifies player was facing left when hit, used so player dies lying
-;   in appropriate direction
+; * bit 0 specifies whether the player has died
+; * bit 1 specifies whether the player was facing left when hit, used so player
+;   dies lying in the appropriate direction
 ; $b5 is for player 2
 PLAYER_DEATH_FLAG:
     .res 2
 
 ; $b6 - whether or not the player is on top of another enemy
 ; set for #$14 - mining cart, #$15 - stationary mining cart, and #$10 - floating
-; rock platform)
+; rock platform
 ; $b7 is for player 2
 PLAYER_ON_ENEMY:
     .res 2
 
 ; $b8 - used to prevent changing X velocity shortly after walking off/falling
-; through ledge, set to Y post of ledge + #$14
+; through ledge, set to Y position of ledge + #$14
 ; $b9 is for player 2
 PLAYER_FALL_X_FREEZE:
     .res 2
 
 ; $ba - #$00 player visible, #$01/#$ff player invisible (any non-zero).
-; I believe it is meant to track distance off screen the player is
+; likely tracks how far off screen the player is
 ; $bb is for player 2
 PLAYER_HIDDEN:
     .res 2
@@ -820,9 +821,9 @@ PLAYER_HIDDEN:
 PLAYER_SPRITE_SEQUENCE:
     .res 2
 
-; $be - the x position the player was at when they started walking into screen
-; after clearing an indoor level
-; $bf is player 2
+; $be - the X position the player was at when they started walking into the
+; screen after clearing an indoor level
+; $bf is for player 2
 PLAYER_INDOOR_ANIM_X:
     .res 2
 
@@ -831,33 +832,33 @@ PLAYER_INDOOR_ANIM_X:
 PLAYER_AIM_PREV_FRAME:
     .res 2
 
-; $c2 - which direction the player is aiming [#$00-#$0a] depends on level and
-; jump status (00 up facing right, 1 up-right, 2 right, 3 right-down,
-; 4 crouching facing right, 5 crouching facing left, etc)
-; there are #$02 up and #$02 down values depending on facing direction
+; $c2 - which direction the player is aiming [#$00-#$0a], depends on level and
+; jump status (#$00 up facing right, #$01 up-right, #$02 right, #$03 right-down,
+; #$04 crouching facing right, #$05 crouching facing left, etc.)
+; there are 2 'up' and 2 'down' values depending on facing direction
 ; $c3 is for player 2
 PLAYER_AIM_DIR:
     .res 2
 
-; $c4 - the fractional portion of the player's y velocity
+; $c4 - the fractional portion of the player's Y velocity
 ; $c5 is for player 2
 PLAYER_Y_FRACT_VELOCITY:
     .res 2
 
-; $c6 - the integer portion of the player's y velocity
+; $c6 - the integer portion of the player's Y velocity
 ; positive pulls down, negative pulls up
 ; $c7 is for player 2
 PLAYER_Y_FAST_VELOCITY:
     .res 2
 
 ; $c8 - timer for player being electrocuted
-; used to freeze player after touching electricity
+; used to freeze the player after touching electricity
 ; $c9 is for player 2
 ELECTROCUTED_TIMER:
     .res 2
 
-; $ca - used when entering new screen to cause the player to jump
-; $cb is player 2
+; $ca - used when entering a new screen to cause the player to jump
+; $cb is for player 2
 INDOOR_PLAYER_JUMP_FLAG:
     .res 2
 
@@ -871,22 +872,22 @@ PLAYER_WATER_TIMER:
 PLAYER_RECOIL_TIMER:
     .res 2
 
-; $d0 - whether or not the player is walking into screen when advancing between
-; screens on indoor levels, used for animating player
+; $d0 - whether or not the player is walking into the screen when advancing
+; between screens on indoor levels, used for animating the player
 ; $d1 is for player 2
 INDOOR_PLAYER_ADV_FLAG:
     .res 2
 
-; $d2 - used to track animation for player death animation
-; outdoor is a timer that increments once player hit
-; every #$08 frames updates to next animation frame until #$04
+; $d2 - used to track the player death animation state
+; for outdoor levels, a timer that increments once the player is hit
+; every #$08 frames updates to the next animation frame until #$04
 ; also used to track jumping curl animation (loops from #$00-#$04)
 ; $d3 is for player 2
 PLAYER_SPECIAL_SPRITE_TIMER:
     .res 2
 
-; $d4 - the x fast velocity boost from landing on a non-dangerous enemy
-; e.g. moving cart or floating rock in vertical level
+; $d4 - the X fast velocity boost from landing on a non-dangerous enemy
+; e.g. moving cart or floating rock in the vertical level
 ; $d5 is for player 2
 PLAYER_FAST_X_VEL_BOOST:
     .res 2
@@ -905,8 +906,8 @@ PLAYER_SPRITE_FLIP:
     .res 2
 
 ; $da - bit 7 specifies the player's sprite attribute for background priority,
-; allows player to walk behind opaque background (OAM byte 2 bit 5)
-; 0 (clear) sprite in foreground, 1 (set) sprite is background
+; allows a player to walk behind opaque background (OAM byte 2 bit 5)
+; 0 (clear) sprite in foreground, 1 (set) sprite in background
 ; bit 0 allows the player to keep walking horizontally off a ledge without
 ; falling
 ; $db is for player 2
@@ -915,17 +916,16 @@ PLAYER_BG_FLAG_EDGE_DETECT:
 
 .res 3
 
-; $df - combination of both players game over status
+; $df - combination of both players' game over status
 ; * #$00 = p1 not game over, p2 game over (or not playing)
 ; * #$01 = p1 game over, p2 not game over
-; * #$02 = p1 nor p2 are in game over
+; * #$02 = neither p1 nor p2 are in game over
 PLAYER_GAME_OVER_BIT_FIELD:
     .res 1
 
 .res 12
 
-; $ec - low byte of address pointing of index into sound_table_00
-; offset INIT_SOUND_CODE
+; $ec - low byte of the address into sound_table_00, offset by INIT_SOUND_CODE
 SOUND_TABLE_PTR:
     .res 1
 
@@ -934,15 +934,15 @@ SOUND_TABLE_PTR:
 ; $f1 - stores the currently-pressed buttons for player 1
 ; bit 7 - A, bit 6 - B, bit 5 - select, bit 4 - start
 ; bit 3 - up, bit 2 - down, bit 1 - left, bit 0 - right
-; $f2 stores the currently-pressed buttons for player 2
+; $f2 - stores the currently-pressed buttons for player 2
 CONTROLLER_STATE:
     .res 2
 
 ; $f3
 .res 2
 
-; $f5 - stores the difference between the controller input between reads
-; useful for events that should only trigger on first button press
+; $f5 - stores the change in controller input between reads
+; useful for events that should only trigger on the first button press
 ; $f6 is for player 2
 CONTROLLER_STATE_DIFF:
     .res 2
@@ -995,7 +995,7 @@ PPUCTRL_SETTINGS:
 .export LVL_PULSE_VOL_INDEX          ; $012a
 .export PULSE_VOL_DURATION           ; $012a
 .export PAUSE_STATE_01               ; $012f
-.export DECRESCENDO_END_PAUSE        ; $0131
+.export DECRESCENDO_END_PAUSE        ; $0130
 .export SOUND_PITCH_ADJ              ; $0132
 .export UNKNOWN_SOUND_00             ; $0136
 .export UNKNOWN_SOUND_01             ; $013c
@@ -1089,8 +1089,8 @@ PPUCTRL_SETTINGS:
 .export PREVIOUS_ROM_BANK            ; $07ec
 .export PREVIOUS_ROM_BANK_1          ; $07ed
 
-; $0100 - how many video frames the sound count should last for
-; i.e. the time to wait before reading next sound command
+; $0100 - how many video frames the sound command should last for
+; i.e. the time to wait before reading the next sound command
 ; #$06 bytes, one for each sound slot
 SOUND_CMD_LENGTH:
     .res 6
@@ -1115,7 +1115,7 @@ SOUND_CMD_HIGH_ADDR:
 
 ; $011e - either an offset into pulse_volume_ptr_tbl (see LVL_PULSE_VOL_INDEX)
 ; which specifies the volume for the frame or a specific volume to use.
-; When bit 7 is set, then the volume will auto decrescendo
+; When bit 7 is set, then the volume will automatically decrescendo
 SOUND_VOL_ENV:
     .res 2
 
@@ -1123,7 +1123,7 @@ SOUND_VOL_ENV:
 ;  * #$00 = pulse 1 channel
 ;  * #$01 = pulse 2 channel
 ;  * #$02 = triangle channel
-;  * #$03 = noise and dmc channel
+;  * #$03 = noise and DMC channel
 ;  * #$04 = pulse 1
 ;  * #$05 = noise channel
 SOUND_CURRENT_SLOT:
@@ -1148,7 +1148,7 @@ SOUND_CHNL_REG_OFFSET:
 ; $0124 - sound channel flags
 ; * bit 0
 ;   * 0 = sound_xx command byte >= #$30 (read_low_sound_cmd)
-;   * 1 = sound_xx command byte 0 < #$30 (read_high_sound_cmd)
+;   * 1 = sound_xx command byte < #$30 (read_high_sound_cmd)
 ; * bit 1
 ;   * 1 = DECRESCENDO_END_PAUSE has triggered and decrescendo can resume
 ;   * 0 = keep volume constant
@@ -1162,7 +1162,7 @@ SOUND_CHNL_REG_OFFSET:
 ;   complete or should return to parent sound command
 ; * bit 4 - slightly flatten note (see @flatten_note and @flip_flatten_note_adv)
 ; * bit 5
-;   * 1 = PULSE_VOL_DURATION has counted down and decrescendo should bepaused
+;   * 1 = PULSE_VOL_DURATION has counted down and decrescendo should be paused
 ;     until DECRESCENDO_END_PAUSE. Set to ignore SOUND_VOL_ENV negative check,
 ;     i.e. override to decrescendo
 ; * bit 6 - mute flag (1 = muted, 0 = not muted)
@@ -1171,8 +1171,8 @@ SOUND_FLAGS:
     .res 6
 
 ; $012a - LVL_PULSE_VOL_INDEX - index into lvl_x_pulse_volume_xx to read
-; $012a - PULSE_VOL_DURATION - the number of video frames to decrement the volume
-; for, before stopping decrescendo and keeping final volume
+; $012a - PULSE_VOL_DURATION - the number of video frames to decrement the
+; volume for, before stopping decrescendo and keeping final volume
 LVL_PULSE_VOL_INDEX:
 PULSE_VOL_DURATION:
     .res 5
@@ -1181,8 +1181,8 @@ PULSE_VOL_DURATION:
 PAUSE_STATE_01:
     .res 1
 
-; $0130 - number of video frames before end of sound command in which the
-; decrescendo will resume
+; $0130 - the number of video frames before the end of a sound command in which
+; the decrescendo will resume
 ; $0131 is for pulse channel 2
 DECRESCENDO_END_PAUSE:
     .res 2
@@ -1192,7 +1192,7 @@ DECRESCENDO_END_PAUSE:
 SOUND_PITCH_ADJ:
     .res 4
 
-; $0136 - amount to multiply to SOUND_CMD_LENGTH,x when calculating
+; $0136 - amount to multiply to SOUND_CMD_LENGTH,x by when calculating
 ; DECRESCENDO_END_PAUSE,x
 UNKNOWN_SOUND_00:
     .res 6
@@ -1201,12 +1201,12 @@ UNKNOWN_SOUND_00:
 UNKNOWN_SOUND_01:
     .res 6
 
-; $0142 - the value to merge with the high nibble before storing in apu channel
+; $0142 - the value to merge with the high nibble before storing in APU channel
 ; config register
 SOUND_CFG_LOW:
     .res 2
 
-; $0144 - in memory value for APU_TRIANGLE_CONFIG
+; $0144 - in-memory value for APU_TRIANGLE_CONFIG
 SOUND_TRIANGLE_CFG:
     .res 4
 
@@ -1221,7 +1221,7 @@ SOUND_CFG_HIGH:
     .res 6
 
 ; $0154 - value used when determining how many video frames to wait before
-; reading next sound command, #$06 bytes, one for each sound slot
+; reading the next sound command, #$06 bytes, one for each sound slot
 ; ultimately used when calculating SOUND_CMD_LENGTH, and kept around between
 ; sound commands so subsequent notes can be the same length for low sound codes,
 ; SOUND_LENGTH_MULTIPLIER is set to SOUND_CMD_LENGTH directly with no
@@ -1255,7 +1255,7 @@ SOUND_PULSE_PERIOD:
 ; $0178 - vibrato control mode [#$00-#$03], #$80 = no vibrato
 ; even values cause the note to stay the same, odd values cause vibrato
 ; #$03 = pitch up, #$01 = pitch down
-; $0178 is for sound slot #$00 and $0719 is for sound slot #$01
+; $0178 is for sound slot #$00 and $0179 is for sound slot #$01
 VIBRATO_CTRL:
     .res 2
 
@@ -1267,16 +1267,16 @@ SOUND_VOL_TIMER:
     .res 2
 
 ; $017c - the note that is sustained or has the vibrato applied to for pulse
-; channels (in Contra only ever sustained no vibrato)
-; $017c is for sound slot #$00 and $071d is for sound slot #$01
+; channels (in Contra only ever sustained, no vibrato)
+; $017c is for sound slot #$00 and $017d is for sound slot #$01
 PULSE_NOTE:
     .res 2
 
 ; $017e - used to delay start of vibrato until SOUND_VOL_TIMER has counted up
 ; to this value
-; if a note isn't as long as VIBRATO_DELAY
-; i.e. SOUND_CMD_LENGTH < VIBRATO_DELAY, then vibrato won't be occur for a note
-; $017e is for sound slot #$00 and $071f is for sound slot #$01
+; if a note is not as long as VIBRATO_DELAY
+; i.e. SOUND_CMD_LENGTH < VIBRATO_DELAY, then vibrato won't occur for a note
+; $017e is for sound slot #$00 and $017f is for sound slot #$01
 VIBRATO_DELAY:
     .res 2
 
@@ -1298,13 +1298,13 @@ LEVEL_END_SQ_1_TIMER:
 ; $0192 - used by level end routines (end_of_lvl_routine_...) for managing
 ; animation state.
 ; for example, indoor level end animations have 4 states: walk to elevator,
-; initialize elevator sprite, ride elevator
+; wait for other player, initialize elevator sprite, ride elevator
 ; $0193 is for player 2
 LEVEL_END_LVL_ROUTINE_STATE:
     .res 2
 
-; $0194 - the number of players alive at the end of the level, used to know if
-; should play level end music
+; $0194 - the number of players alive at the end of the level, used to know
+; whether to play level end music
 LEVEL_END_PLAYERS_ALIVE:
     .res 1
 
@@ -1319,7 +1319,7 @@ SCREEN_GEN_SOLDIERS:
 
 ; $0197 - reserved for stack
 ; technically stack is $01ff down to $0100 but Contra assumes stack will never
-; underflow into the solder generation memory
+; underflow into the soldier generation memory
 .res 105
 
 ; $0200 - $0200-$02ff OAMDMA (sprite) read data, read once per frame, populated
@@ -1337,38 +1337,38 @@ PLAYER_SPRITES:
     .res 10
 
 ; $030a - enemy sprites to load on screen, each byte is an entry into
-; sprite_ptr_tbl (#$0f bytes)
+; sprite_ptr_tbl (#$10 bytes)
 ENEMY_SPRITES:
     .res 16
 
-; $031a - y position on screen of each player sprite. First 2 bytes are for
-; player sprites. Starts at #$00 for top increases downward (#$0a bytes)
+; $031a - Y position on screen of each player sprite. First 2 bytes are for
+; player sprites. Starts at #$00 for top, increases downward (#$0a bytes)
 SPRITE_Y_POS:
     .res 10
 
-; $0324 - y position on screen of each enemy sprite. Starts at #$00 for top
-; increases downward (#$0f bytes)
+; $0324 - Y position on screen of each enemy sprite. Starts at #$00 for top,
+; increases downward (#$10 bytes)
 ENEMY_Y_POS:
     .res 16
 
-; $0334 - x position of screen of each player sprite. First 2 bytes are for
+; $0334 - X position on screen of each player sprite. First 2 bytes are for
 ; player sprites (#$0a bytes)
 SPRITE_X_POS:
     .res 10
 
-; $033e - x position on screen of each enemy sprite (#$0f bytes)
+; $033e - X position on screen of each enemy sprite (#$10 bytes)
 ENEMY_X_POS:
     .res 16
 
 ; $034e - sprite attribute, specifies palette, vertical flip, horizontal flip
-; (#$0a bytes) and whether to adjust y position
-; * bit 0 and 1 - sprite palette
+; (#$0a bytes) and whether to adjust Y position
+; * bits 0 and 1 - sprite palette
 ; * bit 2
 ;   * 0 to use default palette as specified in sprite code
 ;   * 1 to use palette specified in bits 0 and 1
-; * bit 3 - whether to add #$01 to sprite y position, used for recoil effect
-;   firing weapon
-; * bit 5 - bg priority
+; * bit 3 - whether to add #$01 to sprite Y position, used for the recoil effect
+;   when firing a weapon
+; * bit 5 - background priority
 ; * bit 6 - whether to flip the sprite horizontally
 ; * bit 7 - whether to flip the sprite vertically
 ; * bytes 0 and 1 are p1 and p2 sprite attributes, then each byte is the player
@@ -1377,16 +1377,16 @@ ENEMY_X_POS:
 SPRITE_ATTR:
     .res 10
 
-; $0358 - enemy sprite attribute. See specification above (#$0f bytes)
+; $0358 - enemy sprite attribute. See specification above (#$10 bytes)
 ENEMY_SPRITE_ATTR:
     .res 16
 
-; $0368 - The sprite codes to load for the bullet, eventually copied into
+; $0368 - the sprite codes to load for the bullet, eventually copied into
 ; CPU_SPRITE_BUFFER starting at offset 2
 PLAYER_BULLET_SPRITE_CODE:
     .res 16
 
-; $0378 - The sprite attributes for the bullet
+; $0378 - the sprite attributes for the bullet
 ; see SPRITE_ATTR for specification
 ; used for L bullets for flipping the angled sprites depending on direction
 PLAYER_BULLET_SPRITE_ATTR:
@@ -1398,22 +1398,22 @@ PLAYER_BULLET_SLOT:
     .res 16
 
 ; $0398 - an accumulator to keep track of PLAYER_BULLET_Y_VEL_FRACT being added
-; to itself have elapsed before adding 1 to PLAYER_BULLET_Y_POS
+; to itself, tracking overflow before adding 1 to PLAYER_BULLET_Y_POS
 PLAYER_BULLET_Y_VEL_ACCUM:
     .res 16
 
 ; $03a8 - an accumulator to keep track of PLAYER_BULLET_X_VEL_FRACT being added
-; to itself have elapsed before adding 1 to PLAYER_BULLET_X_POS
+; to itself, tracking overflow before adding 1 to PLAYER_BULLET_X_POS
 PLAYER_BULLET_X_VEL_ACCUM:
     .res 16
 
-; $03b8 - the bullet's sprite y position
+; $03b8 - the bullet's sprite Y position
 PLAYER_BULLET_Y_POS:
     .res 16
 
-; $03c8 - the bullet's sprite x position
+; $03c8 - the bullet's sprite X position
 ; for F bullets, PLAYER_BULLET_FS_X and PLAYER_BULLET_X_POS together determine
-; x position
+; X position
 PLAYER_BULLET_X_POS:
     .res 16
 
@@ -1427,26 +1427,26 @@ PLAYER_BULLET_Y_VEL_FRACT:
 PLAYER_BULLET_X_VEL_FRACT:
     .res 16
 
-; $03f8 - player bullet velocity y integer portion
+; $03f8 - player bullet Y velocity, integer portion
 PLAYER_BULLET_Y_VEL_FAST:
     .res 16
 
-; $0408 - player bullet velocity x integer portion
+; $0408 - player bullet X velocity, integer portion
 PLAYER_BULLET_X_VEL_FAST:
     .res 16
 
-; $0418 - 'timer' starts at #$00. Used by F, S (indoor only) and L
+; $0418 - 'timer' starts at #$00. used by F, S (indoor only) and L
 ; for indoor S, used to specify size of bullet
-; For F, used to set x and y pos when traveling to create swirl
+; for F, used to set X and Y pos when traveling to create swirl
 ; (see f_bullet_outdoor_x_swirl_amt_tbl, and f_bullet_outdoor_y_swirl_amt_tbl)
 ; increments or decrements every frame depending on firing direction
 ; (left decrement, right increment)
-; For L used to spread out 4 lasers for one shot
+; for L, used to spread out 4 lasers for one shot
 PLAYER_BULLET_TIMER:
     .res 16
 
-; $0428 - the direction of the bullet #$00 for up facing right, incrementing
-; clockwise up to #09 for up facing left
+; $0428 - the direction of the bullet, #$00 for up facing right, incrementing
+; clockwise up to #$09 for up facing left
 PLAYER_BULLET_AIM_DIR:
     .res 16
 
@@ -1481,16 +1481,16 @@ PLAYER_BULLET_DIST:
 PLAYER_BULLET_S_ADJ_ACCUM:
     .res 16
 
-; $0478 - Used to offset from general x direction of bullet for swirl effect in
+; $0478 - used to offset from general X direction of bullet for swirl effect in
 ; F bullet and spread effect in S bullet (indoor)
-; Specifies center x position on screen f bullet swirls around
-; Used when firing f bullet either left, right, or at an angle
+; specifies center X position on screen F bullet swirls around
+; used when firing F bullet either left, right, or at an angle
 PLAYER_BULLET_FS_X:
     .res 16
 
 ; $0488
-; * PLAYER_BULLET_F_Y - specifies center y position on screen f bullet swirls
-;   around. Used when firing f bullet either up, down, or at an angle.
+; * PLAYER_BULLET_F_Y - specifies center Y position on screen F bullet swirls
+;   around. used when firing F bullet either up, down, or at an angle.
 ; * PLAYER_BULLET_S_RAPID - for S weapon in indoor levels, specifies whether
 ;   weapon is rapid fire or not, not sure why $09 wasn't used like other bullet
 ;   routines
@@ -1499,26 +1499,26 @@ PLAYER_BULLET_S_RAPID:
     .res 16
 
 ; $0498 - (for F weapon only) an accumulator to keep track of
-; PLAYER_BULLET_X_VEL_FRACT being added to itself have elapsed before adding 1
+; PLAYER_BULLET_X_VEL_FRACT being added to itself before adding 1
 ; to PLAYER_BULLET_X_POS
 PLAYER_BULLET_VEL_FS_X_ACCUM:
     .res 16
 
 ; $04a8
 ; * PLAYER_BULLET_VEL_F_Y_ACCUM - (for F weapon only) an accumulator to keep
-;   track of PLAYER_BULLET_Y_VEL_FRACT being added to itself have elapsed before
-;   adding 1 to PLAYER_BULLET_Y_POS
-; * PLAYER_BULLET_S_BULLET_NUM - for S weapon only, specifies the number the
-;   bullet in the current 'spray' for the shot per shot of S weapon, #$05
+;   track of PLAYER_BULLET_Y_VEL_FRACT being added to itself before adding 1
+;   to PLAYER_BULLET_Y_POS
+; * PLAYER_BULLET_S_BULLET_NUM - for S weapon only, specifies the number of the
+;   bullets in the current 'spray' per shot of the S weapon, #$05
 ;   bullets are generated. If no other bullets exist then $04a8 would have #$00
-;   $04a9 would have #$01, $04a9 would have #$02, etc.
+;   $04a9 would have #$01, $04aa would have #$02, etc.
 PLAYER_BULLET_VEL_F_Y_ACCUM:
 PLAYER_BULLET_S_BULLET_NUM:
     .res 16
 
 ; each enemy property is #$10 bytes, one byte per enemy
 
-; $04b8 - index to routine number for enemy
+; $04b8 - routine index for the enemy
 ; subtract 1 to get routine, all offsets are off by 1 (...routine_ptr_tbl-2)
 ; ex: for exploding bridge, setting ENEMY_ROUTINE to #$02 causes
 ; exploding_bridge_routine_01 to run the next frame
@@ -1528,17 +1528,17 @@ ENEMY_ROUTINE:
 ; the following 6 address ranges control the change in position of the enemy
 ; every frame the position is moved by VELOCITY_FAST units
 ; VELOCITY_FRACT can enable only moving by 1 unit every n frames
-; for example, if ENEMY_Y_VELOCITY_FAST is #$00 and ENEMY_Y_VELOCITY_FRACT is
+; for example, if ENEMY_X_VELOCITY_FAST is #$00 and ENEMY_X_VELOCITY_FRACT is
 ; #$c0, (#$c0/#$ff = 75%),
 ; then the enemy will move one position to the right 3 out of every 4 frames
 
-; $04c8 - an accumulator to keep track of ENEMY_Y_VELOCITY_FRACT being added to
-; itself have elapsed before adding 1 to ENEMY_Y_POS
+; $04c8 - an accumulator to keep track of ENEMY_Y_VELOCITY_FRACT being added
+; to itself, tracking overflow before adding 1 to ENEMY_Y_POS
 ENEMY_Y_VEL_ACCUM:
     .res 16
 
-; $04d8 - an accumulator to keep track of ENEMY_X_VELOCITY_FRACT being added to
-; itself have elapsed before adding 1 to ENEMY_X_POS
+; $04d8 - an accumulator to keep track of ENEMY_X_VELOCITY_FRACT being added
+; to itself, tracking overflow before adding 1 to ENEMY_X_POS
 ENEMY_X_VEL_ACCUM:
     .res 16
 
@@ -1570,8 +1570,8 @@ ENEMY_TYPE:
 ENEMY_ANIMATION_DELAY:
     .res 16
 
-; $0548 - the sound code to play when enemy hit by player bullet, also used for
-; other logic
+; $0548 - the sound code to play when enemy is hit by player bullet, also used
+; for other logic
 ; dragon arm orb uses it for adjusting enemy position, fire beam uses it for
 ; animation delay
 ENEMY_VAR_A:
@@ -1579,15 +1579,15 @@ ENEMY_VAR_A:
 
 ; $0558
 ; * ENEMY_ATTACK_DELAY - the delay before an enemy attacks, for weapon items and
-;   grenades. This is used for helping calculate falling arc trajectory instead
+;   grenades. This is used to help calculate falling arc trajectory instead
 ;   of enemy delay
-; * ENEMY_VAR_B - for weapon items and grenades this is used for helping
+; * ENEMY_VAR_B - for weapon items and grenades this is used to help
 ;   calculate falling arc trajectory
 ENEMY_ATTACK_DELAY:
 ENEMY_VAR_B:
     .res 16
 
-; $0568 - animation frame the enemy is in, typically indexes into an enemy
+; $0568 - the enemy's current animation frame, typically indexes into an enemy
 ; type-specific table of sprite codes
 ENEMY_FRAME:
     .res 16
@@ -1603,8 +1603,8 @@ ENEMY_SCORE_COLLISION:
     .res 16
 
 ; $0598 - loaded from enemy_prop_ptr_tbl
-; * bit 7 set to allow bullets to travel through enemy, e.g. weapon item
-; * bit 6 specifies whether player can land on enemy
+; * bit 7 set to allow bullets to travel through the enemy, e.g. weapon item
+; * bit 6 specifies whether the player can land on the enemy
 ;   (floating rock and moving cart), bit 4 also has to be 0
 ;   (see `beq @land_on_enemy`)
 ; * bit 4 and 5 specify the collision box type (see collision_box_codes_tbl)
@@ -1641,75 +1641,75 @@ ENEMY_VAR_4:
 
 .res 8
 
-; $0600 - CPU memory address where super tiles indexes for the screens of the
+; $0600 - CPU memory address where super-tile indexes for the screens of the
 ; level are loaded (level_X_supertiles_screen_XX data)
-; 2 screens are stored in the CPU buffer. The second screen loaded at $0640.
+; 2 screens are stored in the CPU buffer. The second screen is loaded at $0640.
 ; indexes are into level_x_supertile_data
-; This data specifies the super-tiles (indexes) to load for the screens
+; this data specifies the super-tiles (indexes) to load for the screens
 LEVEL_SCREEN_SUPERTILES:
     .res 128
 
 ; $0680 - map of collision types for each of the super-tiles for both
 ; nametables, each 2 bits encode 1/4 of a super-tile's collision information
 ; first 8 nibbles are a row of the top of super-tile, the next 8 are the middle
-; Not used on base (indoor) levels
+; not used on base (indoor) levels
 BG_COLLISION_DATA:
     .res 128
 
-; $0700 - used to store data that will be then moved to the PPU later on.
-; $700 to $750, repeating structure
-; * byte $700 is multifaceted
-; * if $700 is #$0, then done writing graphics buffer to PPU
-; * if $700 is greater than #$0, then there is data to write, this byte is the
+; $0700 - used to store data that will then be moved to the PPU later on.
+; $0700 to $0750, repeating structure
+; * byte $0700 is multifaceted
+; * if $0700 is #$00, then done writing graphics buffer to PPU
+; * if $0700 is greater than #$00, then there is data to write, this byte is the
 ;   offset into vram_address_increment
-; * both #$01, and #$03 signify VRAM address increment to 0, meaning to add #$1
+; * both #$01, and #$03 signify VRAM address increment of 0, meaning to add #$01
 ;   every write to PPU (write across)
 ; * #$02 signifies VRAM address increment is 1, meaning add #$20 (32 in decimal)
 ;   every write to PPU (write down)
 ; if GRAPHICS_BUFFER_MODE is #$ff
-; * byte $701 is length of the tiles being written per group
-; * byte $702 is the number of $701-sized blocks to write to the PPU
-; * for each block, the block prefixed with 2 bytes specifying PPU address
+; * byte $0701 is length of the tiles being written per group
+; * byte $0702 is the number of $0701-sized blocks to write to the PPU
+; * for each block, the block is prefixed with 2 bytes specifying PPU address
 ;   (high byte, then low byte)
 ; if GRAPHICS_BUFFER_MODE is #$00
-; * if byte #$00 is #$00, then no drawing takes place for frame
+; * if byte #$00 is #$00, then no drawing takes place for the frame
 ; * blocks of text/palette data prefixed with 2 bytes specifying PPU address
 ;   (high byte, then low byte)
 ; the block of text is ended with a #$ff, if the byte after #$ff is the
 ; vram_address_increment offset
-; then the the process continues, i.e. read #$02 PPU address bytes, read next
+; then the process continues, i.e. read #$02 PPU address bytes, read next
 ; text
 CPU_GRAPHICS_BUFFER:
     .res 80
 
 .res 112
 
-; $07c0 - [$07c0-$07df] the CPU memory address of the palettes eventually loaded
+; $07c0 - [$07c0-$07df] the CPU memory buffer for the palettes eventually loaded
 ; into the PPU $3f00 to $3f1f
 PALETTE_CPU_BUFFER:
     .res 32
 
-; $07e0 - the low byte of the high score score
+; $07e0 - the low byte of the high score
 HIGH_SCORE_LOW:
     .res 1
 
-; $07e1 - the high byte of the high score score
+; $07e1 - the high byte of the high score
 HIGH_SCORE_HIGH:
     .res 1
 
-; $07e2 - the low byte of player 1 high score
+; $07e2 - the low byte of player 1's high score
 PLAYER_1_SCORE_LOW:
     .res 1
 
-; $07e3 - the high byte of player 1 high score
+; $07e3 - the high byte of player 1's high score
 PLAYER_1_SCORE_HIGH:
     .res 1
 
-; $07e4 - the low byte of player 1 high score
+; $07e4 - the low byte of player 2's high score
 PLAYER_2_SCORE_LOW:
     .res 1
 
-; $07e5 - the high byte of player 1 high score
+; $07e5 - the high byte of player 2's high score
 PLAYER_2_SCORE_HIGH:
     .res 1
 

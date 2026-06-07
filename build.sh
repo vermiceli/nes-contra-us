@@ -17,6 +17,7 @@ then
     DBG_NAME="probotector.dbg"
     GAME_HASH="a4bda4572ec8a3f520deb4bf483510f6e41ed7665505850d22ec07ca1b25abff40b3368a27ece982ea6e9c71a1b698eb2add16c26a7ad67dba3c0a98c4e2ba43"
     ASSETS_NAME="probotector-assets.txt"
+    GAME="Probotector"
 else
     GAME="Contra"
 fi

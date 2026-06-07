@@ -1,6 +1,6 @@
-; Contra US Disassembly - v1.3
+; Contra US Disassembly - v1.4
 ; https://github.com/vermiceli/nes-contra-us
-; Bank 3 starts with the data that specifies which pattern table tiles comprises
+; Bank 3 starts with the data that specifies which pattern table tiles comprise
 ; super-tiles along with the color palettes.  This bank also has the routines
 ; to manage the end of levels.
 
@@ -178,9 +178,12 @@ level_1_nametable_update_palette_data:
     .byte $ff,$ff,$cc,$ff,$ff,$ff,$cc,$cc,$cc,$ff,$ff,$ff,$aa,$aa,$aa,$aa
     .byte $aa,$aa,$aa,$aa,$aa
 
-; nametable animation pattern table tiles - level 2/4 (#$b * #$5 = #$37 bytes)
-; byte 0 clear specifies to use the default of #$02 rows of #$02 pattern table tiles each row
-; bytes 1 - 4 are the pattern table tiles to draw
+; nametable animation pattern table tiles - level 2/4 (#$0b * #$05 = #$37 bytes)
+; when bit 7 set, the low 3 bits are number of rows tiles to be written
+; when bit 7 not set, 2 rows are written
+; e.g. byte 0 (#$83) means to draw three rows of two tiles each
+; when less than 4 rows are being drawn (e.g. #$83), then the rest of the data is #$00-padded
+; since each entry must start at a multiple of #$05
 ; CPU address $86e1
 level_2_4_tile_animation:
     .byte $00,$e2,$e3,$e4,$e5 ; #$80 core plating
@@ -589,7 +592,7 @@ level_5_nametable_update_supertile_data:
     .byte $07,$19,$14,$14,$1d,$18,$18,$18,$f2,$f2,$f2,$f2,$f2,$f2,$f2,$f2 ; #$18 - boss screen open door bottom
     .byte $4a,$4b,$4c,$4d,$4e,$4f,$50,$51,$4d,$52,$4c,$4f,$49,$4d,$4e,$48 ; #$19 - snowy rock tile
     .byte $42,$43,$44,$45,$46,$47,$48,$49,$4a,$4b,$4c,$4d,$4e,$4f,$50,$51 ; #$1a - snowy rock tile
-    .byte $69,$69,$69,$69,$69,$69,$69,$69,$69,$69,$69,$69,$69,$69,$69,$69 ; #$1b - all black (used to make boss ufo invisible, and tank)
+    .byte $69,$69,$69,$69,$69,$69,$69,$69,$69,$69,$69,$69,$69,$69,$69,$69 ; #$1b - all black (used to make boss ufo and tank invisible)
 
 level_5_palette_data:
     .byte $55,$00,$00,$00,$00,$55,$55,$55,$54,$00,$00,$00,$00,$00,$05,$00
@@ -605,26 +608,28 @@ level_5_nametable_update_palette_data:
     .byte $aa,$aa,$aa,$aa,$aa,$aa,$ff,$ff,$ff,$aa,$aa,$aa,$ff,$aa,$aa,$8a
     .byte $ae,$ab,$a8,$a8,$ae,$ab,$00,$11,$00,$00,$00,$00,$00,$00,$00
 
-; nametable animation pattern table tiles - level 6 (#$e * #$5 = #$46 bytes)
-; bytes 1 - 4 are the pattern table tiles to draw
-; byte 0 specifies to use the default of #$02 rows of #$02 pattern table tiles each row
-; byte 0 specifies only #$01 row of #$02 tiles is updated instead of the default of #$02
+; nametable animation pattern table tiles - level 6 (#$0e * #$05 = #$46 bytes)
+; !(HUH) byte 0 in each group being $01 doesn't mean anything since bit 7 is not set,
+; game will always draw 2 rows of 2 tiles
+; when bit 7 set, the low 3 bits are number of rows tiles to be written
+; when bit 7 not set, 2 rows are written
+; each entry must start at a multiple of #$05
 ; CPU address $9dd8
 level_6_tile_animation:
-    .byte $01,$00,$00,$00,$00 ; 80 beam - nothing (black tiles)
-    .byte $01,$1a,$0c,$1b,$1c ; 81 beam right - beam origin
-    .byte $01,$0e,$0c,$1e,$1c ; 82 beam right - beam middle
-    .byte $01,$0c,$00,$1c,$00 ; 83 beam right - beam end
-    .byte $01,$0d,$0f,$1d,$1f ; 84 beam left - beam origin
-    .byte $01,$0d,$0e,$1d,$1e ; 85 beam left - beam middle
-    .byte $01,$00,$0d,$00,$1d ; 86 beam left - beam end
-    .byte $01,$18,$19,$14,$15 ; 87 beam down - beam origin
-    .byte $01,$16,$17,$14,$15 ; 88 beam down - beam middle
-    .byte $01,$14,$15,$00,$00 ; 89 beam down - beam end
-    .byte $01,$01,$a8,$76,$77 ; 8a boss screen door opening bottom (blank opening and floor)
-    .byte $01,$c9,$f8,$c9,$a9 ; 8b boss screen door
-    .byte $01,$c9,$a9,$c9,$00 ; 8c boss screen door (blank opening and top of door)
-    .byte $01,$c9,$00,$c9,$00 ; 8d boss screen door (side wall and blank opening)
+    .byte $01,$00,$00,$00,$00 ; #$80 beam - nothing (black tiles)
+    .byte $01,$1a,$0c,$1b,$1c ; #$81 beam right - beam origin
+    .byte $01,$0e,$0c,$1e,$1c ; #$82 beam right - beam middle
+    .byte $01,$0c,$00,$1c,$00 ; #$83 beam right - beam end
+    .byte $01,$0d,$0f,$1d,$1f ; #$84 beam left - beam origin
+    .byte $01,$0d,$0e,$1d,$1e ; #$85 beam left - beam middle
+    .byte $01,$00,$0d,$00,$1d ; #$86 beam left - beam end
+    .byte $01,$18,$19,$14,$15 ; #$87 beam down - beam origin
+    .byte $01,$16,$17,$14,$15 ; #$88 beam down - beam middle
+    .byte $01,$14,$15,$00,$00 ; #$89 beam down - beam end
+    .byte $01,$01,$a8,$76,$77 ; #$8a boss screen door opening bottom (blank opening and floor)
+    .byte $01,$c9,$f8,$c9,$a9 ; #$8b boss screen door
+    .byte $01,$c9,$a9,$c9,$00 ; #$8c boss screen door (blank opening and top of door)
+    .byte $01,$c9,$00,$c9,$00 ; #$8d boss screen door (side wall and blank opening)
 
 ; super-tile data - level 6 (#$750 bytes)
 level_6_supertile_data:
@@ -755,24 +760,29 @@ level_6_palette_data:
 level_6_nametable_update_palette_data:
     .byte $aa,$aa,$aa,$55,$55,$00,$00
 
-; nametable animation tiles codes - level 7 (#$c * #$5 = #$3c bytes)
-; first byte is number of groups of length 2 to update of data being written
+; nametable animation tiles codes - level 7 (#$0c * #$05 = #$3c bytes)
+; see
+;  * claw_update_nametable_ptr_tbl's claw_tile_code_xx values
+;  * boss_mortar_update_tiles_a (enemy type #$17 - boss mortar ENEMY_FRAME,x)
+; when bit 7 set, the low 3 bits are number of rows tiles to be written
+; when bit 7 not set, 2 rows are written
 ; e.g. byte 0 (#$83) means to draw three rows of two tiles each
-; $0c $0d store the ppu write address
+; when less than 4 rows are being drawn (e.g. #$83), then the rest of the data is #$00-padded
+; since each entry must start at a multiple of #$05
 ; CPU address $a56e
 level_7_tile_animation:
-    .byte $83,$de,$df,$ee,$ef ; 80 mechanical claw
-    .byte $00,$00,$00,$00,$00 ; 81 mechanical claw - nothing (black tiles)
-    .byte $83,$de,$df,$ee,$ef ; 82 mechanical claw
-    .byte $47,$48,$00,$00,$00 ; 83 safety rail - top
-    .byte $83,$de,$df,$ee,$ef ; 84 mechanical claw
-    .byte $57,$58,$00,$00,$00 ; 85 safety rail - bottom
-    .byte $83,$ce,$cf,$de,$df ; 86 mechanical claw - top
-    .byte $ee,$ef,$00,$00,$00 ; 87 mechanical claw - bottom
-    .byte $00,$30,$31,$30,$31 ; 88 mortar launcher - frame 0 (closed)
-    .byte $00,$c5,$c6,$c7,$c8 ; 89 mortar launcher - frame 1 (partially open/partially closed)
-    .byte $00,$ea,$eb,$ec,$ed ; 8a mortar launcher - frame 2 (opened)
-    .byte $00,$4a,$4f,$4a,$52 ; 8b mortar launcher - destroyed
+    .byte $83,$de,$df,$ee,$ef ; #$80 mechanical claw (3 rows)
+    .byte $00,$00,$00,$00,$00
+    .byte $83,$de,$df,$ee,$ef ; #$82 mechanical claw
+    .byte $47,$48,$00,$00,$00
+    .byte $83,$de,$df,$ee,$ef ; #$84 mechanical claw
+    .byte $57,$58,$00,$00,$00
+    .byte $83,$ce,$cf,$de,$df ; #$86 mechanical claw - top
+    .byte $ee,$ef,$00,$00,$00
+    .byte $00,$30,$31,$30,$31 ; #$88 mortar launcher - frame 0 (closed)
+    .byte $00,$c5,$c6,$c7,$c8 ; #$89 mortar launcher - frame 1 (partially open/partially closed)
+    .byte $00,$ea,$eb,$ec,$ed ; #$8a mortar launcher - frame 2 (opened)
+    .byte $00,$4a,$4f,$4a,$52 ; #$8b mortar launcher - destroyed
 
 ; super-tile data - level 7
 level_7_supertile_data:
@@ -884,7 +894,7 @@ level_7_nametable_update_supertile_data:
     .byte $f6,$30,$31,$27,$f6,$30,$31,$27,$f6,$30,$31,$27,$f6,$30,$31,$27 ; #$03 - closed armored door (boss_soldier_nametable_update_tbl)
     .byte $50,$51,$51,$52,$bd,$9d,$9d,$9d,$af,$af,$af,$53,$b1,$b2,$b1,$b2 ; #$04 - spiked wall destroyed floor
     .byte $4a,$4f,$4f,$4f,$4a,$00,$00,$00,$4a,$00,$00,$00,$4a,$00,$00,$00
-    .byte $00,$d9,$db,$dc,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; #$06 - tall spiked wall destroyed top (parting hanging from ceiling)
+    .byte $00,$d9,$db,$dc,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; #$06 - tall spiked wall destroyed top (part hanging from ceiling)
     .byte $f6,$00,$00,$27,$f6,$00,$00,$27,$f6,$00,$00,$27,$f6,$00,$00,$27 ; #$07 - open armored door (see #$12) (boss_soldier_nametable_update_tbl)
     .byte $4a,$00,$00,$00,$4a,$00,$00,$00,$4a,$00,$00,$00,$4a,$00,$00,$00
     .byte $60,$70,$70,$70,$70,$71,$61,$61,$62,$63,$0e,$0f,$72,$73,$72,$73
@@ -1224,7 +1234,7 @@ run_end_level_sequence_routine:
     lda END_LEVEL_ROUTINE_INDEX    ; load end_level_sequence_ptr_tbl index to jump to
     jsr run_routine_from_tbl_below ; run routine a in the following table (end_level_sequence_ptr_tbl)
 
-; pointer table for end of level sequences (#$3 * #$2 = #$6 bytes)
+; pointer table for end of level sequences (#$03 * #$02 = #$06 bytes)
 ; CPU address $be09
 end_level_sequence_ptr_tbl:
     .addr end_level_sequence_00 ; CPU address $be0f
@@ -1286,14 +1296,14 @@ end_level_sequence_01:
     bpl @player_lvl_routine_loop
     lda FRAME_COUNTER                ; load frame counter
     lsr
-    bcc @set_0192_exit
+    bcc @set_state_exit
     dec LEVEL_END_SQ_1_TIMER
     beq @set_level_delay_adv_routine
 
-@set_0192_exit:
+@set_state_exit:
     lda LEVEL_END_LVL_ROUTINE_STATE
-    ora LEVEL_END_LVL_ROUTINE_STATE+1 ; set player 2 value
-    bne end_level_sequence_01_exit
+    ora LEVEL_END_LVL_ROUTINE_STATE+1 ; merge with player 2 value
+    bne end_level_sequence_01_exit    ; exit if either player routine state is non-zero
 
 @set_level_delay_adv_routine:
     ldy CURRENT_LEVEL                     ; current level
@@ -1306,7 +1316,7 @@ set_delay_adv_routine:
 end_level_sequence_01_exit:
     rts
 
-; table for delay timer used in level-specif ending routines (#$8 bytes)
+; table for delay timer used in level-specific ending routines (#$08 bytes)
 ; waterfall is the only different value at #$e0
 level_end_level_delay_timer_tbl:
     .byte $a0,$a0,$e0,$a0,$a0,$a0,$a0,$a0
@@ -1318,7 +1328,7 @@ run_end_of_lvl_lvl_routine:
     lda CURRENT_LEVEL              ; current level
     jsr run_routine_from_tbl_below ; run routine a in the following table (end_of_lvl_lvl_routine_ptr_tbl)
 
-; end of level routines (#$8 * #$2 = #$10 bytes)
+; end of level routines (#$08 * #$02 = #$10 bytes)
 end_of_lvl_lvl_routine_ptr_tbl:
     .addr end_of_lvl_routine_lvl_1  ; CPU address $be92
     .addr end_of_lvl_routine_indoor ; CPU address $bec4
@@ -1336,7 +1346,7 @@ end_of_lvl_lvl_routine_ptr_tbl:
 ; * #$01 - jump to the right
 ; * #$02 - walk to the right
 end_of_lvl_routine_lvl_1:
-    lda SPRITE_X_POS,x ; player x position on screen
+    lda SPRITE_X_POS,x ; player X position on screen
     cmp #$98           ; see where the player is at horizontally
     lda #$00           ; a = #$00
     bcc @continue      ; branch if player is in the left 60% of the screen
@@ -1347,7 +1357,7 @@ end_of_lvl_routine_lvl_1:
     ldy $08                          ; load LEVEL_END_LVL_ROUTINE_STATE
     bne end_of_lvl_routine_lvl_1_01  ; branch if player should jump into the tunnel (state #$01)
     jsr press_d_pad_right            ; press the d-pad right button to move the player to the right
-    lda SPRITE_X_POS,x               ; player x position on screen
+    lda SPRITE_X_POS,x               ; player X position on screen
     cmp #$90                         ; trigger point to jump into tunnel
     bcc routine_lvl_1_exit           ; branch if not yet reached jump trigger point
 
@@ -1379,9 +1389,9 @@ end_of_lvl_routine_indoor:
     bne end_of_lvl_routine_indoor_01  ; see if in state #$01
     lda indoor_lvl_end_input_tbl,x    ; state #$00 - load the appropriate d-pad input based on current player (left or right)
     sta CONTROLLER_STATE,x            ; controller buttons held
-    lda SPRITE_X_POS,x                ; player x position on screen
+    lda SPRITE_X_POS,x                ; player X position on screen
     sec                               ; set carry flag in preparation for subtraction
-    sbc indoor_lvl_elevator_pos_tbl,x ; subtract elevator x position from player x position
+    sbc indoor_lvl_elevator_pos_tbl,x ; subtract elevator X position from player X position
     bcs @cmp_elevator_distance        ; branch if player to the right of the elevator
     eor #$ff                          ; to the left of the elevator (negative result), flip all bits and add 1 (two's complement)
     adc #$01                          ; to get a positive number (the distance to the elevator)
@@ -1446,8 +1456,8 @@ end_of_lvl_routine_lvl_3:
     lda #$02                        ; player to the right or in middle of screen, set controller input D-pad left arrow
 
 @continue:
-    sta CONTROLLER_STATE,x ; set controller input (eight left or right)
-    tya                    ; move player x position to a
+    sta CONTROLLER_STATE,x ; set controller input (either left or right)
+    tya                    ; move player X position to a
     sec                    ; set carry flag in preparation for subtraction
     sbc #$80               ; subtract #$80 to get distance from middle of screen
     bcs @cmp_dist          ; result is not negative, continue to compare distance to middle of screen
@@ -1479,23 +1489,23 @@ end_of_lvl_routine_lvl_3_01:
 end_of_lvl_routine_lvl_5:
     ldy #$00 ; y = #$00
 
-; move the player right and set PLAYER_BG_FLAG_EDGE_DETECT appropriate based on x position
+; move the player right and set PLAYER_BG_FLAG_EDGE_DETECT appropriate based on X position
 ; x trigger position based on x_pos_bg_priority_trigger_tbl,y
 ; input
 ;  * y - offset into x_pos_bg_priority_trigger_tbl
 move_right_set_bg_priority:
     jsr press_d_pad_right               ; press the d-pad right button to move the player to the right
-    lda SPRITE_X_POS,x                  ; load player's x position
+    lda SPRITE_X_POS,x                  ; load player's X position
     cmp x_pos_bg_priority_trigger_tbl,y ; see if player has crossed trigger point to put player in background
     lda #$01                            ; always set bit 0 (player continues walking off horizontally off ledge)
-    bcc @set_bg_priority_exit           ; branch if player x position is to left of x_pos_bg_priority_trigger_tbl position
+    bcc @set_bg_priority_exit           ; branch if player X position is to left of x_pos_bg_priority_trigger_tbl position
     ora #$80                            ; set bit 7 to specify sprite draws behind background
 
 @set_bg_priority_exit:
     sta PLAYER_BG_FLAG_EDGE_DETECT,x
     rts
 
-; table for horizontal trigger points for setting PLAYER_BG_FLAG_EDGE_DETECT (#$3 bytes)
+; table for horizontal trigger points for setting PLAYER_BG_FLAG_EDGE_DETECT (#$03 bytes)
 ; byte 0 - level 5 (snow field)
 ; byte 1 - level 6 (energy zone)
 ; byte 2 - level 7 (hangar)
@@ -1536,7 +1546,7 @@ end_level_sequence_02:
 @exit:
     rts
 
-; make the player invisible if off the screen to the right, or off screen to the top
+; make the player invisible if off the screen to the right, or off-screen to the top
 make_off_screen_player_invisible_exit:
     lda SPRITE_Y_POS,x
     cmp #$08
@@ -1559,22 +1569,22 @@ end_level_sequence_02_exit:
 
 ; tables for end of indoor/base level 2/4
 ; player 1 walks to the left elevator - d-pad left (#$02)
-; player 2 walks to the right elevator - d-pad right right (#$01)
-; controller input - player 1/2 (#$2 bytes)
+; player 2 walks to the right elevator - d-pad right (#$01)
+; controller input - player 1/2 (#$02 bytes)
 indoor_lvl_end_input_tbl:
     .byte $02,$01
 
-; x position for elevator (#$02 bytes)
+; X position for elevator (#$02 bytes)
 indoor_lvl_elevator_pos_tbl:
     .byte $0c,$f4
 
-; table for sprite attribute for being on elevator (#$2 bytes)
+; table for sprite attribute for being on elevator (#$02 bytes)
 ; sprite_91 - indoor boss defeated elevator with player on top
 ; byte 0 is for player 1, byte 1 is for player 2
 indoor_lvl_elevator_attr_tbl:
     .byte $00,$45
 
-; unused #$51 bytes out of #$4,000 bytes total (99.51% full)
+; unused #$51 bytes out of #$4000 bytes total (99.51% full)
 ; unused 81 bytes out of 16,384 bytes total (99.51% full)
 ; filled with 81 #$ff bytes by contra.cfg configuration
 bank_3_unused_space:

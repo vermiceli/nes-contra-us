@@ -1,13 +1,13 @@
-; Contra US Disassembly - v1.3
+; Contra US Disassembly - v1.4
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 7 is the core of the game's programming. Reset, NMI, and IRQ vectors are
 ; in this bank and is the entry point to the game.  Bank 7 is always loaded in
-; memory unlike other banks, which are memory-mapped and can be swapped out.
-; Bank 7 contains the code for drawing of nametables and sprites, bank
-; switching, routines for the intro sequence, controller input, score
-; calculation, graphics decompression routines, palette codes, collision
-; detection, pointer table for enemy routines, shared enemy logic, score table,
-; enemy attributes, and bullet angles and speeds, and the NES undocumented
+; memory unlike other banks, which are bank-switched and can be swapped out.
+; Bank 7 contains the code for drawing nametables and sprites, bank switching,
+; routines for the intro sequence, controller input, score calculation, graphics
+; decompression routines, palette codes, collision detection, pointer table for
+; enemy routines, shared enemy logic, score table, enemy attributes, and bullet
+; angles and speeds, and the NES undocumented
 ; footer, among other things.
 
 .segment "BANK_7"
@@ -151,7 +151,7 @@
 .import run_player_bullet_routines, check_player_fire
 
 ; export labels for use by other banks
-; labels need by bank 0
+; labels needed by bank 0
 ; - needed for enemy routines
 .export load_bank_3_update_nametable_supertile
 .export load_bank_3_update_nametable_tiles, load_palettes_color_to_cpu
@@ -220,14 +220,14 @@
 ; Every PRG ROM bank starts with a single byte specifying which number it is
 .byte $07 ; The PRG ROM bank number (7)
 
-; interrupt called when the NES starts up, or the reset button is pressed
+; entry point executed when the NES starts up, or the reset button is pressed
 reset_vector:
     cld ; disable decimal mode (NES chip 2A03 doesn't use decimal mode)
     sei ; disable interrupts
 
 wait_til_vblank:
     lda PPUSTATUS       ; read PPU status with the following bit layout -> VSO- ----
-    bpl wait_til_vblank ; Wait until V is 1 (accumulator is negative), i.e. in vertical blank VBLANK
+    bpl wait_til_vblank ; wait until PPUSTATUS bit 7 (VBLANK) becomes set, i.e. in vertical blank VBLANK
 
 vertical_blank_entry:
     lda PPUSTATUS            ; read PPU status with bit layout -> VSO- ----
@@ -292,7 +292,7 @@ forever_loop:
 ; The NES will automatically clear the screen so you do not have to worry about trying to clear it with code.
 ; The end of all the game code will end at RTI (return from interrupt).
 nmi_start:
-    php                                  ; push processor status to stack #$02 bytes (NV--DIZC)
+    php                                  ; push processor status to stack (NV--DIZC)
     pha                                  ; push A on to the stack
     txa                                  ; transfer X to A
     pha                                  ; push A on to the stack
@@ -342,7 +342,7 @@ remove_registers_from_stack_and_rti:
     tay ; store in y
     pla ; remove byte from stack
     tax ; store in x
-    pla ; remove byte stack
+    pla ; remove byte from stack
     plp ; set cpu flags from stack
 
 ; end of CPU code execution for the frame
@@ -377,7 +377,7 @@ handle_sounds_set_ppu_scroll_rti:
 
 ; initialize the audio processing unit
 ; NES APU has 5 channels, Contra uses 4 of them
-; * disable DMC (data modulation channel)
+; * disable DMC (delta modulation channel)
 ; * enable noise channel (static sound)
 ; * enable triangle channel (triangle wave)
 ; * enable pulse 1 channel (pulse wave)
@@ -420,7 +420,7 @@ set_ppu_addr_to_nametables:
 
 set_ppu_scroll:
     lda PPUSTATUS         ; clear bit 7 and address latch used by PPUSCROLL and PPUADDR
-    lda HORIZONTAL_SCROLL ; load horizontal component of the PPUSCROLL [#$0 - #$ff]
+    lda HORIZONTAL_SCROLL ; load horizontal component of the PPUSCROLL [#$00 - #$ff]
     sta PPUSCROLL         ; write X position
     lda VERTICAL_SCROLL
     sta PPUSCROLL         ; write Y position
@@ -538,11 +538,12 @@ init_APU_channels:
 ; nametable enemy explosions, animation (pill box sensor), etc.
 ; also used to draw palette colors for super-tiles
 ; input
-;  * a is x position of nametable super-tile in pixels
-;  * y is y position of nametable super-tile in pixels
+;  * a is X position of nametable super-tile in pixels
+;  * y is Y position of nametable super-tile in pixels
 ;  * $10 is the super-tile or palette index to draw (level_x_nametable_update_supertile_data/level_x_nametable_update_palette_data offset)
 ;   If bit 7 clear, then update palette, if bit 7 set do not update palette
 ; output
+;  * $12 - 2-byte PPU nametable collision address: $12 (low) and $13 (high)
 ;  * carry flag - clear when successful, set when CPU_GRAPHICS_BUFFER is full
 load_bank_3_update_nametable_supertile:
     sta $f3                        ; save a value before swapping banks
@@ -557,8 +558,8 @@ load_bank_3_update_nametable_supertile:
 ; load bank 3 and update_nametable_tiles
 ; indoor/base levels for drawing wall turrets, and changing to explosion when destroyed
 ; input
-;  * a is x position
-;  * y is y position
+;  * a is X position
+;  * y is Y position
 ;  * $10 (multiplied by #$05) is the index into the tile animation table to start drawing
 ;    if bit 7 clear, then update palette, if bit 7 set do not update palette
 ; output
@@ -672,7 +673,7 @@ game_routine_06:
     jsr load_bank_number     ; switch bank to y (04)
     jmp run_game_end_routine ; CPU address $b8b9
 
-; loads bank five and execute procedure to simulate player input for demo
+; loads bank 5 and executes procedure to simulate player input for demo
 simulate_input_for_demo:
     ldy #$05                  ; y = #$05
     jsr load_bank_number      ; switch bank to y (05)
@@ -716,7 +717,7 @@ game_routine_00:
     jsr zero_out_nametables         ; initialize nametables 0 and 1 to zeroes
     jsr load_intro_graphics         ; load the graphic data (pattern, nametable, and palette) to ppu, as well as palette data to cpu
     ldy #$00                        ; y = #$00
-    sty KONAMI_CODE_NUM_CORRECT     ; initialize konami check to #$0 (see konami_input_check)
+    sty KONAMI_CODE_NUM_CORRECT     ; initialize konami check to #$00 (see konami_input_check)
 .ifdef Probotector
     sty HORIZONTAL_SCROLL           ; initialize the horizontal scroll offset to #$00
     ldy #$02
@@ -734,7 +735,7 @@ game_routine_00:
     jmp inc_routine_index_set_timer ; move to game_routine_01
 .endif
 
-; table for y positions of intro screen cursor
+; table for Y positions of intro screen cursor
 ; same table is used for "CONTINUE"/"END" screen during game over
 player_select_cursor_pos:
 .ifdef Probotector
@@ -759,7 +760,7 @@ game_routine_01:
     inc GAME_ROUTINE_INIT_FLAG               ; mark game routine as initialized
     rts                                      ; exit
 .else
-    lda HORIZONTAL_SCROLL                    ; load horizontal component of the PPUSCROLL [#$0 - #$ff]
+    lda HORIZONTAL_SCROLL                    ; load horizontal component of the PPUSCROLL [#$00 - #$ff]
     beq game_routine_01_scroll_complete      ; if scroll complete, show Bill and Lance and play sound
     inc HORIZONTAL_SCROLL                    ; add 1 to the horizontal scroll offset
     bne game_routine_01_exit                 ; if scrolling animation isn't complete, continue scrolling next frame
@@ -770,30 +771,30 @@ game_routine_01:
 ; move to next game_routine once timer elapses
 game_routine_01_scroll_complete:
 .ifdef Probotector
-    lda #$58                       ; a = #$58 (x position of cursor in intro)
+    lda #$58                       ; a = #$58 (X position of cursor in intro)
 .else
-    lda #$2c                       ; a = #$2c (x position of cursor in intro)
+    lda #$2c                       ; a = #$2c (X position of cursor in intro)
 .endif
-    sta SPRITE_X_POS               ; store x position of cursor for player select (first sprite)
+    sta SPRITE_X_POS               ; store X position of cursor for player select (first sprite)
     lda #$aa                       ; sprite_aa: player selector cursor (yellow falcon)
     sta CPU_SPRITE_BUFFER          ; store sprite number in CPU buffer
     ldx PLAYER_MODE                ; number of players (0 = 1 player)
-    lda player_select_cursor_pos,x ; load y position of cursor for player select
-    sta SPRITE_Y_POS               ; store y position of cursor for player select
+    lda player_select_cursor_pos,x ; load Y position of cursor for player select
+    sta SPRITE_Y_POS               ; store Y position of cursor for player select
     lda #$00                       ; a = #$00
     sta SPRITE_ATTR                ; reset sprite effect for player
     lda #$ab                       ; sprite_ab: Bill and Lance's hair and shirt
     sta CPU_SPRITE_BUFFER+1        ; store next sprite to load
 .ifdef Probotector
-    lda #$80                       ; a = #$80 (x position for sprite_ab)
-    sta SPRITE_X_POS+1             ; store x position for sprite_ab
-    lda #$5f                       ; a = #$5f (y position for sprite_ab)
-    sta SPRITE_Y_POS+1             ; store y position for sprite_ab
+    lda #$80                       ; a = #$80 (X position for sprite_ab)
+    sta SPRITE_X_POS+1             ; store X position for sprite_ab
+    lda #$5f                       ; a = #$5f (Y position for sprite_ab)
+    sta SPRITE_Y_POS+1             ; store Y position for sprite_ab
 .else
-    lda #$b3                       ; a = #$b3 (x position for sprite_ab)
-    sta SPRITE_X_POS+1             ; store x position for sprite_ab
-    lda #$77                       ; a = #$77 (y position for sprite_ab)
-    sta SPRITE_Y_POS+1             ; store y position for sprite_ab
+    lda #$b3                       ; a = #$b3 (X position for sprite_ab)
+    sta SPRITE_X_POS+1             ; store X position for sprite_ab
+    lda #$77                       ; a = #$77 (Y position for sprite_ab)
+    sta SPRITE_Y_POS+1             ; store Y position for sprite_ab
 .endif
     jsr decrement_delay_timer      ; decrease delay and check if it reaches 0
     bne game_routine_01_exit       ; timer not complete, wait
@@ -804,8 +805,8 @@ game_routine_01_exit:
 
 ; The 3rd game routine (see game_routine_pointer_table)
 ;  * loads demo level and plays the level
-;  * stops level when demo timer elapsed and loads next level to demo (only levels 0-2)
-;  * resets GAME_ROUTINE_INDEX to #$0 between demo levels to reshow intro scroll and player select
+;  * stops level when demo timer has elapsed and loads next level to demo (only levels 0-2)
+;  * resets GAME_ROUTINE_INDEX to #$00 between demo levels to reshow intro scroll and player select
 game_routine_02:
     ldx GAME_ROUTINE_INIT_FLAG ; determine if game routine has been "initialized"
     bne @continue              ; if GAME_ROUTINE_INIT_FLAG is already 1, no need to load level, continue with demo level
@@ -898,11 +899,11 @@ set_game_routine_index_to_a:
 decrement_delay_timer:
     lda DELAY_TIME_LOW_BYTE  ; load the low byte of the delay timer
     ora DELAY_TIME_HIGH_BYTE ; OR it together with high byte
-    beq @exit                ; all bits both high and low byte are #$0, exit with #$0 in a register, zero flag set
+    beq @exit                ; all bits both high and low byte are #$0, exit with #$00 in a register, zero flag set
     dec DELAY_TIME_LOW_BYTE  ; decrease delay (loops below #$00 to #$ff)
     bne @exit                ; low byte isn't #$0, exit with zero flag clear
     lda DELAY_TIME_HIGH_BYTE ; low byte was #$0, check high byte
-    beq @exit_z_flag_clear   ; high byte is #$0 as well, exit with #$01 in a register, zero flag clear
+    beq @exit_z_flag_clear   ; high byte is #$00 as well, exit with #$01 in a register, zero flag clear
     dec DELAY_TIME_HIGH_BYTE ; high byte wasn't #$0, subtract 1 from it
 
 @exit_z_flag_clear:
@@ -913,15 +914,15 @@ decrement_delay_timer:
 
 ; set or reset delay before demo begins
 ; only if the intro screen is forced by pressing start/select
-; NTSC is about #3c frames per second
+; NTSC is about #$3c frames per second
 ; PAL is close to #$32 frames per second
-; delay timer is strange in that once the high byte goes from #$01 to #$00, the low byte isn't rest to #$ff
+; delay timer is strange in that once the high byte goes from #$01 to #$00, the low byte isn't reset to #$ff
 ; this means that although the timer is set to #$0240, the delay is only ~5 seconds (#$140 frames) and not ~9 seconds
 reset_delay_timer:
     ldx #$40
     stx DELAY_TIME_LOW_BYTE  ; set low byte of timer to #$40
     ldx #$02
-    stx DELAY_TIME_HIGH_BYTE ;set high byte of timer to #$02
+    stx DELAY_TIME_HIGH_BYTE ; set high byte of timer to #$02
     rts
 
 ; checks if current input is part of Kazuhisa Hashimoto's famous Konami code (30-lives code)
@@ -975,10 +976,10 @@ ensure_input_valid:
 
 @continue:
     dex
-    bpl ensure_input_valid ; move from p1 to p1 and ensure p1's input is valid
+    bpl ensure_input_valid ; move from p2 to p1 and ensure p1's input is valid
     lda PLAYER_MODE_1D     ; see player_mode_1d_table (#$01 or #$07)
     and #$04               ; see if 2 player or single player (#$07 will have #$04 bit set)
-    bne write_input        ; jump to store input to cpu memory if 2 player (PLAYER_MODE = #$01)
+    bne write_input        ; jump to store input to CPU memory if 2 player (PLAYER_MODE_1D = #$07)
     lda $04                ; single player mode, merge both controller inputs into single input
                            ; this allows the player to play 1 player with the 2nd controller port
                            ; or even have both players play as the same character!
@@ -997,7 +998,7 @@ set_player_input:
     eor CTRL_KNOWN_GOOD,x       ; find the differences between previous known-good input and new input
     and $04,x                   ; set a to only have differences in input between last known-good and new input
     sta CONTROLLER_STATE_DIFF,x ; store input differences value into memory
-    sty CONTROLLER_STATE,x      ; store new known-good input into $f1
+    sty CONTROLLER_STATE,x      ; store new known-good input into CONTROLLER_STATE,x
     sty CTRL_KNOWN_GOOD,x       ; store new known-good input into CTRL_KNOWN_GOOD (used only for controller input code)
     dex                         ; move from player 2 to player 1
     bpl set_player_input        ; read player 1 input
@@ -1038,7 +1039,7 @@ read_controller_button:
     ora $07                    ; or the original value with the shifted value
                                ; this is essentially also checking if bit 1 (Famicom expansion port controller) is set
     lsr                        ; move bit representing whether the button is pressed to the carry flag
-    rol $05                    ; shift carry flag (button input flag) onto player 1 controller input bit-field
+    rol $05                    ; shift carry flag (button input flag) onto player 2 controller input bit-field
                                ; $05 by pushing the button state bit to the next bit
     dey                        ; decrement button loop counter
     bne read_controller_button ; loop to see if next button is pressed
@@ -1056,7 +1057,7 @@ dec_theme_delay_check_user_input:
     cpx #$01                                 ; check if showing intro animation scroll (in game_routine_01)
     bne stop_demo_load_player_select_UI      ; branch if not in game_routine_01 (scrolling intro screen) to stop demo and show player select UI
     ldx HORIZONTAL_SCROLL                    ; player pressed start, skip scrolling animation and load player select UI
-                                             ; load horizontal component of the PPUSCROLL [#$0 - #$ff]
+                                             ; load horizontal component of the PPUSCROLL [#$00 - #$ff]
     bne load_intro_palette2_play_intro_sound ; if intro animation scroll wasn't complete, load graphics palette and play intro theme
     and #$20                                 ; see if select button is pressed
     bne player_mode_change                   ; if select was pressed, update the cursor to point to either 1 PLAYER or 2 PLAYERS
@@ -1109,9 +1110,9 @@ load_intro_palette2_play_intro_sound:
 dec_intro_theme_delay:
     lda FRAME_COUNTER     ; load frame counter
     and #$01              ; only care about least significant bit
-    bne timer_exit        ; if last bit is not 0 (even frame), jump to timer_exit
+    bne timer_exit        ; if last bit is not 0 (odd frame), jump to timer_exit
     lda INTRO_THEME_DELAY
-    beq timer_exit        ; if INTRO_THEME_DELAY is #$0 then jump to timer_exit
+    beq timer_exit        ; if INTRO_THEME_DELAY is #$00 then jump to timer_exit
     dec INTRO_THEME_DELAY ; decrement from delay
     rts                   ; exit
 
@@ -1154,7 +1155,7 @@ clear_score_byte:
     dex
     bpl clear_score_byte
     sta DEMO_MODE                 ; ensure demo mode is #$00 (not in demo mode)
-    sta P1_GAME_OVER_STATUS       ; set game over status for p1 to #$0 (not in game over state)
+    sta P1_GAME_OVER_STATUS       ; set game over status for p1 to #$00 (not in game over state)
     ldx PLAYER_MODE               ; load number of players #$00 is 1 player, #$01 is 2 player
     lda player_mode_1d_table,x    ; #$01 for 1 player, #$07 for 2 player
     sta PLAYER_MODE_1D
@@ -1162,7 +1163,7 @@ clear_score_byte:
     sta P2_GAME_OVER_STATUS       ; set to 1 when 1 player game; set to 0 if 2 players are playing
 
 init_player_lives:
-    lda #$02                  ; start of with #$02 lives
+    lda #$02                  ; start off with #$02 lives
     ldy KONAMI_CODE_STATUS    ; 30-lives code switch ($01 = code activated)
     beq init_player_num_lives ; if KONAMI_CODE_STATUS is not set, then just set 2 lives
     lda #$1d                  ; KONAMI_CODE_STATUS active so set lives to #$1d (29 decimal)
@@ -1172,7 +1173,7 @@ init_player_lives:
 init_player_num_lives:
     sta P1_NUM_LIVES,x          ; if X is 1, then set P2_NUM_LIVES to accumulator (a is either #$02 or #$1d)
     dex                         ; decrement player number
-    bpl init_player_lives       ; if more another player to set score, jump
+    bpl init_player_lives       ; if another player to set score, jump
     lda #$c8                    ; set default high score. #$c8 is 200 decimal
     sta EXTRA_LIFE_SCORE_LOW    ; starting score for extra life (20,000)
     sta EXTRA_LIFE_SCORE_HIGH+1 ; player 2 default score for extra life
@@ -1182,7 +1183,7 @@ init_player_num_lives:
     rts
 
 ; a lookup of whether 1 player game or 2 player game
-; first byte #$00 is when PLAYER_MODE = #$00 (1 player)
+; first byte #$01 is when PLAYER_MODE = #$00 (1 player)
 ; second byte #$07 is when PLAYER_MODE = #$01 (2 player)
 player_mode_1d_table:
     .byte $01,$07
@@ -1229,23 +1230,26 @@ clear_memory_starting_at_x:
 add_player_score_exit:
     rts
 
-; add enemy points to player score in memory
+; adds point value from $00 to player score in memory
 ; determines if extra life is awarded and awards if necessary
 ; determines if high score is met and updates if necessary
-; y is player number: either $00 (player 1) or $01 (player 2)
-; $00 (low byte) and $01 (high byte) contain the score to add
-; $01 is always #$00
+; exits if in demo mode
+; input
+;  * $00 - score to add
+;  * y - player index (0 = p1, 1 = p2)
 add_player_low_score:
     lda DEMO_MODE             ; #$00 not in demo mode, #$01 demo mode on
     bne add_player_score_exit ; exit when in demo mode
     lda #$00                  ; a = #$00
     sta $01                   ; set high byte of score to #$00
 
-; add enemy points to player score in memory
+; adds 2-byte point value to player score in memory
 ; determines if extra life is awarded and awards if necessary
 ; determines if high score is met and updates if necessary
-; y is player number: either $00 (player 1) or $01 (player 2)
-; $00 (low byte) and $01 (high byte) contain the score to add
+; input
+;  * $00 - low byte of score to add
+;  * $01 - high byte of score to add
+;  * y - player index (0 = p1, 1 = p2)
 add_player_score:
     tya                       ; transfer player number to a
     sta $02                   ; store player number in $02
@@ -1255,7 +1259,7 @@ add_player_score:
     adc PLAYER_1_SCORE_LOW,y  ; add low byte of score to add to player score (low byte)
     sta PLAYER_1_SCORE_LOW,y  ; store updated player score (low byte)
     lda $01                   ; load high byte of score to add to player score (always #$00 or #$50)
-    adc PLAYER_1_SCORE_HIGH,y ; add high byte of score to add to player score (high byte)
+    adc PLAYER_1_SCORE_HIGH,y ; add high byte of score to add to player score (high byte) (with carry)
     bcc @continue             ; continue if no overflow occurred
     lda #$ff                  ; overflow occurred in high byte, player maxed out score set low byte to #$ff
     sta PLAYER_1_SCORE_LOW,y  ; player score (low byte)
@@ -1305,7 +1309,7 @@ add_player_score:
     ldx $02                     ; load the player number
     inc P1_NUM_LIVES,x          ; if X is $01, then set P2 number of lives
     lda P1_NUM_LIVES,x          ; load incremented number into memory
-    cmp #$63                    ; compare to #$99 lives
+    cmp #$63                    ; compare to #$63 (99 decimal)
     bcc @set_num_lives          ; can't have more than 99 lives
     lda #$63                    ; a = #$63 (63 = 99 decimal)
 
@@ -1314,16 +1318,16 @@ add_player_score:
     lda $01
     bne @set_if_new_high_score ; don't play sound for special #$a0 score code
     lda #$20                   ; a = #$20 (sound_20)
-    jsr play_sound             ; play extra life sound sound
+    jsr play_sound             ; play extra life sound
 
 @set_if_new_high_score:
     lda PLAYER_1_SCORE_HIGH,y ; player score (high byte)
     cmp HIGH_SCORE_HIGH       ; high score (high byte)
-    bcc score_exit            ; exit if no need to update high score score
-    bne @set_high_score       ; high byte high score is greater, update high score score
+    bcc score_exit            ; exit if no need to update high score
+    bne @set_high_score       ; high byte of high score is greater, update high score
     lda PLAYER_1_SCORE_LOW,y  ; player score (low byte)
     cmp HIGH_SCORE_LOW        ; high score (low byte)
-    bcc score_exit            ; don't update high score score if player score isn't bigger than high score
+    bcc score_exit            ; don't update high score if player score isn't bigger than high score
 
 @set_high_score:
     lda PLAYER_1_SCORE_LOW,y  ; load player score low byte
@@ -1338,13 +1342,14 @@ score_exit:
 ; nametable enemy explosions, animation (pill box sensor), etc.
 ; also used to draw palette colors for super-tiles
 ; input
-;  * a is x position of nametable super-tile in pixels
-;  * y is y position of nametable super-tile in pixels
+;  * a is X position of nametable super-tile in pixels
+;  * y is Y position of nametable super-tile in pixels
 ;  * $10 is the super-tile or palette index to draw (level_x_nametable_update_supertile_data/level_x_nametable_update_palette_data offset)
 ; output
+;  * $12 - 2-byte PPU nametable collision address: $12 (low) and $13 (high)
 ;  * carry flag - clear when successful, set when CPU_GRAPHICS_BUFFER is full
 update_nametable_supertile:
-    sta $11                      ; store the x position (in pixels) of the location to redraw the nametable in $11 (except bit 7)
+    sta $11                      ; store the X position (in pixels) of the location to redraw the nametable in $11 (except bit 7)
     lda GRAPHICS_BUFFER_OFFSET   ; read current offset
     cmp #$40                     ; see if graphics buffer is already full
     bcs score_exit               ; exit if offset is greater than or equal to #$40
@@ -1366,7 +1371,7 @@ update_nametable_supertile:
     sta $16                               ; store in $16
     lda nametable_update_data_ptr_tbl+1,y ; load high byte of super-tile data address
     sta $17                               ; store in $17
-    lda $0f                               ; determines if need to update the palette (#$00 meaning palette update is required, and needs to be added to CPU_GRAPHICS_BUFFER)
+    lda $0f                               ; determines if palette needs to be updated (#$00 = update required, add palette to CPU_GRAPHICS_BUFFER)
     bne write_update_supertile_to_cpu     ; go ahead and write the entire new super-tile bytes to the CPU_GRAPHICS_BUFFER, with no palette update instructions
     lda nametable_update_data_ptr_tbl+2,y ; need to update palette, prep to write to CPU_GRAPHICS_BUFFER. load low byte of palette data address
     sta $0e                               ; store low byte in $0e
@@ -1392,13 +1397,13 @@ write_update_supertile_to_cpu:
     rol $11
     asl
     rol $11
-    adc $16                   ; add to nametable_update_data_ptr_tbl high byte
+    adc $16                   ; add to nametable_update_data_ptr_tbl low byte
     sta $16                   ; PPU write address low byte
     lda $11                   ; load any overflow
     adc $17                   ; add to high byte of level_x_nametable_update_supertile_data offset
     sta $17                   ; PPU write address high byte
     lda #$01
-    sta CPU_GRAPHICS_BUFFER,x ; set VRAM address increment to 0, meaning to add #$1 every write to PPU (write horizontally)
+    sta CPU_GRAPHICS_BUFFER,x ; set VRAM address increment to 0, meaning to add #$01 every write to PPU (write horizontally)
     inx
     lda #$04                  ; a super-tile is 4 rows of 4 pattern table tiles, set pattern table tile size to #$04
     sta $14                   ; CPU_GRAPHICS_BUFFER graphic data group size
@@ -1543,11 +1548,11 @@ update_supertile_palette:
 
 @update_palette_continue:
     lda $01                        ; load updated palette update mode (#$00 = 2 horizontally, #$01 = 2 vertically, #$02 = 4 (2x2))
-    asl                            ; double since to determine how many super-tile palettes are being updated
+    asl                            ; double to determine how many super-tile palettes are being updated
     tay                            ; transfer number of super-tiles to update to offset register
     ldx GRAPHICS_BUFFER_OFFSET     ; load current offset into graphics buffer
     lda #$01                       ; a = #$01
-    sta CPU_GRAPHICS_BUFFER,x      ; set VRAM address increment to 0, meaning to add #$1 every write to PPU (write across)
+    sta CPU_GRAPHICS_BUFFER,x      ; set VRAM address increment to 0, meaning to add #$01 every write to PPU (write across)
     inx                            ; increment graphics buffer offset
     lda update_palette_cfg_tbl,y   ; load how many tiles to draw per graphics group
     sta CPU_GRAPHICS_BUFFER,x      ; set how many pattern table tiles to draw per group
@@ -1601,7 +1606,7 @@ update_palette_cfg_tbl:
     .byte $02,$02
 
 ; bank 3 offsets
-; pointer table for nametable super-tile nametable and palettes ($12 * $02 = $24 bytes)
+; pointer table for super-tile nametable and palette data ($12 * $02 = $24 bytes)
 ; 2 pointers per level.
 ;  * pointer 1: super-tile tile definitions
 ;  * pointer 2: palette codes for the super-tile, values ultimately end up in attribute table
@@ -1629,7 +1634,7 @@ nametable_update_data_ptr_tbl:
 update_nametable_tiles_exit:
     rts
 
-; updates #$02 columns of n rows (default #$02) of a nametable at position (a,y) with desired pattern table tiles
+; updates #$02 columns of n rows (default #$02) of a nametable at position (a,y) with desired pattern table tiles specified by $10
 ; bank 3 should be loaded
 ; input
 ;  * a is ENEMY_X_POS
@@ -1641,13 +1646,14 @@ update_nametable_tiles_exit:
 ; for example, indoor/base levels for drawing wall turrets, and changing to explosion when destroyed
 ; claw animations, etc.
 update_nametable_tiles:
-    sta $11                              ; store enemy x position in $11
+    sta $11                              ; store enemy X position in $11
     lda GRAPHICS_BUFFER_OFFSET           ; load current GRAPHICS_BUFFER_OFFSET
     cmp #$50                             ; GRAPHICS_BUFFER_OFFSET goes from $700 to $750
     bcs update_nametable_tiles_exit      ; graphics buffer full, exit
     jsr set_ppu_addresses_in_mem         ; determines attribute table PPU address, $14 (low) and $15 (high)
                                          ; determines PPU nametable write address, $0c (low) and $0d (high)
                                          ; for x ($11), y (y) coordinates
+                                         ; sets whether palette should be updated ($0f)
     lda $10                              ; load the current level's super-tile read offset ($16 read offset)
     asl
     asl
@@ -1660,11 +1666,11 @@ update_nametable_tiles:
     sta $16                              ; store the address low byte
     lda level_tile_animation_ptr_tbl+1,x ; load the address high byte
     sta $17                              ; store the address high byte
-    ldx #$02                             ; default to two tiles per read
+    ldx #$02                             ; default update two rows of two tiles
     lda ($16),y                          ; read first byte of tile animation table
                                          ; #$00 means to update #$02 rows of #$02 pattern table tiles each row
     bpl @continue                        ; if the msb is not set draw default number of rows (#$02), jump
-    and #$07                             ; first bit set, mask its least significant 3 bits to see how many rows to draw
+    and #$07                             ; bit 7 set, mask byte's least significant 3 bits to see how many rows to draw
     tax
 
 @continue:
@@ -1672,7 +1678,7 @@ update_nametable_tiles:
                                 ; store masked first byte of ($16) if its msb was set, otherwise store #$02
     ldx GRAPHICS_BUFFER_OFFSET  ; load current GRAPHICS_BUFFER_OFFSET
     lda $0f                     ; loads whether palette needs to be updated (#$00 = yes, #$80 = no)
-    bne @update_nametable_tiles ; branch if $0f is #$80
+    bne @update_nametable_tiles ; branch if palette doesn't need to be updated
     lda ($16),y                 ; palette needs to be updated, re-read first byte of tile animation table
     sty $0e                     ; store update tile offset in $0e
     ldy $00                     ; load palette update mode (#$01 = 2 horizontally, #$02 = 2 vertically, #$03 = 4 (2x2))
@@ -1710,7 +1716,7 @@ update_nametable_tiles:
 
 ; specifies VRAM address increment, # of tiles groups and size of tile group
 @update_nametable_tiles:
-    iny
+    iny                       ; increment level_x_tile_animation read offset
     lda #$01                  ; set VRAM address increment to 1 (write across)
     sta CPU_GRAPHICS_BUFFER,x
     inx
@@ -1723,34 +1729,35 @@ update_nametable_tiles:
 
 ; specifies PPU write address in CPU_GRAPHICS_BUFFER
 ; specifies #$02 pattern table tiles per row
-prep_overwrite_nametable_tiles:
+@write_tiles:
     lda #$02                  ; a = #$02
     sta $15                   ; set number of tiles in each group in CPU_GRAPHICS_BUFFER
-    lda $0d                   ; load low byte of PPU write address
-    sta CPU_GRAPHICS_BUFFER,x ; store low byte of PPU write address
-    inx                       ; increment PPU write offset
-    lda $0c                   ; load PPU tile write address high byte
+    lda $0d                   ; load high byte of PPU write address
     sta CPU_GRAPHICS_BUFFER,x ; store high byte of PPU write address
+    inx                       ; increment PPU write offset
+    lda $0c                   ; load PPU tile write address low byte
+    sta CPU_GRAPHICS_BUFFER,x ; store low byte of PPU write address
     inx                       ; increment CPU_GRAPHICS_BUFFER write offset
 
-write_overwrite_tile_to_cpu_buffer:
-    lda ($16),y                            ; read tile from tile_animation_ptr data
-    sta CPU_GRAPHICS_BUFFER,x              ; write tile to CPU_GRAPHICS_BUFFER
-    inx                                    ; increment CPU_GRAPHICS_BUFFER offset
-    iny                                    ; increment tile_animation_ptr read offset
-    dec $15                                ; decrement tile read total
-    bne write_overwrite_tile_to_cpu_buffer ; if we aren't done writing tiles, loop
-    lda $0c                                ; load the low byte PPU write address
-    clc                                    ; clear any previous carry
-    adc #$20                               ; move next write address down by a row on the nametable (same column)
-    sta $0c                                ; store updated PPU tile write address for next loop
-    lda $0d                                ; load current PPU tile write address high byte
-    adc #$00                               ; if there was a carry adding the #$20 to the low byte, add it to the high byte
-    sta $0d                                ; store updated PPU tile write address for next loop
-    dec $14                                ; finished writing tile group to CPU_GRAPHICS_BUFFER, move to next group of overwrite tiles
-    bne prep_overwrite_nametable_tiles     ; loop to next set of tiles to write to CPU_GRAPHICS_BUFFER
-    stx GRAPHICS_BUFFER_OFFSET             ; ensure graphics buffer offset is up to date
-    clc                                    ; clear any carry
+@write_row_tiles:
+    lda ($16),y                ; read tile from level_x_tile_animation data
+    sta CPU_GRAPHICS_BUFFER,x  ; write tile to CPU_GRAPHICS_BUFFER
+    inx                        ; increment CPU_GRAPHICS_BUFFER offset
+    iny                        ; increment level_x_tile_animation read offset
+    dec $15                    ; decrement tile read/write total for row
+    bne @write_row_tiles       ; if we aren't done writing tiles, loop
+    lda $0c                    ; load the low byte PPU write address
+    clc                        ; clear any previous carry
+    adc #$20                   ; move next write address down by a row on the nametable (same column)
+    sta $0c                    ; store updated PPU tile write address for next loop
+    lda $0d                    ; load current PPU tile write address high byte
+    adc #$00                   ; if there was a carry adding the #$20 to the low byte, add it to the high byte
+    sta $0d                    ; store updated PPU tile write address for next loop
+    dec $14                    ; finished writing 2 tiles to CPU_GRAPHICS_BUFFER
+                               ; move down to next 2 tiles if more rows to draw
+    bne @write_tiles           ; loop to next set of tiles to write to CPU_GRAPHICS_BUFFER
+    stx GRAPHICS_BUFFER_OFFSET ; ensure graphics buffer offset is up to date
+    clc                        ; clear any carry
     rts
 
 ; bank 3 labels
@@ -1785,33 +1792,33 @@ palette_mask_tbl:
     .byte $cf ; 1100 1111
     .byte $3f ; 0011 1111
 
-; determines ppu nametable and attribute table addresses for given x, y coordinate
+; determines ppu nametable and attribute table addresses for given X, Y coordinate
 ; input
 ;  * $10 - super-tile to draw, bit 7 used to load $0f (palette update marker)
 ;    (level_x_nametable_update_supertile_data/level_x_nametable_update_palette_data offset)
 ;    if bit 7 clear, then update palette, if bit 7 set do not update palette
-;  * $11 - x offset
-;  * y - y offset
+;  * $11 - X offset
+;  * y - Y offset
 ; output
-;  * PPU nametable write address: $0c (low) and $0d (high)
-;  * PPU nametable collision address: $12 (low) and $13 (high)
+;  * $0c -2-byte PPU nametable write address: $0c (low) and $0d (high)
+;  * $12 - 2-byte PPU nametable collision address: $12 (low) and $13 (high)
 ;    * used for nametable collision removal
 ;    * always same as $0c and $0d
-;  * PPU attribute table write address: $14 (low) and $15 (high)
+;  * $14 - 2-byte PPU attribute table write address $14 (low) and $15 (high)
 ;  * $00 - if set, then branch update_supertile_palette is executed
 ;    palette update modes (#$01 = 2 horizontally, #$02 = 2 vertically, #$03 = 4 (2x2))
 ;  * $10 - same as input but with bit 7 stripped
 ;  * $02 - super-tile index at location (level_x_supertiles_screen_xx offset)
-;  * $0f - #$00 if palette needs to be updated, #$80 otherwise
+;  * $0f - #$00 if palette needs to be updated, #$80 if it doesn't
 set_ppu_addresses_in_mem:
     lda $10             ; load super-tile to draw
                         ; (offset into level_x_nametable_update_supertile_data/level_x_nametable_update_palette_data offset)
     and #$80            ; keep most significant bit (palette update flag)
-    sta $0f             ; if #$00, then mark palette to updated as well as super-tile, #$80 means do not update palette
+    sta $0f             ; if #$00, then mark palette to be updated as well as super-tile, #$80 means do not update palette
     lda $10             ; re-load super-tile to draw
     and #$7f            ; trim off most significant bit (palette update flag)
     sta $10             ; save updated super-tile to draw
-    tya                 ; transfer y offset to a
+    tya                 ; transfer Y offset to a
     clc                 ; clear carry in preparation for addition
     adc VERTICAL_SCROLL ; add vertical scroll offset to y pixel offset, e.g. #$e0 (224 pixels/28 tiles) for outdoor levels
     bcs @round_up       ; branch if an overflow occurred to continue
@@ -1839,10 +1846,10 @@ set_ppu_addresses_in_mem:
     asl $12               ; PPU nametable address low byte
     rol                   ; moves any carry from previous asl to bit 0
     sta $13               ; set PPU nametable address high byte
-    lda $11               ; load x offset in pixels
+    lda $11               ; load X offset in pixels
     clc                   ; clear carry in preparation for addition
-    adc HORIZONTAL_SCROLL ; add the horizontal scroll to the x position
-    sta $11               ; update x offset to include horizontal scroll
+    adc HORIZONTAL_SCROLL ; add the horizontal scroll to the X position
+    sta $11               ; update X offset to include horizontal scroll
     lda PPUCTRL_SETTINGS  ; pull part of base nametable address, used to determine high byte for nametable and attribute table
     and #$01              ; keep least significant bit (nametable base address 0 = $2000; 1 = $2400)
     bcc @continue         ; branch if no carry occurred on adc
@@ -1853,13 +1860,13 @@ set_ppu_addresses_in_mem:
     lda attribute_base_high_byte,y       ; grab byte used to determine attribute table PPU address
     ora #$03                             ; ensure smallest 2 bits always set (.... ..xx)
     sta $15                              ; set PPU attribute table write address high byte
-    lda nametable_base_high_byte,y       ; grab byte used to determine nametable PPU  address
+    lda nametable_base_high_byte,y       ; grab byte used to determine nametable PPU address
     ora $13                              ; merge with value already in $13
     sta $13                              ; set PPU nametable collision address high byte
     sta $0d                              ; store PPU write address high byte
     lda level_screen_mem_offset_tbl_00,y ; load the base offset from LEVEL_SCREEN_SUPERTILES ($0600 or $0640)
     sta $02                              ; set base level screen supertile offset $0600 for nametable 0, $0640 for nametable 1
-    lda $11                              ; load x offset in pixels including horizontal scroll
+    lda $11                              ; load X offset in pixels including horizontal scroll
     and #$f8                             ; keep bits xxxx x...
     lsr
     lsr
@@ -1889,7 +1896,7 @@ set_ppu_addresses_in_mem:
 ; creates CPU_GRAPHICS_BUFFER entry to specify writing one byte to PPU
 ; at PPU address specified by $14 (low PPU write address) and $15 (high PPU write address)
 set_graphics_buffer_header:
-    lda #$01                  ; set VRAM address increment to 0, meaning to add #$1 every write to PPU (write horizontally)
+    lda #$01                  ; set VRAM address increment to 0, meaning to add #$01 every write to PPU (write horizontally)
     sta CPU_GRAPHICS_BUFFER,x
     inx
     sta CPU_GRAPHICS_BUFFER,x ; writing #$01-byte long groups of tiles
@@ -1897,10 +1904,10 @@ set_graphics_buffer_header:
     sta CPU_GRAPHICS_BUFFER,x ; writing #$01 group of #$01 byte tiles, i.e. writing #$01 tile total
     inx
     lda $15
-    sta CPU_GRAPHICS_BUFFER,x ; set PPU write address low byte to $15
+    sta CPU_GRAPHICS_BUFFER,x ; set PPU write address high byte to $15
     inx
     lda $14
-    sta CPU_GRAPHICS_BUFFER,x ; set PPU write address high byte to $14
+    sta CPU_GRAPHICS_BUFFER,x ; set PPU write address low byte to $14
     inx
     rts
 
@@ -1930,7 +1937,7 @@ bank_7_unused_label_00:
     stx $00
     sty $01
 
-; Calculate next digit of the score and put $02 and A register
+; calculates next digit of the score and puts into $02
 ;
 ; This logic converts from a binary to decimal, decimal digit by
 ; decimal digit by left shifting and keeping track of when the right-most digit
@@ -1942,24 +1949,25 @@ bank_7_unused_label_00:
 ; 5, and store 2 into memory for the last call. On the final call, 2 is returned
 ; and 0 is stored, letting the calling code know the score is finished.
 ;
-; CPU Memory used
-; 0x00 - low byte of the current score being calculated
-; 0x01 - high byte of the current score being calculated
-; 0x02 - the next decimal digit to display
-; 0x03 - hard-coded 10 in decimal
+; input
+;  * $00 - low byte of the current score being calculated
+;  * $01 - high byte of the current score being calculated
+;  * $03 - hard-coded 10 in decimal
+; output
+;  * $02 - the next decimal digit to display
 calculate_score_digit:
     lda #$00 ; set the accumulator register A to zero (#$00)
     sta $02  ; zero out any previously calculated digit
     ldy #$10 ; set the left-shift loop counter back to #$10 (16 decimal)
     rol $00  ; shift the score low byte to the left by one bit
              ; push the most significant bit (msb) to the carry flag
-    rol $01  ; shift the score high byte to the left by one byte
+    rol $01  ; shift the score high byte to the left by one bit
              ; push the msb to the carry flag
              ; pull in carry flag to least significant bit (lsb)
 
 shift_and_check_digit_carry:
-    rol $02 ; shift score high byte to the left by one bit
-            ; if the msb of the score high byte was 1, then carry into lsb
+    rol $02 ; shift digit accumulator to the left by one bit
+            ; carry from score high byte ($01) is rotated into lsb of digit accumulator
     lda $02 ; load current digit into the accumulator register A
     cmp $03 ; compare #$0a (10 decimal) to the current digit
 
@@ -1986,6 +1994,7 @@ continue_shift_score:
 
 ; advance 2-byte read address $00,x by a bytes
 ; input
+;  * $00 - 2 byte graphic read address
 ;  * a - the amount to add to the graphic read address
 ;  * x - the absolute index offset from $00 where the 2-byte read address exists, i.e. $00,x
 advance_graphic_read_addr:
@@ -2005,7 +2014,7 @@ advance_graphic_read_addr:
     adc $00,x                 ; flip all bits add 1 to handle overflow
     sta $00,x                 ; store result back in $00,x
     bcs @handle_overflow_exit
-    dec $01,x                 ; decrement high bight
+    dec $01,x                 ; decrement high byte
 
 @handle_overflow_exit:
     rts
@@ -2060,8 +2069,8 @@ load_level_graphic_data:
 level_graphic_data_tbl:
     .addr level_1_graphic_data      ; level 1 - CPU address $c8fd
     .addr level_2_graphic_data      ; level 2 - CPU address $c905
-    .addr level_3_graphic_data      ; level 4 - CPU address $c916
-    .addr level_4_graphic_data      ; level 3 - CPU address $c90d
+    .addr level_3_graphic_data      ; level 3 - CPU address $c916
+    .addr level_4_graphic_data      ; level 4 - CPU address $c90d
     .addr level_5_graphic_data      ; level 5 - CPU address $c91e
     .addr level_6_graphic_data      ; level 6 - CPU address $c926
     .addr level_7_graphic_data      ; level 7 - CPU address $c92e
@@ -2242,9 +2251,11 @@ graphic_data_ptr_tbl:
 
 ; CPU address $c9a2
 zero_out_nametables:
-    lda #$00
+    lda #$00 ; graphic_data_ptr_tbl offset #$00 - blank_nametables)
 
 ; loads and decompresses the entire graphic data specified by the A register as offset into graphic_data_ptr_tbl
+; input
+;  * a - which graphic data to write (graphic_data_ptr_tbl offset)
 write_graphic_data_to_ppu:
     sta $04                      ; use $04 as a temp location so we can triple a
     asl                          ; double a data
@@ -2329,11 +2340,11 @@ write_next_n_sequence_bytes:
 
 ; advances the address of the current graphic byte offset by n bytes
 ; where n is the value in $02 + #$1
-; the #$01 is necessary to skip passed the command byte
+; the #$01 is necessary to skip past the command byte
 advance_graphic_read_addr_n_bytes:
     lda #$01 ; advancing graphic byte read address by 1 (size of repetition string)
     clc      ; clear carry in preparation for addition
-    adc $02  ; skip over the bytes just written the PPU
+    adc $02  ; skip over the bytes just written to the PPU
              ; a now has the number of bytes to skip
 
 advance_ppu_write_addr:
@@ -2439,8 +2450,8 @@ draw_player_num_lives:
     ora #$30                   ; converting the ones digit to pattern tile offset
                                ; #$31 = 1, #$32 = 2, etc.
     cpx #$00                   ; see if 10s digit is 0
-    bne @write_num_lives       ; branch to write 0 and exit if num lives is 0
-    cmp #$30                   ; 10s digit non-zero, see if
+    bne @write_num_lives       ; branch to write both digits if 10s digit is non-zero
+    cmp #$30
     beq @exit                  ; exit if just drew a 0, meaning no more digits to draw
 
 @write_num_lives:
@@ -2522,7 +2533,7 @@ draw_the_scores:
     bne @draw_score_digit       ; draw the next digit if less than #05 digits have been drawn
 
 @draw_score_end_zeros:
-    ldx GRAPHICS_BUFFER_OFFSET  ; index int PPU character map
+    ldx GRAPHICS_BUFFER_OFFSET  ; index into PPU character map
     lda $04                     ; load the number of digits remaining (starts at $05)
     sec                         ; set carry flag in preparation for subtraction
     sbc #$05                    ; subtract 5 from total digits used, used to know if no digits have been printed
@@ -2546,7 +2557,7 @@ draw_the_scores:
 ; graphic data to reset nametables (#$2a bytes)
 ; set nametable 0 ($2000) and nametable 1 ($2400) all to #$00
 ; #$400 bytes (1 KiB) each
-; first #$2 bytes are the nametable address ($2000)
+; first #$02 bytes are the nametable address ($2000)
 ; then repeatedly write #$78 zeros, then finally #$40 zeros.
 ; #$7f signifies keep reading to clear the $2400 nametable
 ; nametable data - writes addresses [$2000-$2800)
@@ -2556,7 +2567,7 @@ blank_nametables:
     .byte $00,$20,$78,$00,$78,$00,$78,$00,$78,$00,$78,$00,$78,$00,$78,$00
     .byte $78,$00,$40,$00,$7f
 
-; first #$2 bytes are the nametable address (#$2400)
+; first #$02 bytes are the nametable address (#$2400)
 blank_nametable_2:
     .byte $00,$24,$78,$00,$78,$00,$78,$00,$78,$00,$78,$00,$78,$00,$78,$00
     .byte $78,$00,$40,$00,$ff
@@ -2648,7 +2659,7 @@ vram_address_increment:
     rts
 
 ; table for PPU VRAM address increment (#$03 bytes)
-; used to set whether the the VRAM address increments by 1 (across) or #$20 (down)
+; used to set whether the VRAM address increments by 1 (across) or #$20 (down)
 .byte $00,$04,$00
 
 ; writes the graphics data loaded in CPU_GRAPHICS_BUFFER to the PPU for drawing
@@ -2801,8 +2812,8 @@ write_palette_colors_to_ppu:
                              ; ref: https://www.nesdev.org/wiki/PPU_registers#Address_($2006)_%3E%3E_write_x2
     stx PPUADDR              ; (1) set PPUADDR to $3f00, then (2) set PPUADDR outside palette memory (in this case $0000)
     stx PPUADDR              ; these steps prevent palette corruption after writing to the palette memory
-    stx NUM_PALETTES_TO_LOAD ; set number of palettes to load to #$3f
-                             ; don't think this value is ever read when it's #$3f, overwritten later
+    stx NUM_PALETTES_TO_LOAD ; set number of palettes to load to #$00
+                             ; don't think this value is ever read when it's #$00, overwritten later
 
 graphics_loading_exit:
     rts
@@ -2912,7 +2923,7 @@ alt_graphic_data_ptr_tbl:
     .byte $25
 
 ; create #$04 new pattern table tiles starting at PPU address $1fc0
-; it takes #$0f bytes per pattern table tile or #$40 bytes total
+; it takes #$10 bytes per pattern table tile or #$40 bytes total
 ; it does this by taking a 'background' drawing of the tile, and then drawing electricity on top
 animate_indoor_fence:
     lda LEVEL_LOCATION_TYPE   ; 0 = outdoor; 1 = indoor
@@ -2991,7 +3002,7 @@ pattern_tile_bg_tbl:
     .addr pattern_tile_bg_00
 
 ; table for pattern tile backgrounds that will then have the electric fence drawn on top of (#$40 bytes)
-; each #$f bytes is a single pattern table tile
+; each #$10 bytes is a single pattern table tile
 pattern_tile_bg_00:
     .byte $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$00,$00,$00,$00,$00,$00,$00,$00 ; solid square color 1
     .byte $00,$00,$00,$00,$00,$00,$00,$00,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff ; solid square color 2
@@ -3049,7 +3060,7 @@ level_routine_00:
     ldy #$02
     jsr load_bank_number                      ; switch to bank 2
     lda CURRENT_LEVEL                         ; load current level
-    asl                                       ; each level header is #$20 bytes so multiply by #20
+    asl                                       ; each level header is #$20 bytes so multiply by #$20
     asl
     asl
     asl
@@ -3060,25 +3071,25 @@ level_routine_00:
     stx LEVEL_END_PLAYERS_ALIVE               ; clear players alive after defeating boss heart flag
 
 ; ROM address $ce6a
-; stores the $20 byte level header data in CPU memory in addresses $40 to $60
+; stores the $20 byte level header data in CPU memory in addresses $40 to $5f
 ; the level header is a $20 byte data structure containing information about the
 ; level. All 8 levels have their headers stored consecutively starting at
 ; $b319 in bank 2
 ;
 ; For example, Level 1 contains the following information
-; - $40 Location Type: Indoor ($00)
-; - $41 Scrolling Type: Horizontal ($00)
+; - $40 Location Type: Indoor (#$00)
+; - $41 Scrolling Type: Horizontal (#$00)
 ; - $42 Level Screen Super-Tile Data Location : $8001 (Bank 2)
 ; - $44 Level Super-Tile Data Location: $8001 (Bank 3)
 ; - $46 Palette Data Location: $8671 (Bank 3)
-; - $48 Alternate Graphics Loading Section: $0b (how far into level before loading alternate graphic data)
-; - $49 Tile Collision Limits: $06 $f9 $ff
-; - $4c Cycling Background Tile Palette Codes: $05 $08 $05 $08
-; - $50 Background Tile Palette Codes: $02 $03 $04 $05
-; - $54 Sprite Palette Codes: $00 $01 $22 $07
-; - $58 Stop Scrolling Section: $0b
-; - $59 Mystery Byte: $00
-; - $5a-$5f Unused Bytes: $00 $00 $00 $00 $00 $00
+; - $48 Alternate Graphics Loading Section: #$0b (how far into level before loading alternate graphic data)
+; - $49 Tile Collision Limits: #$06 #$f9 #$ff
+; - $4c Cycling Background Tile Palette Codes: #$05 #$08 #$05 #$08
+; - $50 Background Tile Palette Codes: #$02 #$03 #$04 #$05
+; - $54 Sprite Palette Codes: #$00 #$01 #$22 #$07
+; - $58 Stop Scrolling Section: #$0b
+; - $59 Check for bullet and weapon item solid background collisions: #$00
+; - $5a-$5f Unused Bytes: #$00 #$00 #$00 #$00 #$00 #$00
 load_level_header:
     lda level_headers,y                       ; load level header offset y from bank 2
     sta LEVEL_LOCATION_TYPE,x                 ; store into cpu addresses $40-$60
@@ -3121,7 +3132,7 @@ skip_level_routine_01:
 ; starts level music
 level_routine_02:
     jsr decrement_delay_timer          ; decrement timer (sets/clears zero flag)
-    bne draw_the_scores_1              ; jump if the timer has elapsed, i.e. finished flashing score, move on to load level
+    bne draw_the_scores_1              ; jump if the timer has not yet elapsed, i.e. keep flashing score
     jsr zero_out_nametables            ; the timer has elapsed, reset nametables (blank screen)
     jsr load_level_graphics            ; load level graphics
     lda #$20                           ; a = #$20
@@ -3152,9 +3163,9 @@ draw_the_scores_1:
 ; second byte is the music theme code
 level_vert_scroll_and_song:
     .byte $e0,$2a ; level 1 - show bottom nametables (#$2800 and #$2c00) - sound_2a
-    .byte $e8,$3e ; level 2 - show bottom nametables (offset top #$8 pixels) (#$2800 and #$2c00) - sound_3e
+    .byte $e8,$3e ; level 2 - show bottom nametables (offset top #$08 pixels) (#$2800 and #$2c00) - sound_3e
     .byte $00,$2e ; level 3 - vertical scroll is variable throughout level - sound_2e
-    .byte $e8,$3e ; level 4 - show bottom nametables (offset top #$8 pixels) (#$2800 and #$2c00) - sound_3e
+    .byte $e8,$3e ; level 4 - show bottom nametables (offset top #$08 pixels) (#$2800 and #$2c00) - sound_3e
     .byte $e0,$32 ; level 5 - show bottom nametables (#$2800 and #$2c00) - sound_32
     .byte $e0,$36 ; level 6 - show bottom nametables (#$2800 and #$2c00) - sound_36
     .byte $e0,$2a ; level 7 - show bottom nametables (#$2800 and #$2c00) - sound_2a
@@ -3287,7 +3298,7 @@ show_game_over_screen:
     jsr load_bank_6_write_text_palette_to_mem ; draw text string
     lda #$4e                                  ; a = #$4e (sound_4e)
     jsr play_sound                            ; play game over sound
-    dec NUM_CONTINUES                         ; subtract from number of lives remaining
+    dec NUM_CONTINUES                         ; subtract from number of continues remaining
     bmi @no_continues_remaining               ; if run out of continues, jump
     lda #$0e                                  ; a = #$0e (continue  end)
     jsr load_bank_6_write_text_palette_to_mem ; draw text string
@@ -3453,7 +3464,7 @@ pause_exit:
 load_alternate_graphics:
     lda #$ff                   ; a = #$ff
     sta LEVEL_ALT_GRAPHICS_POS ; prevent any further attempt to load alternate graphics
-    lda CURRENT_LEVEL          ; prepare to determine index into lvl_alt_collision_and_palette_tbl, each level has #$f bytes
+    lda CURRENT_LEVEL          ; prepare to determine index into lvl_alt_collision_and_palette_tbl, each level has #$0f bytes
     asl
     asl
     asl
@@ -3469,13 +3480,15 @@ load_alternate_graphics:
     sta COLLISION_CODE_1_TILE_INDEX,x
     iny                                     ; increment read offset
     inx                                     ; increment write offset
-    cpx #$0f                                ; see if all #$f bytes have been written to cpu buffer
+    cpx #$0f                                ; see if all #$0f bytes have been written to cpu buffer
     bne @loop                               ; if not yet finished, loop
     lda #$20                                ; set to reload #$20 palettes
 
 ; loads palette colors into PALETTE_CPU_BUFFER based on cpu memory LEVEL_PALETTE_INDEX
-; a - the number of palette colors to load (including hard-coded black per palette)
-;     #$10 (4 palettes) or #$20 (8 palettes) depending on loading nametable colors, or both nametable and sprite colors
+; input
+;  * a - the number of palette colors to load (including hard-coded black per palette)
+;        #$10 (4 palettes) or #$20 (8 palettes) depending on loading nametable colors,
+;        or both nametable and sprite colors
 load_palettes_color_to_cpu:
     sta $02                  ; store number of palette colors to load to CPU memory
     sta NUM_PALETTES_TO_LOAD ; set number of palette colors to load
@@ -3558,7 +3571,7 @@ shift_bg_palette_color:
 
 @continue:
     ldy $03                              ; load palette color read offset
-    cpx #$10                             ; see if all of the nametable sprites have been written
+    cpx #$10                             ; see if all of the nametable palette colors have been written
     bcs read_palette_color               ; branch if loading a sprite palette, those aren't modified
     lda BG_PALETTE_ADJ_TIMER             ; load nametable palette modification timer for palette change
     bmi @write_black_to_cpu_mem          ; just write black if BG_PALETTE_ADJ_TIMER is negative
@@ -3590,8 +3603,8 @@ load_palette_indexes:
     bcs palette_mod_exit              ; exit if NUM_PALETTES_TO_LOAD >= GAME_ROUTINE_INDEX
     lda FRAME_COUNTER                 ; load frame counter
     and #$07                          ; keep bits .... .xxx
-    cmp #$05                          ; see if the last 3 bits are #$05 (every #$8 frames)
-    bne falcon_weapon_flash           ; branch if not equal to #$07 (do not increment LEVEL_PALETTE_CYCLE)
+    cmp #$05                          ; see if the last 3 bits are #$05 (every #$08 frames)
+    bne falcon_weapon_flash           ; branch if not equal to #$05 (do not increment LEVEL_PALETTE_CYCLE)
     lda PAUSE_PALETTE_CYCLE           ; see if palette cycling has been paused (ice field tanks pause palette cycling)
     bne falcon_weapon_flash
     inc LEVEL_PALETTE_CYCLE           ; move to next set of palette colors for the 4th background palette
@@ -3652,7 +3665,7 @@ palette_mod_exit:
 set_indoor_boss_palette_2_animation:
     lda CURRENT_LEVEL                 ; current level (going to be either #$01 or #$03)
     and #$02                          ; differentiate which indoor level (#$00 for first base and #$02 for second base level)
-    asl                               ; double since each level has #$4 entries allowing second base to start at #$04
+    asl                               ; double since each level has #$04 entries allowing second base to start at #$04
     adc LEVEL_PALETTE_CYCLE           ; add to current palette cycle iteration
     tay
     lda indoor_boss_palette_2_index,y ;
@@ -3709,7 +3722,7 @@ game_palette_ptr_tbl:
     .addr game_palettes ; CPU address $d227
 
 ; palettes ($6e * $03 = $14a bytes)
-; CPU Address $d227
+; CPU address $d227
 game_palettes:
 .ifdef Probotector
     .byte COLOR_WHITE_20            ,COLOR_DARK_GRAY_00         ,COLOR_BLACK_0f
@@ -3890,15 +3903,15 @@ draw_player_bullet_sprites:
     ora $08                         ; merge shifted bullet offset with frame counter odd/even flag
                                     ; if even frame, bullet index doesn't change
                                     ; if odd frame, adds one to bullet index
-    tax                             ; move specified bullet in memory into CPU_SPRITE_BUFFER so it can be drawn
+    tax                             ; transfer bullet index to x for indexing bullet data arrays
     lda PLAYER_BULLET_SPRITE_CODE,x ; load sprite code for specified bullet
     sta PLAYER_SPRITES+2,y          ; update bullet sprite in PLAYER_SPRITES
     lda PLAYER_BULLET_SPRITE_ATTR,x ; load any bullet sprite attributes
     sta SPRITE_ATTR+2,y             ; set bullet sprite attributes
-    lda PLAYER_BULLET_Y_POS,x       ; load player bullet y position
-    sta SPRITE_Y_POS+2,y            ; set sprite bullet y position
-    lda PLAYER_BULLET_X_POS,x       ; load player bullet x position
-    sta SPRITE_X_POS+2,y            ; set sprite bullet x position
+    lda PLAYER_BULLET_Y_POS,x       ; load player bullet Y position
+    sta SPRITE_Y_POS+2,y            ; set sprite bullet Y position
+    lda PLAYER_BULLET_X_POS,x       ; load player bullet X position
+    sta SPRITE_X_POS+2,y            ; set sprite bullet X position
     dey                             ; decrement to next bullet offset
     bpl @player_bullet_loop         ; loop if y still greater than or equal 0
     rts
@@ -3906,7 +3919,7 @@ draw_player_bullet_sprites:
 ; initializes frame scroll, runs logic to set weapon strength, update invincibility
 set_frame_scroll_weapon_strength:
     lda #$00                   ; a = #$00
-    sta FRAME_SCROLL           ; how much to scroll the screen (#00 - no scroll)
+    sta FRAME_SCROLL           ; how much to scroll the screen (#$00 - no scroll)
     sta PLAYER_FRAME_SCROLL    ; clear player 1 FRAME_SCROLL amount
     sta PLAYER_FRAME_SCROLL+1  ; clear player 2 FRAME_SCROLL amount
     sta ENEMY_ATTACK_FLAG      ; stop enemies from attacking
@@ -3929,14 +3942,14 @@ run_player_invincibility_and_weapon_strength:
     beq player_state_routine_03                  ; branch when both players are in game over
     dex                                          ; prep for setting in PLAYER_GAME_OVER_BIT_FIELD
     stx PLAYER_GAME_OVER_BIT_FIELD               ; #$00 = p1 not game over, p2 game over (or not playing)
-                                                 ; #$01 = p1 game over, p2 not game over, #$02 = p1 nor p2 are in game over
+                                                 ; #$01 = p1 game over, p2 not game over, #$02 = neither p1 nor p2 are in game over
     txa                                          ; transfer PLAYER_GAME_OVER_BIT_FIELD to a
     and #$01                                     ; used to determine if only one player is active, if so run logic on that player
                                                  ; otherwise run logic on p1 first
     tax                                          ; transfer whether p2 is game over to x, set as current player
     jsr handle_invincibility_and_weapon_strength ; run player state routine, checks invincibility, set weapon strength
     lda PLAYER_GAME_OVER_BIT_FIELD               ; #$00 = p1 not game over, p2 game over (or not playing)
-                                                 ; #$01 = p1 game over, p2 not game over, #$02 = p1 nor p2 are in game over
+                                                 ; #$01 = p1 game over, p2 not game over, #$02 = neither p1 nor p2 are in game over
     cmp #$02                                     ; see if both players are active
     bne player_state_routine_03                  ; if one of the players is game over (or not playing)
                                                  ; already ran logic on the only active player, branch
@@ -3947,7 +3960,7 @@ run_player_invincibility_and_weapon_strength:
 player_state_routine_03:
     lda LEVEL_ROUTINE_INDEX ; load current level routine
     cmp #$04
-    bne @exit               ; jump if not level routine 4 (this code is call from level_routine_04 and level_routine_09)
+    bne @exit               ; jump if not level routine 4 (this code is called from level_routine_04 and level_routine_09)
     lda PLAYER_MODE         ; number of players (#$00 = 1 player)
     beq @exit
     ldx #$01                ; x = #$01
@@ -3972,12 +3985,12 @@ player_state_routine_03:
     beq @exit                   ; if other player doesn't have any additional remaining lives, exit
     cmp #$01
     bne @subtract_life
-    lda PLAYER_STATE,y          ; player has load other player's player state
+    lda PLAYER_STATE,y          ; load other player's player state
     cmp #$01                    ; make sure other player isn't dying and about to be on their last life
     bne @exit                   ; if other player's player state isn't normal, exit
 
 @subtract_life:
-    lda P1_NUM_LIVES,y ; player x lives
+    lda P1_NUM_LIVES,y ; player y lives
     sec                ; set carry flag in preparation for subtraction
     sbc #$01           ; lose a life from player Y
     cmp #$ff           ; check if out of lives
@@ -4000,7 +4013,7 @@ scroll_player:
     lda LEVEL_LOCATION_TYPE     ; 0 = outdoor; 1 = indoor
     bne @exit2                  ; exit for indoor level, or indoor boss screen
     lda LEVEL_SCROLLING_TYPE    ; outdoor level, load scrolling type 0 = horizontal, indoor/base; 1 = vertical
-    bne @vertical_scroll_player ; exit on vertical level
+    bne @vertical_scroll_player ; branch to handle vertical scroll player logic
     jsr find_scrolled_player    ; find the player that isn't causing scroll and needs to be scrolled
     beq @exit                   ; exit if both players are causing scroll, don't cause any player to be scrolled
     dec SPRITE_X_POS,x          ; move player that isn't causing scroll back
@@ -4020,7 +4033,7 @@ scroll_player:
     jsr find_scrolled_player ; find player that should be scrolled down the screen,
                              ; since they aren't causing the screen to scroll
     beq @exit2               ; exit if both players are causing the screen to scroll
-    lda SPRITE_Y_POS,x       ; load the player to scroll's y position
+    lda SPRITE_Y_POS,x       ; load the player to scroll's Y position
     clc                      ; clear carry in preparation for addition
     adc FRAME_SCROLL         ; add the amount the screen is about to scroll
     sta SPRITE_Y_POS,x       ; adjust player position by FRAME_SCROLL so they are scrolled down the screen
@@ -4039,8 +4052,8 @@ find_scrolled_player:
     ldx #$00                  ; x = #$00
     lda PLAYER_FRAME_SCROLL   ; load player 1's frame scroll amount
     cmp PLAYER_FRAME_SCROLL+1 ; compare to player 2's frame scroll amount
-    beq @exit                 ; exit if both are identical (default player 1 cause scroll, x = #$00)
-    bcc @exit                 ; exit if player 2 is causing scroll (mark player 1 cause scroll, x = #$00)
+    beq @exit                 ; exit if both are identical (default player 1 causes scroll, x = #$00)
+    bcc @exit                 ; exit if player 2 is causing scroll (mark player 1 causes scroll, x = #$00)
     inx                       ; mark player 2 causing scroll (x = #$01)
 
 @exit:
@@ -4049,7 +4062,7 @@ find_scrolled_player:
 ; runs player state routine, checks new life invincibility timer,
 ; sets enemies to attack, sets weapon strength
 ; input
-;  * x - player offset
+;  * x - player index (0 = p1, 1 = p2)
 handle_invincibility_and_weapon_strength:
     jsr run_player_state_routine       ; run logic based on player's state (see PLAYER_STATE)
     lda NEW_LIFE_INVINCIBILITY_TIMER,x ; timer for invincibility (after dying or start of level)
@@ -4071,18 +4084,18 @@ decrement_invincibility_effect:
     beq @continue             ; if no invincibility, jump
     lda FRAME_COUNTER         ; load frame counter
     and #$07                  ; clear all but last 3 bits
-    bne @continue             ; only decrement every #$8 frames
+    bne @continue             ; only decrement every #$08 frames
     dec INVINCIBILITY_TIMER,x ; decrement invincibility (b weapon effect) timer for current player
 
 @continue:
-    lda PLAYER_RECOIL_TIMER,x      ; see if how many frames player will have recoil
+    lda PLAYER_RECOIL_TIMER,x      ; see how many frames player will have recoil
     beq set_player_weapon_strength
     dec PLAYER_RECOIL_TIMER,x      ; decrement player recoil timer
 
 ; set the player weapon strength memory value based on current weapon
 set_player_weapon_strength:
     lda #$00                      ; a = #$00
-    sta PLAYER_FAST_X_VEL_BOOST,x ; clear x fast velocity boost from being on a non-dangerous moving enemy
+    sta PLAYER_FAST_X_VEL_BOOST,x ; clear X fast velocity boost from being on a non-dangerous moving enemy
     lda P1_CURRENT_WEAPON,x       ; get current player's weapon
     and #$07                      ; keep bits .... .xxx
     tay
@@ -4145,9 +4158,9 @@ player_state_routine_00:
     adc $08                              ; offset index into spawn position tables
     tay
     lda vertical_spawn_position,y
-    sta SPRITE_Y_POS,x                   ; set player y position on screen
+    sta SPRITE_Y_POS,x                   ; set player Y position on screen
     lda horizontal_spawn_position,y
-    sta SPRITE_X_POS,x                   ; set player x position on screen
+    sta SPRITE_X_POS,x                   ; set player X position on screen
     lda #$01                             ; a = #$01
     sta PLAYER_JUMP_STATUS,x
     lda LEVEL_LOCATION_TYPE              ; 0 = outdoor; 1 = indoor
@@ -4156,23 +4169,23 @@ player_state_routine_00:
     bcc @set_frame_invincible_timer_exit ; branch if there is something to land on
     lda #$10                             ; nothing to land on at current position
                                          ; move from left of screen to right to find a spot (increments of #$10 pixels at a time)
-    sta SPRITE_X_POS,x                   ; set x position to #$10
+    sta SPRITE_X_POS,x                   ; set X position to #$10
 
 @find_landing:
     jsr @check_if_floor_exit             ; check if something to land on
-    bcc @set_frame_invincible_timer_exit ; branch if nothing to land on at current position
+    bcc @set_frame_invincible_timer_exit ; branch if something to land on at current position
     lda SPRITE_X_POS,x                   ; nothing to land on at current position, move to next position
     clc                                  ; clear carry in preparation for addition
-    adc #$10                             ; add #$10 to player x position
-    sta SPRITE_X_POS,x                   ; set new x position
+    adc #$10                             ; add #$10 to player X position
+    sta SPRITE_X_POS,x                   ; set new X position
     cmp #$e0                             ; see if at end of screen
     bcs @set_x_pos                       ; couldn't find a position with a place to land, just use #$30
     jmp @find_landing                    ; loop to see if next position to the right is appropriate for landing
 
-; couldn't find a position with a place to land, just use x position #$30
+; couldn't find a position with a place to land, just use X position #$30
 @set_x_pos:
     lda #$30           ; a = #$30
-    sta SPRITE_X_POS,x ; set initial x position when dropping in level
+    sta SPRITE_X_POS,x ; set initial X position when dropping in level
 
 ; sets PLAYER_ANIMATION_FRAME_INDEX to #$02, NEW_LIFE_INVINCIBILITY_TIMER to #$80, PLAYER_Y_FAST_VELOCITY to #$00
 ; and moves to next player state before exiting
@@ -4195,21 +4208,21 @@ player_state_routine_00:
     asl                              ; push msb to carry flag (whether or not solid collision)
     bcs @exit                        ; exit with carry set when collision code #$80 (solid)
                                      ; this means there is a solid object at the top of the screen
-    lda SPRITE_Y_POS,x               ; still falling, load sprite y position
+    lda SPRITE_Y_POS,x               ; still falling, load sprite Y position
     clc                              ; clear carry in preparation for addition
-    adc #$20                         ; add #$20 to sprite y position
+    adc #$20                         ; add #$20 to sprite Y position
     jmp check_collision_below        ; jump to check if bg collision below player
 
 @exit:
     rts
 
 ; player spawn positions, according to level and player index
-; table for spawn y positions ($08 bytes)
+; table for spawn Y positions ($08 bytes)
 vertical_spawn_position:
     .byte $20,$60,$50,$60 ; player 1
     .byte $20,$60,$50,$60 ; player 2
 
-; table for spawn x positions ($08 bytes)
+; table for spawn X positions ($08 bytes)
 horizontal_spawn_position:
     .byte $30,$70,$30,$70 ; player 1
     .byte $20,$90,$20,$90 ; player 2
@@ -4241,8 +4254,8 @@ kill_player:
     sta PLAYER_ANIM_FRAME_TIMER,x
     lda #$01                           ; a = #$01
     sta PLAYER_DEATH_FLAG,x
-    lda #$fd                           ; initiate jump by setting y velocity to #$fd80
-    sta PLAYER_Y_FAST_VELOCITY,x       ; player y velocity
+    lda #$fd                           ; initiate jump by setting Y velocity to #$fd80
+    sta PLAYER_Y_FAST_VELOCITY,x       ; player Y velocity
     lda #$80                           ; a = #$80
     sta PLAYER_Y_FRACT_VELOCITY,x
     inc PLAYER_STATE,x
@@ -4251,7 +4264,7 @@ kill_player:
 ; set player aim direction based on d-pad input
 ; check if player is on an edge and should fall
 ; check if player is firing and generate bullet if so
-; calculate player x velocity
+; calculate player X velocity
 ; auto scroll player
 player_state_routine_01_logic:
     jsr set_player_aim_for_input       ; set PLAYER_AIM_DIR based on d-pad input, facing direction, and jump status
@@ -4260,17 +4273,19 @@ player_state_routine_01_logic:
     jsr handle_player_state_calc_x_vel
 
 ; auto scroll the player position if auto-scroll enabled
+; input
+;  * x - player index (0 = p1, 1 = p2)
 auto_scroll_player:
     lda AUTO_SCROLL_TIMER_00        ; load auto scroll timer
     ora AUTO_SCROLL_TIMER_01        ; merge with auto scroll timer 01
     beq @exit                       ; branch if no auto scroll happening
     lda LEVEL_SCROLLING_TYPE        ; auto scroll happening, load scrolling type (0 = horizontal, indoor/base; 1 = vertical)
-    bne @inc_y_pos_exit             ; increment y position and exit if vertical level with auto scroll (boss reveal)
-    lda SPRITE_X_POS,x              ; horizontal, indoor/base level, load sprite x position
+    bne @inc_y_pos_exit             ; increment Y position and exit if vertical level with auto scroll (boss reveal)
+    lda SPRITE_X_POS,x              ; horizontal, indoor/base level, load sprite X position
     ldy #$00                        ; y = #$00
     cmp level_left_edge_x_pos_tbl,y ; compare player position to left edge
     bcc @exit                       ; exit if already at farthest left edge to keep the player there (push them)
-    dec SPRITE_X_POS,x              ; otherwise decrement from x position to make scroll effect
+    dec SPRITE_X_POS,x              ; otherwise decrement from X position to make scroll effect
     rts
 
 @inc_y_pos_exit:
@@ -4293,7 +4308,7 @@ player_state_routine_02:
 
 @animation_timer_elapsed:
     lda player_died_x_velocity_tbl,y ; which direction the player flies when killed
-    sta PLAYER_X_VELOCITY,x          ; set player x velocity
+    sta PLAYER_X_VELOCITY,x          ; set player X velocity
     lda PLAYER_AIM_DIR,x
     cmp #$05                         ; see if facing left or right
     bcc @continue                    ; branch if facing right
@@ -4306,10 +4321,10 @@ player_state_routine_02:
     sta PLAYER_X_VELOCITY,x
 
 @continue:
-    lda PLAYER_Y_FAST_VELOCITY,x     ; load player's fast y velocity
-    bmi @set_pos_and_sprite          ; branch if negative y velocity (ascending/falling back)
-    cmp #$02                         ; compare y fast velocity to #$02
-    bcc @set_pos_and_sprite          ; branch if y fast velocity is less than #$02
+    lda PLAYER_Y_FAST_VELOCITY,x     ; load player's fast Y velocity
+    bmi @set_pos_and_sprite          ; branch if negative Y velocity (ascending/falling back)
+    cmp #$02                         ; compare Y fast velocity to #$02
+    bcc @set_pos_and_sprite          ; branch if Y fast velocity is less than #$02
     lda PLAYER_HIDDEN,x              ; 0 - visible; #$01/#$ff = invisible (any non-zero)
     cmp #$01                         ; see if player hidden
     beq @set_animation_timer         ; branch if player is hidden
@@ -4324,8 +4339,8 @@ player_state_routine_02:
     sta PLAYER_ANIM_FRAME_TIMER,x ; set animation timer to #$40 frames
 
 @set_pos_and_sprite:
-    jsr apply_gravity_set_y_pos ; increments y fractional velocity by #$23 (applying gravity) and sets y position
-    jsr calc_player_x_vel       ; runs a series of checks to see if player's x velocity can be applied, and applies if possible
+    jsr apply_gravity_set_y_pos ; increments Y fractional velocity by #$23 (applying gravity) and sets Y position
+    jsr calc_player_x_vel       ; runs a series of checks to see if player's X velocity can be applied, and applies if possible
 
 @set_player_sprite_exit:
     jmp load_bank_2_set_player_sprite ; set player sprite based on player state, level, and animation sequence
@@ -4334,7 +4349,7 @@ player_state_routine_02:
 player_sprite_sequence_tbl:
     .byte $04,$04,$06
 
-; table for x velocities when dying (#$03 bytes)
+; table for X velocities when dying (#$03 bytes)
 ; get screen type #$00 = outdoor, #$01 = indoor/base boss, #$02 = indoor/base
 player_died_x_velocity_tbl:
     .byte $ff ; outdoor
@@ -4345,23 +4360,25 @@ handle_player_state_calc_x_vel:
     lda INDOOR_PLAYER_ADV_FLAG,x        ; load whether player is walking between screens for indoor level
     bne @continue                       ; branch if player is advancing between screens for indoor level
     lda #$00                            ; a = #$00
-    sta PLAYER_X_VELOCITY,x             ; clear player x velocity to recalculate
-    sta INDOOR_TRANSITION_X_FRACT_VEL,x ; clear fractional x velocity for when walking between screens on indoor levels
+    sta PLAYER_X_VELOCITY,x             ; clear player X velocity to recalculate
+    sta INDOOR_TRANSITION_X_FRACT_VEL,x ; clear fractional X velocity for when walking between screens on indoor levels
 
 @continue:
     jsr handle_player_state
 
-; runs a series of checks to see if player's x velocity can be applied, and applies if it possible
+; runs a series of checks to see if player's X velocity can be applied, and applies if it possible
 ; e.g. checks if colliding with solid object, checks if in exiting water animation, checks if stuck due to boss screen limit
+; input
+;  * x - player index (0 = p1, 1 = p2)
 calc_player_x_vel:
     lda PLAYER_X_VELOCITY,x             ; load player X velocity
     clc                                 ; clear carry in preparation for addition
     adc PLAYER_FAST_X_VEL_BOOST,x       ; add any additional boost to velocity by being on a non-dangerous moving enemy
-    sta PLAYER_X_VELOCITY,x             ; update player x velocity
+    sta PLAYER_X_VELOCITY,x             ; update player X velocity
     lda PLAYER_WATER_STATE,x            ; load player in water state flags
     bmi @exit                           ; exit if player is walking out of water, don't want to stop animation
     lda PLAYER_X_VELOCITY,x             ; load player X velocity
-    ora INDOOR_TRANSITION_X_FRACT_VEL,x ; merge with fractional x velocity for when walking between screens on indoor levels
+    ora INDOOR_TRANSITION_X_FRACT_VEL,x ; merge with fractional X velocity for when walking between screens on indoor levels
     beq @exit                           ; exit if player isn't moving
     lda PLAYER_X_VELOCITY,x             ; player is moving, load player X velocity
     bmi @player_negative_x_vel          ; branch if player going left
@@ -4371,16 +4388,16 @@ calc_player_x_vel:
     jsr check_player_solid_bg_collision ; see if player is about to collide with solid background object
     bcs @exit                           ; exit if collided with solid background object, like lvl 1 boss screen plated door
     jsr sty_level_screen_type           ; get screen type #$00 = outdoor, #$01 = indoor/base boss, #$02 = indoor/base
-    lda SPRITE_X_POS,x                  ; load player's x position
+    lda SPRITE_X_POS,x                  ; load player's X position
     cmp level_right_edge_x_pos_tbl,y    ; compare player position to right edge of screen
     bcs @exit                           ; don't apply velocity if player at the right edge
     ldy BOSS_AUTO_SCROLL_COMPLETE       ; see if boss reveal auto-scroll has completed (0 = not-complete, 1 = complete)
     beq @set_scroll_apply_x_vel         ; branch to apply velocity if auto scroll hasn't completed (or started)
     ldy CURRENT_LEVEL                   ; auto-scroll has completed, load current level
-    cmp @lvl_boss_max_x_scroll_tbl,y    ; compare player x position to the maximum x position for boss screen
-    bcs @exit                           ; exit if can't move past x position
+    cmp @lvl_boss_max_x_scroll_tbl,y    ; compare player X position to the maximum X position for boss screen
+    bcs @exit                           ; exit if can't move past X position
 
-; !(BUG?) for vertical waterfall level.  Player y velocity has already been applied this frame
+; !(BUG?) for vertical waterfall level.  Player Y velocity has already been applied this frame
 ; this allows for the platform skip technique that speedrunners utilize by carefully controlling PLAYER_JUMP_COEFFICIENT
 ; note that when facing left, this bug does not apply because @player_negative_x_vel doesn't check scroll
 ; since you can't scroll left in Contra
@@ -4389,9 +4406,9 @@ calc_player_x_vel:
                                         ; note this is called for the vertical level as well
     jmp @apply_vel_to_player_x_pos
 
-; table for maximum x position on boss screen to allow player to walk ($08 bytes)
+; table for maximum X position on boss screen to allow player to walk ($08 bytes)
 ; each byte is for each level
-; for lvl 1, the x position isn't possible due to a solid bg object at #$88
+; for lvl 1, the X position isn't possible due to a solid bg object at #$88
 ; if you remove the collision code, the player won't walk past #$90
 @lvl_boss_max_x_scroll_tbl:
     .byte $90,$ff,$ff,$ff,$a0,$d0,$b0,$b0
@@ -4404,30 +4421,30 @@ calc_player_x_vel:
     lda BOSS_DEFEATED_FLAG              ; 0 = boss not defeated, 1 = boss defeated
     bmi @apply_vel_to_player_x_pos      ; branch to apply velocity if part of end of level walk off screen animation
     jsr sty_level_screen_type           ; get screen type #$00 = outdoor, #$01 = indoor/base boss, #$02 = indoor/base
-    lda SPRITE_X_POS,x                  ; load player's x position
+    lda SPRITE_X_POS,x                  ; load player's X position
     cmp level_left_edge_x_pos_tbl,y     ; compare player position to left edge
     bcc @exit                           ; exit if player too far to the left
 
 @apply_vel_to_player_x_pos:
-    lda INDOOR_TRANSITION_X_ACCUM,x     ; load the amount of x distance to move for single animation when moving between screens on indoor/base levels
+    lda INDOOR_TRANSITION_X_ACCUM,x     ; load the amount of X distance to move for single animation when moving between screens on indoor/base levels
     clc                                 ; clear carry in preparation for addition
-    adc INDOOR_TRANSITION_X_FRACT_VEL,x ; add to the fractional x velocity
+    adc INDOOR_TRANSITION_X_FRACT_VEL,x ; add to the fractional X velocity
     sta INDOOR_TRANSITION_X_ACCUM,x     ; store result back in accumulator
-    lda SPRITE_X_POS,x                  ; load player x position
+    lda SPRITE_X_POS,x                  ; load player X position
     adc PLAYER_X_VELOCITY,x             ; add the player velocity (including any indoor transition velocity adjustment)
-    sta SPRITE_X_POS,x                  ; set new player x position
+    sta SPRITE_X_POS,x                  ; set new player X position
 
 @exit:
     rts
 
-; table for x position of right edge of screen ($03 bytes)
+; table for X position of right edge of screen ($03 bytes)
 ; #$00 (outdoor) = #$e6
 ; #$01 (indoor/base boss) = #$e0
 ; #$02 (indoor/base) = #$d0
 level_right_edge_x_pos_tbl:
     .byte $e6,$e0,$d0
 
-; table for x position of left edge of screen ($03 bytes)
+; table for X position of left edge of screen ($03 bytes)
 ; #$00 (outdoor) = #$1a
 ; #$01 (indoor/base boss) = #$20
 ; #$02 (indoor/base) = #$30
@@ -4443,7 +4460,7 @@ handle_player_state:
     sta INDOOR_PLAYER_JUMP_FLAG,x      ; reset player jump command
     sta INDOOR_PLAYER_ADV_FLAG,x       ; player is no longer walking between screens for indoor level, clear flag
     jsr indoor_transition_end          ; end player transition animation restore player position
-    jmp set_jump_status_and_y_velocity ; initialize PLAYER_JUMP_STATUS, animation frame index, and negative y velocity
+    jmp set_jump_status_and_y_velocity ; initialize PLAYER_JUMP_STATUS, animation frame index, and negative Y velocity
 
 @player_electrocution_check:
     lda ELECTROCUTED_TIMER,x
@@ -4467,7 +4484,7 @@ handle_player_state:
 
 @handle_player_input:
     lda PLAYER_WATER_STATE,x           ; see if player in water
-    bne handle_d_pad                   ; player not in water, read the controller input for d-pad input
+    bne handle_d_pad                   ; player has active water state, read the controller input for d-pad input
     lda CONTROLLER_STATE_DIFF,x        ; load controller input
     and #$80                           ; check for A button pressed
     beq handle_d_pad                   ; branch if a button not pressed to read the controller input
@@ -4475,7 +4492,7 @@ handle_player_state:
     and #$07                           ; keep bits .... .xxx (d-pad down, left, right)
     cmp #$04                           ; see if pressing the down d-pad button
     bne set_jump_status_and_y_velocity ; branch if not only down is pressed
-                                       ; to initialize PLAYER_JUMP_STATUS, animation frame index, and negative y velocity
+                                       ; to initialize PLAYER_JUMP_STATUS, animation frame index, and negative Y velocity
     lda #$02                           ; only down button pressed, a = #$02 (sprite sequence to crouching)
     sta PLAYER_SPRITE_SEQUENCE,x       ; set sprite sequence to crouching
     jsr can_player_drop_down           ; determines if player can drop down (d-pad down and A)
@@ -4510,9 +4527,9 @@ set_edge_fall_code:
 player_sprite_animation_exit:
     rts
 
-; sets PLAYER_JUMP_STATUS based on facing direction, initializes animation frame index, and y velocity
+; sets PLAYER_JUMP_STATUS based on facing direction, initializes animation frame index, and Y velocity
 ; input
-;  * x - player index
+;  * x - player index (0 = p1, 1 = p2)
 set_jump_status_and_y_velocity:
     lda PLAYER_AIM_DIR,x ; player animation frame
     cmp #$05
@@ -4529,14 +4546,14 @@ set_jump_status_and_y_velocity:
     lsr
     lda #$fb                           ; a = #$fb (-5)
     ldy #$f0                           ; y = #$f0 (.94)
-    bcc @set_y_velocity                ; branch if outdoor level (use y velocity -5.94)
-    lda #$fc                           ; indoor level, (y velocity -4.56), set fast velocity to #$fc (-4)
-    ldy #$90                           ; set fractional y velocity to #$90 (.56)
+    bcc @set_y_velocity                ; branch if outdoor level (use Y velocity -5.94)
+    lda #$fc                           ; indoor level, (Y velocity -4.56), set fast velocity to #$fc (-4)
+    ldy #$90                           ; set fractional Y velocity to #$90 (.56)
 
 @set_y_velocity:
-    sta PLAYER_Y_FAST_VELOCITY,x  ; set y fast velocity to a
+    sta PLAYER_Y_FAST_VELOCITY,x  ; set Y fast velocity to a
     tya                           ; transfer fractional velocity to a
-    sta PLAYER_Y_FRACT_VELOCITY,x ; set y fractional velocity to a
+    sta PLAYER_Y_FRACT_VELOCITY,x ; set Y fractional velocity to a
     rts
 
 ; reads the d-pad controller input and updates velocity appropriately
@@ -4602,14 +4619,14 @@ d_pad_up_pressed:
     lda #$05                           ; a = #$05
     sta PLAYER_SPRITE_SEQUENCE,x       ; player animation frame
     lda INDOOR_PLAYER_ADV_FLAG,x       ; load whether player is walking between screens for indoor level
-    bne @check_next_player             ; branch to move to next player if player x isn't walking between screens
-    lda #$01                           ; player is walking between screens, a = #$01
+    bne @check_next_player             ; branch to move to next player if player x is walking between screens
+    lda #$01                           ; player is not walking between screens, a = #$01
     sta INDOOR_SCROLL                  ; set indoor scroll to #$01
     sta INDOOR_PLAYER_ADV_FLAG,x       ; set flag indicating player is walking between screens for indoor level
     lda #$00                           ; a = #$00
     sta PLAYER_ANIMATION_FRAME_INDEX,x ; initialize animation for player walking into screen
     sta PLAYER_ANIM_FRAME_TIMER,x      ; initialize timer delay between frames of animation of walking into screen
-    jsr set_player_advancing_vel       ; set the x and y velocities and other variables to initiate the player advancing into screen
+    jsr set_player_advancing_vel       ; set the X and Y velocities and other variables to initiate the player advancing into screen
 
 @check_next_player:
     dex                           ; move to player 1
@@ -4637,7 +4654,7 @@ set_player_x_vel_to_a:
     sta $08                  ; player in water, set player X velocity in $08 temporarily
     lda CONTROLLER_STATE,x   ; see what buttons are being pressed
     and #$04                 ; see if d-pad has down direction (among others) pressed (down, down right, down left)
-    bne @exit                ; don't set x velocity if down button is pressed (don't allow moving in water while looking down)
+    bne @exit                ; don't set X velocity if down button is pressed (don't allow moving in water while looking down)
     lda $08                  ; restore desired player X velocity
 
 @continue:
@@ -4652,7 +4669,7 @@ set_player_x_vel_to_a:
 sty_level_screen_type:
     ldy #$00                ; y = #$00
     lda LEVEL_LOCATION_TYPE ; 0 = outdoor; 1 = indoor/base
-    beq @exit               ; y = #$0 for outdoor level, exit
+    beq @exit               ; y = #$00 for outdoor level, exit
     iny                     ; indoor level set y = #$01
     asl
     bcs @exit               ; exit if indoor boss screen with y = #$01
@@ -4670,15 +4687,15 @@ set_x_velocity_for_edge_fall_code:
     jsr set_player_landing_y_offset  ; set SPRITE_Y_POS,x
     jmp player_land_on_ground
 
-; can't adjust x velocity for small amount of time after walking off ledge
+; can't adjust X velocity for small amount of time after walking off ledge
 @off_ledge_start:
-    jsr apply_gravity_set_y_pos   ; increments y fractional velocity by #$23 (applying gravity) and sets y position
-    lda SPRITE_Y_POS,x            ; load player y position
+    jsr apply_gravity_set_y_pos   ; increments Y fractional velocity by #$23 (applying gravity) and sets Y position
+    lda SPRITE_Y_POS,x            ; load player Y position
     cmp PLAYER_FALL_X_FREEZE,x
     bcc @set_x_velocity
     jsr get_x_velocity_d_pad_code ; see if left or right d-pad button is pressed
     beq @set_x_velocity           ; branch if neither were pressed
-    sta $08                       ; store #$20 for left d-pad, #$40 for right d-pad in $08
+    sta $08                       ; store #$20 for right d-pad, #$40 for left d-pad in $08
     lda EDGE_FALL_CODE,x
     and #$9f                      ; keep bits x..x xxxx
     ora $08                       ; update EDGE_FALL_CODE based on d-pad input
@@ -4689,22 +4706,22 @@ set_x_velocity_for_edge_fall_code:
     jmp set_x_velocity_from_a_code
 
 handle_jump:
-    lda PLAYER_Y_FAST_VELOCITY,x ; load player y fast velocity
+    lda PLAYER_Y_FAST_VELOCITY,x ; load player Y fast velocity
     bmi @check_collision_above   ; branch if player is still ascending
     ldy LEVEL_LOCATION_TYPE      ; player descending, load location type (0 = outdoor; 1 = indoor)
     bne @check_collision         ; branch for indoor level
     cmp #$01                     ; outdoor level, see if fast velocity is #$01
     bcc @apply_gravity           ; branch if either at apex of jump, or just beginning descent
-    lda PLAYER_Y_FAST_VELOCITY,x ; player y fast velocity >= #$01, reload y fast velocity value
+    lda PLAYER_Y_FAST_VELOCITY,x ; player Y fast velocity >= #$01, reload Y fast velocity value
                                  ; !(HUH) already in a register, lda instruction not needed
     cmp #$04                     ; related to ground collision test
     bcs @check_collision         ; branch if velocity is greater than or equal to #$04 (fast falling)
-    lda SPRITE_Y_POS,x           ; y velocity less than #$04, load player y position on screen
+    lda SPRITE_Y_POS,x           ; Y velocity less than #$04, load player Y position on screen
     clc                          ; clear carry in preparation for addition
     adc VERTICAL_SCROLL          ; add vertical scroll offset
     and #$0f                     ; keep bits .... xxxx
     cmp #$08                     ; seeing if result is less than #$08
-    bcs @apply_gravity           ; branch to check collision only when result is less than #$08
+    bcs @apply_gravity           ; skip collision check and apply gravity when result >= #$08
 
 @check_collision:
     jsr get_player_bg_collision_code ; get player background collision code
@@ -4718,9 +4735,9 @@ handle_jump:
     bmi @apply_gravity            ; branch if boss already defeated
     lda SPRITE_Y_POS,x
     clc                           ; clear carry in preparation for addition
-    adc #$f6                      ; subtract #$0a from y position
-    tay                           ; set y position for bg collision check
-    lda SPRITE_X_POS,x            ; load x position for bg collision check
+    adc #$f6                      ; subtract #$0a from Y position
+    tay                           ; set Y position for bg collision check
+    lda SPRITE_X_POS,x            ; load X position for bg collision check
     jsr get_bg_collision          ; determine player background collision code at position (a,y)
     bpl @apply_gravity            ; branch if not solid collision
     lda #$00                      ; solid collision above player, set Y velocity to #$00
@@ -4728,16 +4745,16 @@ handle_jump:
     sta PLAYER_Y_FRACT_VELOCITY,x
 
 @apply_gravity:
-    jsr apply_gravity                   ; increments y fractional velocity by #$23 (applying gravity)
+    jsr apply_gravity                   ; increments Y fractional velocity by #$23 (applying gravity)
     lda LEVEL_SCROLLING_TYPE            ; 0 = horizontal, indoor/base; 1 = vertical
-    beq @set_y_pos                      ; branch if horizontal level to to set the y position based on velocity
+    beq @set_y_pos                      ; branch if horizontal level to set the Y position based on velocity
     jsr set_frame_scroll_if_appropriate ; vertical level, set FRAME_SCROLL and PLAYER_FRAME_SCROLL if player is causing screen to scroll
-                                        ; when scrolling occurs player y velocity sets scroll amount and player y position is unchanged
+                                        ; when scrolling occurs player Y velocity sets scroll amount and player Y position is unchanged
     bcs @set_jump_status_from_input     ; branch if vertical FRAME_SCROLL was set
 
 ; no vertical scroll, apply velocity to player position
 @set_y_pos:
-    jsr player_jumping_set_y_pos ; set player y position based on PLAYER_JUMP_COEFFICIENT and velocity
+    jsr player_jumping_set_y_pos ; set player Y position based on PLAYER_JUMP_COEFFICIENT and velocity
 
 @set_jump_status_from_input:
     jsr get_x_velocity_d_pad_code ; see if left or right d-pad button is pressed
@@ -4803,14 +4820,14 @@ indoor_transition_set_pos:
     sta PLAYER_SPRITE_SEQUENCE,x        ; player animation frame
     lda PLAYER_JUMP_COEFFICIENT,x       ; not used as player's jump modifier in indoor levels, instead
                                         ; used when animating walking into screen for indoor levels to keep track of overflows
-                                        ; to adjust y position
+                                        ; to adjust Y position
     clc                                 ; clear carry in preparation for addition
-    adc INDOOR_TRANSITION_Y_FRACT_VEL,x ; add fractional y velocity for animation to 'accumulator'
+    adc INDOOR_TRANSITION_Y_FRACT_VEL,x ; add fractional Y velocity for animation to 'accumulator'
     sta PLAYER_JUMP_COEFFICIENT,x       ; set new 'accumulator' value
-    lda SPRITE_Y_POS,x                  ; player y position on screen
-    adc INDOOR_TRANSITION_Y_FAST_VEL,x  ; add (or subtract) y position fast velocity to y position for advancing animation
+    lda SPRITE_Y_POS,x                  ; player Y position on screen
+    adc INDOOR_TRANSITION_Y_FAST_VEL,x  ; add (or subtract) Y position fast velocity to Y position for advancing animation
                                         ; including any overflow from the fractional velocity
-    sta SPRITE_Y_POS,x                  ; set new y position
+    sta SPRITE_Y_POS,x                  ; set new Y position
     lda INDOOR_SCROLL                   ; see if scrolling (0 = not scrolling; 1 = scrolling, 2 = finished scrolling)
     cmp #$02
     bcc indoor_transition_exit
@@ -4819,10 +4836,10 @@ indoor_transition_set_pos:
 indoor_transition_end:
     lda #$00                     ; a = #$00
     sta INDOOR_PLAYER_ADV_FLAG,x ; player is no longer walking between screens for indoor level, clear flag
-    lda PLAYER_INDOOR_ANIM_Y,x   ; load y position when player started advancing into screen (#$a8)
-    sta SPRITE_Y_POS,x           ; restore y position from beginning of advancing animation
-    lda PLAYER_INDOOR_ANIM_X,x   ; load x position when player started advancing into screen
-    sta SPRITE_X_POS,x           ; restore x position from beginning of advancing animation
+    lda PLAYER_INDOOR_ANIM_Y,x   ; load Y position when player started advancing into screen (#$a8)
+    sta SPRITE_Y_POS,x           ; restore Y position from beginning of advancing animation
+    lda PLAYER_INDOOR_ANIM_X,x   ; load X position when player started advancing into screen
+    sta SPRITE_X_POS,x           ; restore X position from beginning of advancing animation
 
 indoor_transition_exit:
     rts
@@ -4830,7 +4847,7 @@ indoor_transition_exit:
 player_land_on_ground:
     lda PLAYER_JUMP_STATUS,x           ; low nibble 1 = jumping, 0 not jumping; high nibble = facing direction
     ora EDGE_FALL_CODE,x
-    beq @check_aim_dir                 ; brach if both are #$00
+    beq @check_aim_dir                 ; branch if both are #$00
     lda #$00                           ; a = #$00
     sta PLAYER_ANIMATION_FRAME_INDEX,x
     sta PLAYER_ANIM_FRAME_TIMER,x
@@ -4861,36 +4878,36 @@ init_player_data:
     sta INDOOR_TRANSITION_Y_FAST_VEL,x
     rts
 
-; set the x and y velocities and a few other variables to initiate the player advancing into screen
+; set the X and Y velocities and a few other variables to initiate the player advancing into screen
 set_player_advancing_vel:
     lda #$00                            ; a = #$00
     sta $12                             ; negate the resulting velocities
     lda #$58                            ; a = #$58 (speed code - affects speed when walking up)
-    jsr set_vel_for_speed_code_a        ; set fast ($0f) and fractional ($0e) y velocities for speed code a
-    lda $0f                             ; load fast y velocity
-    sta INDOOR_TRANSITION_Y_FAST_VEL,x  ; set indoor transition y fast velocity
-    lda $0e                             ; load fractional y velocity
-    sta INDOOR_TRANSITION_Y_FRACT_VEL,x ; set indoor transition y fractional velocity
-    lda SPRITE_Y_POS,x                  ; load player y position
-    sta PLAYER_INDOOR_ANIM_Y,x          ; set y position the player was at when started walking into screen
-                                        ; pretty sure always #$a8 since y pos is hard-coded for indoor levels
-    lda SPRITE_X_POS,x                  ; load player x position
-    sta PLAYER_INDOOR_ANIM_X,x          ; set x position the player was at when started walking into screen
+    jsr set_vel_for_speed_code_a        ; set fast ($0f) and fractional ($0e) Y velocities for speed code a
+    lda $0f                             ; load fast Y velocity
+    sta INDOOR_TRANSITION_Y_FAST_VEL,x  ; set indoor transition Y fast velocity
+    lda $0e                             ; load fractional Y velocity
+    sta INDOOR_TRANSITION_Y_FRACT_VEL,x ; set indoor transition Y fractional velocity
+    lda SPRITE_Y_POS,x                  ; load player Y position
+    sta PLAYER_INDOOR_ANIM_Y,x          ; set Y position the player was at when started walking into screen
+                                        ; pretty sure always #$a8 since Y position is hard-coded for indoor levels
+    lda SPRITE_X_POS,x                  ; load player X position
+    sta PLAYER_INDOOR_ANIM_X,x          ; set X position the player was at when started walking into screen
     sec                                 ; set carry flag in preparation for subtraction
     sbc #$80                            ; subtract #$80 from PLAYER_INDOOR_ANIM_X,x
-    sta $12                             ; store whether to have negative velocity (walk left) based on x position
+    sta $12                             ; store whether to have negative velocity (walk left) based on X position
                                         ; when player on right half of screen, player will advance inward towards left
                                         ; when player on left half of screen, player will advance inward towards right
     bcs @continue                       ; branch if on right half of the screen
-    eor #$ff                            ; player on left half of the screen, take negative x position and make positive
+    eor #$ff                            ; player on left half of the screen, take negative X position and make positive
     adc #$01                            ; flip all bits and add #$01
 
 @continue:
-    jsr set_vel_for_speed_code_a        ; set fast ($0f) and fractional ($0e) x velocities for speed code a
-    lda $0f                             ; load fast x velocity
-    sta PLAYER_X_VELOCITY,x             ; set x fast velocity
-    lda $0e                             ; load fractional x velocity
-    sta INDOOR_TRANSITION_X_FRACT_VEL,x ; set indoor transition x fractional velocity
+    jsr set_vel_for_speed_code_a        ; set fast ($0f) and fractional ($0e) X velocities for speed code a
+    lda $0f                             ; load fast X velocity
+    sta PLAYER_X_VELOCITY,x             ; set X fast velocity
+    lda $0e                             ; load fractional X velocity
+    sta INDOOR_TRANSITION_X_FRACT_VEL,x ; set indoor transition X fractional velocity
     rts
 
 ; for a given value a, set fast ($0f) and fractional ($0e) velocities
@@ -4899,8 +4916,8 @@ set_player_advancing_vel:
 ;  * a - sort-of speed code, this value is split into fast and fractional velocity
 ;  * $12 - when greater than or equal to #$00, specifies to negate the resulting velocities
 ; output
-;  * $0e - x or y fractional velocity
-;  * $0f - x or y fast velocity
+;  * $0e - X or Y fractional velocity
+;  * $0f - X or Y fast velocity
 set_vel_for_speed_code_a:
     sta $0f  ; store speed code in $0f
     lda #$00 ; a = #$00
@@ -4914,8 +4931,8 @@ set_vel_for_speed_code_a:
 ;  * y - number of bits to rotate $0f into fractional velocity $0e (#$05, #$06, or #$07)
 ;  * $12 - when greater than or equal to #$00, specifies to negate the resulting velocities
 ; output
-;  * $0e - x or y fractional velocity
-;  * $0f - x or y fast velocity
+;  * $0e - X or Y fractional velocity
+;  * $0f - X or Y fast velocity
 set_vel_for_speed_vars:
     lsr $0f                       ; shift bit 0 to carry
     ror $0e                       ; push bit 0 of $0f into bit 7
@@ -4929,10 +4946,10 @@ set_vel_for_speed_vars:
     lda #$00 ; a = #$00
     sec      ; set carry flag in preparation for subtraction
     sbc $0e  ; subtract the fractional velocity from #$00 (negate)
-    sta $0e  ; set negated fractional x or y bullet velocity
+    sta $0e  ; set negated fractional X or Y bullet velocity
     lda #$00 ; a = #$00
     sbc $0f  ; subtract the fast velocity from #$00 (negate)
-    sta $0f  ; set negated fast x or y bullet velocity
+    sta $0f  ; set negated fast X or Y bullet velocity
     rts
 
 ; when landing, sets the player sprite Y position
@@ -4956,7 +4973,7 @@ set_player_landing_y_offset:
     sta SPRITE_Y_POS,x ; set sprite position
     rts
 
-; table for landing y position (#$03 bytes)
+; table for landing Y position (#$03 bytes)
 ; when #$00 vertical offset and current position are taken into consideration
 landing_y_position_tbl:
     .byte $00,$c9,$a8
@@ -4972,10 +4989,10 @@ set_player_aim_for_input:
     lda $08                     ; load level_spawn_position_index value for level
     cmp #$03                    ; see if indoor boss screen
     beq @set_player_aim         ; branch if indoor boss screen
-    ldy #$00                    ; assume player facing facing right
+    ldy #$00                    ; assume player facing right
     lda PLAYER_AIM_PREV_FRAME,x ; see which direction was the last frame
     cmp #$05                    ; compare to player crouching facing left
-    bcc @set_player_aim         ; branch if facing left
+    bcc @set_player_aim         ; branch if facing right (aim direction < #$05)
     ldy #$10                    ; y = #$10 (row 1 of d_pad_player_aim_tbl)
 
 @set_player_aim:
@@ -5016,13 +5033,15 @@ d_pad_player_aim_tbl:
     .byte $00,$02,$07,$00,$0a,$03,$06,$02,$00,$01,$08,$02,$07,$02,$07,$02 ; jumping and indoor boss
 
 ; see if player should check for walking off ledge and if so, walk off it
+; input
+;  * x - player index (0 = p1, 1 = p2)
 check_player_ledge:
     lda PLAYER_ON_ENEMY,x            ; see if player is on non-dangerous enemy, e.g. (#$14, #$15 - mining cart, #$10 - floating rock platform)
     bne @clear_edge_code_exit        ; branch if player is on top non-dangerous enemy
     lda PLAYER_WATER_STATE,x         ; player not on enemy, load player water state
     ora PLAYER_JUMP_STATUS,x         ; merge with player jump status
     ora EDGE_FALL_CODE,x             ; merge with edge fall code
-    ora INDOOR_PLAYER_ADV_FLAG,x     ; merge with whether or not the  player is walking between screens for indoor level
+    ora INDOOR_PLAYER_ADV_FLAG,x     ; merge with whether or not the player is walking between screens for indoor level
     bne @exit                        ; exit if any of the previous variables were non-zero
     lda PLAYER_BG_FLAG_EDGE_DETECT,x ; see if should detect falling off ledge or skip
     lsr
@@ -5048,6 +5067,7 @@ jmp_walk_off_ledge:
     jmp walk_off_ledge
 
 ; retrieves the collision code of the player and sets it in register a
+;  * x - player index (0 = p1, 1 = p2)
 ; output
 ;  * carry flag set when on floor
 ; #$00 - empty
@@ -5058,12 +5078,12 @@ get_player_bg_collision_code:
     lda LEVEL_LOCATION_TYPE ; 0 = outdoor; 1 = indoor; #$80 if indoor boss screen
     bmi @indoor_boss_level  ; branch if indoor boss level
     bne @indoor_floor       ; non-indoor boss level, determine max Y position
-    lda SPRITE_Y_POS,x      ; outdoor level, load player y position on screen
+    lda SPRITE_Y_POS,x      ; outdoor level, load player Y position on screen
     clc                     ; clear carry in preparation for addition
     adc #$10                ; add #$10 to player Y position
     bcs @exit_code_0        ; branch if overflow
-    tay                     ; transfer player y position to the y register
-    lda SPRITE_X_POS,x      ; player x position on screen
+    tay                     ; transfer player Y position to the y register
+    lda SPRITE_X_POS,x      ; player X position on screen
     jmp get_bg_collision    ; not indoor nor indoor boss level, use get_bg_collision to get collision code
 
 @indoor_floor:
@@ -5074,7 +5094,7 @@ get_player_bg_collision_code:
     lda #$c8 ; lowest Y value for indoor boss level is hard-coded #$c8
 
 @indoor_continue:
-    cmp SPRITE_Y_POS,x ; compare max Y to y position on screen
+    cmp SPRITE_Y_POS,x ; compare max Y to Y position on screen
     lda #$01           ; prep collision code to #$01 (floor) if object is not at bottom of screen (walking to next screen)
     bcc @exit          ; branch if not at bottom of screen
 
@@ -5084,42 +5104,46 @@ get_player_bg_collision_code:
 @exit:
     rts
 
-; increments y fractional velocity by #$23 (applying gravity) and then sets y position
-; based on y velocity and PLAYER_JUMP_COEFFICIENT
+; increments player x's Y fractional velocity by #$23 (applying gravity) and then sets player's Y position
+; input
+;  * x - player index (0 = p1, 1 = p2)
 apply_gravity_set_y_pos:
-    jsr apply_gravity ; increments y fractional velocity by #$23 (applying gravity)
+    jsr apply_gravity ; increments Y fractional velocity by #$23 (applying gravity)
 
-; player is jumping, set player y position based on PLAYER_JUMP_COEFFICIENT and velocity
+; player is jumping, set player Y position based on PLAYER_JUMP_COEFFICIENT and velocity
 player_jumping_set_y_pos:
-    lda PLAYER_Y_FAST_VELOCITY,x ; load player's fast y velocity
+    lda PLAYER_Y_FAST_VELOCITY,x ; load player's fast Y velocity
     asl                          ; shift negative bit to carry flag
     lda #$00                     ; player falling downward, or not falling (0 velocity)
-    bcc @continue                ; branch if player is moving down (down or #$00 y velocity)
+    bcc @continue                ; branch if player is moving down (down or #$00 Y velocity)
     lda #$ff                     ; player moving up
 
 @continue:
     sta $08                       ; store either #$00 (falling down or not falling) or #$ff (moving up) in $08
     lda PLAYER_JUMP_COEFFICIENT,x ; load player's jump modifier (alters height of jump)
     clc                           ; clear carry in preparation for addition
-    adc PLAYER_Y_FRACT_VELOCITY,x ; add to player's fractional y velocity
+    adc PLAYER_Y_FRACT_VELOCITY,x ; add to player's fractional Y velocity
     sta PLAYER_JUMP_COEFFICIENT,x ; update player's jump modifier (alters height of jump)
-    lda SPRITE_Y_POS,x            ; load player's y position
-    adc PLAYER_Y_FAST_VELOCITY,x  ; add (subtract) the fast y velocity (with jump coefficient overflow)
-    sta SPRITE_Y_POS,x            ; set player's new y position
+    lda SPRITE_Y_POS,x            ; load player's Y position
+    adc PLAYER_Y_FAST_VELOCITY,x  ; add (subtract) the fast Y velocity (with jump coefficient overflow)
+    sta SPRITE_Y_POS,x            ; set player's new Y position
     lda PLAYER_HIDDEN,x           ; 0 - visible; #$01/#$ff = invisible (any non-zero)
     adc $08                       ; add or subtract #$01 to specify whether player is visible (with any overflow)
     sta PLAYER_HIDDEN,x           ; set whether to draw player sprite, not sure how this is really supposed to be used
     rts
 
-; apply gravity by incrementing y fractional velocity by #$23 (.1367 in decimal)
+; apply gravity by incrementing Y fractional velocity by #$23 (.1367 in decimal)
+; does not adjust player position
+; input
+;  * x - player index (0 = p1, 1 = p2)
 apply_gravity:
     clc
-    lda PLAYER_Y_FRACT_VELOCITY,x ; load player's y fractional velocity
-    adc #$23                      ; add #$23 to y fractional velocity (.1367 decimal)
-    sta PLAYER_Y_FRACT_VELOCITY,x ; update player's y fractional velocity
-    lda PLAYER_Y_FAST_VELOCITY,x  ; load player's fast y velocity
-    adc #$00                      ; add carry into high byte (any overflow when adding to fractional y velocity)
-    sta PLAYER_Y_FAST_VELOCITY,x  ; update player's fast y velocity
+    lda PLAYER_Y_FRACT_VELOCITY,x ; load player's Y fractional velocity
+    adc #$23                      ; add #$23 to Y fractional velocity (.1367 decimal)
+    sta PLAYER_Y_FRACT_VELOCITY,x ; update player's Y fractional velocity
+    lda PLAYER_Y_FAST_VELOCITY,x  ; load player's fast Y velocity
+    adc #$00                      ; add carry into high byte (any overflow when adding to fractional Y velocity)
+    sta PLAYER_Y_FAST_VELOCITY,x  ; update player's fast Y velocity
     rts
 
 ; player death
@@ -5144,14 +5168,14 @@ set_frame_scroll_if_appropriate:
     bne @exit                              ; if indoor, or any auto scroll timer running, exit
     lda PLAYER_STATE,x                     ; load player state (0 = dropping into level, 1 = normal, 2 = dead, 3 = can't move)
     cmp #$01                               ; see if player in normal state
-    bne @exit                              ; exit if in normal state
+    bne @exit                              ; exit if player state is not in normal state
     lda LEVEL_SCROLLING_TYPE               ; 0 = horizontal, indoor/base; 1 = vertical
     bne set_vertical_level_frame_scroll    ; branch if vertical scrolling
     lda LEVEL_STOP_SCROLL                  ; horizontal, indoor/base level, load screen to stop scrolling at
     bmi @exit                              ; exit if boss auto scroll set (LEVEL_STOP_SCROLL is #$ff when boss auto scroll started)
     ldy PLAYER_GAME_OVER_BIT_FIELD         ; #$00 = p1 not game over, p2 game over (or not playing)
-                                           ; #$01 = p1 game over, p2 not game over, #$02 = p1 nor p2 are in game over
-    lda SPRITE_X_POS,x                     ; load player x position
+                                           ; #$01 = p1 game over, p2 not game over, #$02 = neither p1 nor p2 are in game over
+    lda SPRITE_X_POS,x                     ; load player X position
     cmp horizontal_scroll_point_tbl,y      ; load horizontal scroll point position
     bcc @exit                              ; if not yet reached point to initiate horizontal scroll, exit
     cpy #$02                               ; see if both players are active
@@ -5159,7 +5183,7 @@ set_frame_scroll_if_appropriate:
     txa                                    ; both players active, see if other player is preventing screen scroll, transfer player index to a
     eor #$01                               ; swap to other player
     tay                                    ; transfer player index to y
-    lda SPRITE_X_POS,y                     ; load other player's x position
+    lda SPRITE_X_POS,y                     ; load other player's X position
     cmp #$21                               ; compare other player to left edge of screen
     bcc @stop_player_x_velocity            ; don't scroll if other player is preventing it by being too far to the left
 
@@ -5171,7 +5195,7 @@ set_frame_scroll_if_appropriate:
 @set_horizontal_level_frame_scroll:
     jsr set_boss_auto_scroll            ; starts the auto scroll to reveal boss if at right screen, otherwise do nothing
     beq @exit                           ; branch if boss auto scroll started
-    lda INDOOR_TRANSITION_X_FRACT_VEL,x ; load player's indoor x velocity (#$00 unless on indoor/base level)
+    lda INDOOR_TRANSITION_X_FRACT_VEL,x ; load player's indoor X velocity (#$00 unless on indoor/base level)
     clc                                 ; clear carry in preparation for addition
     adc INDOOR_TRANSITION_X_ACCUM,x
     sta INDOOR_TRANSITION_X_ACCUM,x     ; update INDOOR_TRANSITION_X_ACCUM with increased velocity
@@ -5182,7 +5206,7 @@ set_frame_scroll_if_appropriate:
     sta PLAYER_FRAME_SCROLL,x           ; set player scroll amount for player causing scroll
     lda #$00                            ; a = #$00
     sta INDOOR_TRANSITION_X_FRACT_VEL,x ; clear player indoor velocity
-    sta PLAYER_X_VELOCITY,x             ; clear player x velocity
+    sta PLAYER_X_VELOCITY,x             ; clear player X velocity
     sec                                 ; set carry flag
     rts
 
@@ -5211,11 +5235,11 @@ horizontal_scroll_point_tbl:
 ; output
 ;  * carry flag - set when scroll initiated, clear when scroll not initiated
 set_vertical_level_frame_scroll:
-    lda SPRITE_Y_POS,x            ; load player y position
+    lda SPRITE_Y_POS,x            ; load player Y position
     cmp #$50                      ; compare to #$50
-    bcs @exit                     ; exit if player y position >= #$50, i.e. far down the screen
+    bcs @exit                     ; exit if player Y position >= #$50, i.e. far down the screen
                                   ; once player is above #$50, scrolling up is initiated
-    lda PLAYER_Y_FAST_VELOCITY,x  ; load player's y fast velocity byte
+    lda PLAYER_Y_FAST_VELOCITY,x  ; load player's Y fast velocity byte
     bpl @exit                     ; exit if player falling down
     jsr set_boss_auto_scroll      ; starts the auto scroll to reveal boss if at right screen, otherwise do nothing
     beq @exit                     ; branch if boss auto scroll started
@@ -5223,11 +5247,11 @@ set_vertical_level_frame_scroll:
     clc                           ; clear carry in preparation for addition
     adc PLAYER_Y_FRACT_VELOCITY,x ; add the player's fractional velocity to the jump modifier
     sta PLAYER_JUMP_COEFFICIENT,x ; update player's jump modifier (randomizes height of jump)
-    lda SPRITE_Y_POS,x            ; re-load player y position
-    adc PLAYER_Y_FAST_VELOCITY,x  ; add (or subtract) player y fast velocity
+    lda SPRITE_Y_POS,x            ; re-load player Y position
+    adc PLAYER_Y_FAST_VELOCITY,x  ; add (or subtract) player Y fast velocity
                                   ; (with any possible carry from the fractional velocity)
     sta $08                       ; store sum in $08
-    lda SPRITE_Y_POS,x            ; re-load player y position
+    lda SPRITE_Y_POS,x            ; re-load player Y position
     sec                           ; set carry flag in preparation for subtraction
     sbc $08                       ; subtract calculated position to get scroll distance
     sta FRAME_SCROLL              ; store scroll amount
@@ -5244,7 +5268,7 @@ set_vertical_level_frame_scroll:
 ; player can drop down when solid, water, or floor bg collision below the current player
 ; vertical levels always allow drop down regardless if collision below player
 ; input
-;  * x - player index
+;  * x - player index (0 = p1, 1 = p2)
 ; output
 ;  * carry flag - clear when player can "drop down" (d-pad down + A)
 ;                 i.e. there is a solid, water, or floor collision below the player
@@ -5257,33 +5281,33 @@ can_player_drop_down:
     bne collision_below_player ; clear carry and exit for vertical level, always can drop down
 
 @continue:
-    lda SPRITE_Y_POS,x ; load player y position
+    lda SPRITE_Y_POS,x ; load player Y position
     clc                ; clear carry in preparation for addition
     adc #$10           ; prepare to move player down by #$10 pixels
 
 ; determines if solid, water, or floor bg collision below the player (all the way to the bottom of screen)
 ; input
-;  * a - y position to test
-;  * x - player offset
+;  * a - Y position to test
+;  * x - player index (0 = p1, 1 = p2)
 ; output
 ;  * a - collision code
-;  * carry flag - set when only empty collision codes below player, i.e. there is something to land on
-;    set when solid, water, or ground beneath player
+;  * carry flag - set when only empty collision codes below player (nothing to land on)
+;    clear when solid, water, or ground beneath player
 check_collision_below:
-    tay                      ; transfer y position to y register
+    tay                      ; transfer Y position to y register
     lsr
     lsr
     lsr
     lsr
-    sta $08                  ; store high nibble of player y position in $08
-    lda SPRITE_X_POS,x       ; load player x position
+    sta $08                  ; store high nibble of player Y position in $08
+    lda SPRITE_X_POS,x       ; load player X position
     jsr get_bg_collision_far ; determine player background collision code for (a, y) position
     bmi set_carry_exit       ; exit if collision with solid bg element, can't drop down
 
 ; loops down to bottom of screen looking for a bg collision
 @loop:
-    inc $08                           ; increment y position high byte, i.e. bg collision row
-    lda $08                           ; load y position high byte
+    inc $08                           ; increment Y position high byte, i.e. bg collision row
+    lda $08                           ; load Y position high byte
     cmp #$0e                          ; compare to last bg collision row
     bcs can_player_drop_down_exit     ; exit if checked all rows below player
     lda $13                           ; load BG_COLLISION_DATA offset
@@ -5310,7 +5334,7 @@ set_carry_exit:
 
 ; initialize player variables to 0
 ; input
-;  * x - player offset (0 = p1, 1 = p2)
+;  * x - player index (0 = p1, 1 = p2)
 init_player_and_weapon:
     lda #$00                ; a = #$00
     sta P1_CURRENT_WEAPON,x ; reset current player's weapon
@@ -5357,38 +5381,38 @@ init_player_attributes:
     sta PLAYER_BG_FLAG_EDGE_DETECT,x
     rts
 
-; on player x position change
+; on player X position change
 ; input
-;  * a - amount to add to player x position
-;  * x - player offset
+;  * a - amount to add to player X position
+;  * x - player index (0 = p1, 1 = p2)
 ; output
 ;  * carry flag - set when collided with solid object
 check_player_solid_bg_collision:
     clc                      ; clear carry in preparation for addition
-    adc SPRITE_X_POS,x       ; add a to player x position
-    sta $0a                  ; store x position in $0a
-    ldy #$0b                 ; default amount to subtract from player y position
+    adc SPRITE_X_POS,x       ; add a to player X position
+    sta $0a                  ; store X position in $0a
+    ldy #$0b                 ; default amount to subtract from player Y position
     lda PLAYER_SPRITE_CODE,x ; load player sprite
     cmp #$17                 ; compare to player prone sprite
     bne @continue            ; branch if player isn't prone
-    ldy #$00                 ; player is prone, don't subtract from player y position
+    ldy #$00                 ; player is prone, don't subtract from player Y position
 
 @continue:
-    sty $08             ; set amount to subtract from player y position
+    sty $08             ; set amount to subtract from player Y position
     lda PLAYER_HIDDEN,x ; 0 = visible; #$01/#$ff = invisible (any non-zero)
     bne @continue_2     ; branch if invisible
-    lda SPRITE_Y_POS,x  ; load player y position
+    lda SPRITE_Y_POS,x  ; load player Y position
     sec                 ; set carry flag in preparation for subtraction
-    sbc $08             ; subtract either #$0b or #$00 from player y position
+    sbc $08             ; subtract either #$0b or #$00 from player Y position
     bcc @continue_2     ; branch if underflow
-    cmp #$10            ; compare calculated y position to #$10
+    cmp #$10            ; compare calculated Y position to #$10
     bcs @continue_3     ; branch if result is grater than #$10
 
 @continue_2:
     lda #$0a ; a = #$0a
 
 @continue_3:
-    sta $09                          ; set calculated y position (position above player)
+    sta $09                          ; set calculated Y position (position above player)
     jsr get_player_bg_collision_code ; get player background collision code, set result in a
     bne @player_bg_collision         ; branch if collision code is not #$00 (empty)
     lda PLAYER_JUMP_STATUS,x         ; collision code #$00 (empty) load jump status
@@ -5400,11 +5424,11 @@ check_player_solid_bg_collision:
 @player_bg_collision:
     lda #$0a ; a = #$0a
     clc      ; clear carry in preparation for addition
-    adc $08  ; add #$0a to the amount subtracted from player y position
+    adc $08  ; add #$0a to the amount subtracted from player Y position
 
 @find_bg_collision:
-    sta $08                  ; store new y position distance
-    lda $09                  ; load calculated y position (position above player)
+    sta $08                  ; store new Y position distance
+    lda $09                  ; load calculated Y position (position above player)
     clc                      ; clear carry in preparation for addition
     adc VERTICAL_SCROLL      ; vertical scroll offset
     and #$0f                 ; keep bits .... xxxx
@@ -5413,15 +5437,15 @@ check_player_solid_bg_collision:
     sec                      ; set carry flag in preparation for subtraction
     sbc $0b
     sta $0b
-    lda $0a                  ; load x position
-    ldy $09                  ; load y position
+    lda $0a                  ; load X position
+    ldy $09                  ; load Y position
     jsr get_bg_collision_far ; determine player background collision code at position (a,y)
     bmi @set_carry_exit      ; branch if collision with solid bg element
 
 ; look at background collision tiles in front of player
 @loop:
     lda $0b
-    cmp $08                  ; compare to y position
+    cmp $08                  ; compare to Y position
     bcs @clear_carry_exit
     adc #$10
     sta $0b
@@ -5588,10 +5612,10 @@ handle_scroll:
 ; scroll screen for this video frame
 @set_scroll_frame:
     lda #$01         ; a = #$01
-    sta FRAME_SCROLL ; how much to scroll the screen (#00 - no scroll)
+    sta FRAME_SCROLL ; how much to scroll the screen (#$00 - no scroll)
 
 @include_tank_auto_scroll:
-    lda FRAME_SCROLL     ; how much to scroll the screen (#00 - no scroll)
+    lda FRAME_SCROLL     ; how much to scroll the screen (#$00 - no scroll)
     clc                  ; clear carry in preparation for addition
     adc TANK_AUTO_SCROLL ; auto scroll additional amount, always add this value to scroll
     beq @exit            ; exit if no scrolling is required
@@ -5602,7 +5626,7 @@ handle_scroll:
 ; then checks if need to move to next screen
 @set_scroll_graphics_data:
     inc LEVEL_SCREEN_SCROLL_OFFSET    ; scrolling offset in pixels within screen
-    bne @inc_nametable_data           ; branch if camera has scrolled scrolled within frame
+    bne @inc_nametable_data           ; branch if camera has scrolled within frame
     inc LEVEL_SCREEN_NUMBER           ; new screen, increment screen number
     lda LEVEL_SCREEN_NUMBER           ; load current screen number within the level
     cmp LEVEL_ALT_GRAPHICS_POS        ; compare to screen where alternate graphics should start loading
@@ -5631,7 +5655,7 @@ handle_scroll:
     inc PPU_WRITE_TILE_OFFSET
     lda PPU_WRITE_TILE_OFFSET
     cmp #$20                                     ; super-tiles are #$20 (32 decimal) pixels wide
-    bcc @inc_scroll_exit                         ; branch if PPU_WRITE_TILE_OFFSET < 20
+    bcc @inc_scroll_exit                         ; branch if PPU_WRITE_TILE_OFFSET < #$20
     lda SUPERTILE_NAMETABLE_OFFSET               ; load offset into CPU graphics buffer where super-tile indexes are stored for current screen
     eor #$40                                     ; flip bits .x.. ....
     sta SUPERTILE_NAMETABLE_OFFSET               ; move to other nametable (#$00 = nametable 0, #$40 = nametable 1)
@@ -5647,7 +5671,7 @@ handle_scroll:
     sta ATTRIBUTE_TBL_WRITE_HIGH_BYTE            ; switch attribute table write address between $27c0 and $23c0, or $2bc0 and $2fc0
 
 @inc_scroll_exit:
-    inc HORIZONTAL_SCROLL         ; increment horizontal component of the PPUSCROLL [#$0 - #$ff]
+    inc HORIZONTAL_SCROLL         ; increment horizontal component of the PPUSCROLL [#$00 - #$ff]
     dec $17                       ; decrement in memory frame scroll value (including tank auto scroll)
     bne @set_scroll_graphics_data ; branch if still has scroll, this will only happen when for tank auto scroll
                                   ; otherwise done handling scroll, exit
@@ -5659,8 +5683,8 @@ handle_scroll:
     lda LEVEL_SCREEN_SCROLL_OFFSET        ; load the number of pixels into LEVEL_SCREEN_NUMBER the level has scrolled
     and #$0f                              ; keep low nibble
     cmp #$03
-    bne @inc_scroll_exit                  ; branch if scroll offset doesn't end in #$03, only update attribute table every #$f pixels
-    jsr write_col_attribute_to_cpu_memory ; 16 frames have scrolled, write next column of attribute palette data (#$08 bytes) to the CPU graphics buffer
+    bne @inc_scroll_exit                  ; branch if scroll offset doesn't end in #$03, only update attribute table every #$10 pixels
+    jsr write_col_attribute_to_cpu_memory ; 16 pixels have scrolled, write next column of attribute palette data (#$07 bytes) to the CPU graphics buffer
     jmp @inc_scroll_exit
 
 ; vertical level
@@ -5670,13 +5694,13 @@ handle_vertical_scroll:
     lda #$10                      ; a = #$10
     sta BG_PALETTE_ADJ_TIMER
     lda #$01                      ; a = #$01
-    sta FRAME_SCROLL              ; how much to scroll the screen (#00 - no scroll)
+    sta FRAME_SCROLL              ; how much to scroll the screen (#$00 - no scroll)
     dec AUTO_SCROLL_TIMER_00      ; decrement boss reveal scroll
     bne @init_loop
     inc BOSS_AUTO_SCROLL_COMPLETE ; set boss reveal auto-scroll completed
 
 @init_loop:
-    lda FRAME_SCROLL ; how much to scroll the screen (#00 - no scroll)
+    lda FRAME_SCROLL ; how much to scroll the screen (#$00 - no scroll)
     beq @exit        ; exit
     sta $17          ; store frame scroll in $17
 
@@ -5750,7 +5774,7 @@ handle_vertical_scroll:
 ; handle scrolling, including animating the electric fence
 handle_indoor_scroll:
     lda INDOOR_SCREEN_CLEARED                  ; indoor screen cleared flag (0 = not cleared; 1 = cleared, #$80 = cleared and fence removed)
-    bpl @animate_indoor_fence                  ; branch if flag is #$80, indicating that the electric fence needs to be animated/removed
+    bpl @animate_indoor_fence                  ; branch if flag is not #$80, indicating that the electric fence needs to be animated/removed
     lda LEVEL_TRANSITION_TIMER                 ; load remaining animation timer for player advancing to next screen
     bmi @indoor_screen_transition              ; jump if LEVEL_TRANSITION_TIMER is negative (couldn't get this to happen)
     bne @write_column_tiles_exit               ; branch if the player is advancing and the background needs to update
@@ -5888,7 +5912,7 @@ load_column_of_tiles_to_cpu_buffer:
     lda PPU_WRITE_ADDRESS_HIGH_BYTE ; load high byte of PPU write address
     inx
     sta CPU_GRAPHICS_BUFFER,x       ; set high byte of PPU write address
-    sta $12                         ; store high  byte into $12
+    sta $12                         ; store high byte into $12
     lda PPU_WRITE_ADDRESS_LOW_BYTE  ; load low byte of PPU write address
     inx
     sta CPU_GRAPHICS_BUFFER,x       ; set low byte of PPU write address
@@ -5896,7 +5920,7 @@ load_column_of_tiles_to_cpu_buffer:
     ldy #$ff                        ; y = #$ff
     lsr                             ; shift right the low byte of the PPU write address moving lsb to carry flag
     bcs @odd_nametable_column       ; branch if low byte of PPU write address is odd (collision is only set on every other column)
-                                    ; setting up $12 and $13 to for later when configuring collision, which only looks at every other pattern tile column
+                                    ; setting up $12 and $13 for later when configuring collision, which only looks at every other pattern tile column
     sta $13                         ; low byte was even, store shifted (halved) byte address in $13 directly
     lsr $12                         ; shift high byte right
     lsr $12                         ; shift high byte right
@@ -5918,7 +5942,7 @@ load_column_of_tiles_to_cpu_buffer:
     lsr
     lsr
     ora SUPERTILE_NAMETABLE_OFFSET ; merge with nametable offset (#$00 = nametable 0, #$40 = nametable 1) where super-tile indexes are stored for current screen
-    sta $10                        ; score LEVEL_SCREEN_SUPERTILES offset into $10
+    sta $10                        ; store LEVEL_SCREEN_SUPERTILES offset into $10
     tay                            ; y is the LEVEL_SCREEN_SUPERTILES offset
 
 ; * loads level super-tiles from PRG ROM bank 2 by CPU address LEVEL_SCREEN_SUPERTILES
@@ -5947,7 +5971,7 @@ load_level_supertile_data:
     lda $08                        ; load read offset
     adc LEVEL_SUPERTILE_DATA_PTR+1 ; add number of overflows to the high byte of the pointer table address
     sta $01                        ; store high byte to level super-tile data
-    ldy $02                        ; level the super-tile data byte offset of the tiles that will be drawn (which column of super-tile will be drawn)
+    ldy $02                        ; load the super-tile data byte offset of the tiles that will be drawn (which column of super-tile will be drawn)
     lda ($00),y                    ; load the level's super-tile y-th pattern table tile byte (level_X_SUPERTILE_data)
     sta CPU_GRAPHICS_BUFFER,x      ; write first pattern table tile from super-tile data to CPU memory
     jsr set_tile_collision         ; set the tile collision for the top portion of the entire super-tile in BG_COLLISION_DATA
@@ -6091,7 +6115,7 @@ write_col_attribute_to_cpu_memory:
     tay                            ; transfer super-tile index to render to y (level_X_supertiles_screen_XX)
 
 ; write palette data to CPU_GRAPHICS_BUFFER for use to write in attribute table
-; writes an entire columned of super-tiles' palette attribute data (#$08 bytes)
+; writes an entire column of super-tiles' palette attribute data (#$08 bytes)
 @set_supertile_attribute_byte:
     lda ATTRIBUTE_TBL_WRITE_HIGH_BYTE    ; load current attribute table write address high byte
     sta CPU_GRAPHICS_BUFFER,x            ; set PPU high write address to correct attribute table
@@ -6129,7 +6153,7 @@ write_row_attribute_to_cpu_memory:
     ldx GRAPHICS_BUFFER_OFFSET     ; load the current tile to draw to the PPU
     lda #$01                       ; a = #$01
     sta CPU_GRAPHICS_BUFFER,x      ; set vram_address_increment to #$01
-    sta CPU_GRAPHICS_BUFFER+2,x    ; set number of length of graphics blocks to #$01
+    sta CPU_GRAPHICS_BUFFER+2,x    ; set number of graphics blocks to #$01
     lda #$08                       ; a = #$08
     inx                            ; increment CPU_GRAPHICS_BUFFER write offset
     sta CPU_GRAPHICS_BUFFER,x      ; set number of #01-byte-long groups to #$08
@@ -6166,7 +6190,7 @@ write_row_attribute_to_cpu_memory:
     inx                               ; increment CPU_GRAPHICS_BUFFER write offset
     inc $10                           ; move to next super-tile index
     lda $10
-    and #$07                          ; strip to low nibble to see how many super-tile palette attribute bytes have been written
+    and #$07                          ; keep bits 0-2 to see how many super-tile palette attribute bytes have been written
     bne @set_supertile_attribute_byte ; loop until all palette attribute table entries are written for the row
     stx GRAPHICS_BUFFER_OFFSET        ; finished writing attributes, restore x to the graphics buffer write offset
     rts
@@ -6258,10 +6282,10 @@ set_collision_tile_col_2:
     jmp set_collision_tile       ; save the updated collision information in CPU memory
 
 set_collision_tile_col_3:
-    dey                          ; see if second column by subtracting stored write offset
-    bne set_collision_tile_col_4 ; if not the second column, branch to see if 4th
+    dey                          ; see if third column by decrementing stored write offset
+    bne set_collision_tile_col_4 ; if not the third column, branch to see if 4th
     asl
-    asl                          ; shift the collision code (2 bits) to the bits 2 and 2 (.... xx..)
+    asl                          ; shift the collision code (2 bits) to bits 3 and 2 (.... xx..)
     sta $15                      ; store collision code for super-tile into $15
     ldy $12                      ; load BG_COLLISION_DATA write offset
     lda BG_COLLISION_DATA,y      ; load existing collision byte (each byte contains collision data for 2 super-tiles)
@@ -6303,8 +6327,8 @@ vert_lvl_tile_collision_exit:
 ; look one row (half supertile) see if collision code one row below (half supertile) is solid,
 ; if so, use that collision code.
 ; input
-;  * a - x pos
-;  * y - y pos
+;  * a - X pos
+;  * y - Y pos
 ; output
 ;  * a collision code #$00 (empty), #$01 (floor), #$02 (water), or #$80 (solid)
 ;  * carry set when collision is with floor (#$01)
@@ -6376,22 +6400,22 @@ find_floor_collision:
 read_bg_collision_byte_unsafe:
     lda #$00                   ; a = #$00
     sta $15                    ; used by read_bg_collision_byte as a quick way to ensure not reading past last bg collision row
-                               ; this method is confident y offset (BG_COLLISION_DATA offset) is correct
+                               ; this method is confident Y offset (BG_COLLISION_DATA offset) is correct
     beq read_bg_collision_byte ; always branch, get collision code from BG_COLLISION_DATA byte
 
 ; input
-;  * a is x pos
-;  * y is y pos
+;  * a is X pos
+;  * y is Y pos
 ; output
 ;  * a collision code #$00 (empty), #$01 (floor), #$02 (water), or #$80 (solid)
 ;  * carry set when collision is with floor (#$01)
 ;  * negative flag set when solid collision (#$80)
 get_bg_collision:
-    sta $13 ; store x position in $13
+    sta $13 ; store X position in $13
 
 ; input
-;  * $13 - x position
-;  * y - y position
+;  * $13 - X position
+;  * y - Y position
 ; output
 ;  * a collision code #$00 (empty), #$01 (floor), #$02 (water), or #$80 (solid)
 ;  * carry set when collision is with floor (#$01)
@@ -6403,18 +6427,18 @@ get_enemy_bg_collision:
 
 ; used for the hangar mine cart
 get_cart_bg_collision:
-    sta $13 ; store sprite x position in $13
+    sta $13 ; store sprite X position in $13
 
 ; input
-;  * $13 - x position
-;  * y - y pos
+;  * $13 - X position
+;  * y - Y position
 ; output
 ;  * a collision code #$00 (empty), #$01 (floor), #$02 (water), or #$80 (solid)
 ;  * carry set when collision is with floor (#$01)
 ;  * negative flag set when solid collision (#$80)
 bg_collision_logic:
-    tya                 ; transfer y pos to a
-    sta $15             ; store y pos in $15
+    tya                 ; transfer Y position to a
+    sta $15             ; store Y position in $15
     clc                 ; clear carry in preparation for addition
     adc VERTICAL_SCROLL ; add vertical scroll offset
     bcs @vert_overflow  ; branch if overflow
@@ -6426,7 +6450,7 @@ bg_collision_logic:
 
 @continue:
     sta $11                ; store VERTICAL_SCROLL + Y in $11
-    lda $13                ; load sprite x position
+    lda $13                ; load sprite X position
     clc                    ; clear carry in preparation for addition
     adc HORIZONTAL_SCROLL  ; horizontal scroll offset
     sta $12                ; store HORIZONTAL_SCROLL + X in $12
@@ -6622,7 +6646,7 @@ load_supertile_indexes_starting_at_y:
     jmp load_previous_bank               ; read #$78 super-tiles, exit
 
 @vertical_level_section_end:
-    cpx #$40                             ; exit if read all #$40 super-tiles (horizontal level)
+    cpx #$40                             ; exit if read all #$40 super-tiles (vertical level)
     beq @exit
     cpx #$80                             ; 2 screens worth of super-tiles are loaded, so if started with second screen at offset #$40, stop at #$80
     bcc read_supertiles_screen_ptr_table ; if not finished reading all super-tiles, move to next super-tile
@@ -6630,11 +6654,11 @@ load_supertile_indexes_starting_at_y:
 @exit:
     jmp load_previous_bank
 
-; read
+; handle RLE repeat command
 load_rle_repeat_command:
     cmp #$f0
     bcs @set_nametable_supertile_indexes ; branch if >= #$f0
-    and #$7f                             ; clear first bit
+    and #$7f                             ; clear bit 7
     sta $02                              ; store number of times to repeat next byte
     lda ($00),y                          ; load the byte that will be repeated
     iny                                  ; increment read offset
@@ -6655,7 +6679,7 @@ load_rle_repeat_command:
     sty $03
     tay
     lda #$08                       ; load #$08 super-tiles indexes
-    sta $02                        ; set super-tile index counter to $02
+    sta $02                        ; set super-tile index counter to #$08
 
 @supertile_index_loop:
     lda LEVEL_SCREEN_SUPERTILES,y            ; read byte specifying which super-tile to load (level_X_supertiles_screen_XX)
@@ -6694,12 +6718,12 @@ check_players_collision:
 @handle_outdoor_level:
     lda ENEMY_STATE_WIDTH,y      ; load enemy state width
     asl                          ; shift bit 7 to carry flag
-    bpl @check_in_water_crouched ; branch if ENEMY_STATE_WIDTH,x bit 6 is clear (player can't land on enemy)
+    bpl @check_in_water_crouched ; branch if ENEMY_STATE_WIDTH,y bit 6 is clear (player can't land on enemy)
     asl                          ; shift bit 6 to carry flag
-    bpl @check_player_jumping    ; branch if ENEMY_STATE_WIDTH,x bit 5 is clear (collision box code bit)
-    lda ENEMY_Y_POS,y            ; ENEMY_STATE_WIDTH,x bit 5 set, load enemy y position on screen
+    bpl @check_player_jumping    ; branch if ENEMY_STATE_WIDTH,y bit 5 is clear (collision box code bit)
+    lda ENEMY_Y_POS,y            ; ENEMY_STATE_WIDTH,x bit 5 set, load enemy Y position on screen
     sec                          ; set carry flag in preparation for subtracting
-    sbc SPRITE_Y_POS,x           ; player sprite y position on screen
+    sbc SPRITE_Y_POS,x           ; player sprite Y position on screen
     bcc @set_collision_box_code  ; branch if player below enemy
     cmp #$08                     ; player above enemy, see how close to enemy
     lda ENEMY_STATE_WIDTH,y      ; load enemy state width
@@ -6717,11 +6741,11 @@ check_players_collision:
 @check_player_jumping:
     lda PLAYER_JUMP_STATUS,x     ; low nibble 1 = jumping, 0 not jumping; high nibble = facing direction
     beq @check_in_water_crouched ; branch if player is not jumping
-    lda PLAYER_Y_FAST_VELOCITY,x ; player is jumping, load y fast velocity
+    lda PLAYER_Y_FAST_VELOCITY,x ; player is jumping, load Y fast velocity
     bmi @next_player             ; move to next player if player ascending in jump for enemies with bit 5 clear of ENEMY_STATE_WIDTH
-    cmp #$01                     ; player not ascending, compare y fast velocity to #$01
-    bcc @next_player             ; move to next player if player y fast velocity #$00 for enemies with bit 5 clear of ENEMY_STATE_WIDTH
-                                 ; !(OBS) not sure why didn't use beq here
+    cmp #$01                     ; player not ascending, compare Y fast velocity to #$01
+    bcc @next_player             ; move to next player if player Y fast velocity #$00 for enemies with bit 5 clear of ENEMY_STATE_WIDTH
+                                 ; !(OBS) not sure why beq wasn't used here
     bcs @check_in_water_crouched ; !(OBS) conditionally branches to next line
                                  ; no matter value of condition @check_in_water_crouched will execute
 
@@ -6750,20 +6774,20 @@ check_players_collision:
     jsr set_enemy_collision_box     ; set collision box in [$08-$0b] based off y register
     lda SPRITE_Y_POS,x              ; load current sprite Y position
     sec                             ; set the carry flag in preparation for subtraction
-    sbc $08                         ; subtract from collision box top left y coordinate
+    sbc $08                         ; subtract from collision box top left Y coordinate
     cmp $0a                         ; compare to height of collision box
-    bcs @next_player                ; branch if player sprite is vertically outside of collision box [(SPRITE_Y_POX,x - $08) < $0a]
+    bcs @next_player                ; branch if player sprite is vertically outside of collision box [(SPRITE_Y_POS,x - $08) >= $0a]
                                     ; this is a neat trick
                                     ;  * y is above collision box - subtraction result is negative and the carry is set since cmp thinks the value is positive
                                     ;  * y is below collision box - subtraction result is greater than height $0a and the carry is set
     lda SPRITE_X_POS,x              ; player sprite is in collision box vertically, now check horizontally
     sec                             ; set the carry flag in preparation for subtraction
-    sbc $09                         ; subtract the top-left x coordinate of the collision box from the x position
+    sbc $09                         ; subtract the top-left X coordinate of the collision box from the X position
     cmp $0b                         ; compare to the width of the collision box
                                     ; same neat trick applies here
                                     ;  * x is to the left of the collision box - subtraction result is negative and carry is set since cmp thinks value is positive
                                     ;  * x is to the right of the collision box - subtraction result is greater than width ($08) so carry is set
-    bcc @inside_enemy_collision_box ; branch if inside of collision box (both horizontally and vertically) [(SPRITE_X_POX,x - $09) < $0b]
+    bcc @inside_enemy_collision_box ; branch if inside of collision box (both horizontally and vertically) [(SPRITE_X_POS,x - $09) < $0b]
 
 @next_player:
     dex                           ; decrement player index
@@ -6791,7 +6815,7 @@ check_players_collision:
     clc                           ; clear carry in preparation for addition
     adc PLAYER_FAST_X_VEL_BOOST,x ; add any existing boost
                                   ; can support being on a moving enemy that is on a moving enemy
-    sta PLAYER_FAST_X_VEL_BOOST,x ; set any boost to player's x velocity by being on a moving enemy
+    sta PLAYER_FAST_X_VEL_BOOST,x ; set any boost to player's X velocity by being on a moving enemy
     lda ENEMY_STATE_WIDTH,y
     asl
     asl
@@ -6802,8 +6826,8 @@ check_players_collision:
 
 @set_landing_pos:
     clc                       ; clear carry in preparation for addition
-    adc ENEMY_Y_POS,y         ; subtract 24 or 28 from enemy y position on screen
-    sta SPRITE_Y_POS,x        ; set player y position
+    adc ENEMY_Y_POS,y         ; subtract 24 or 28 from enemy Y position on screen
+    sta SPRITE_Y_POS,x        ; set player Y position
     lda #$01                  ; a = #$01
     sta PLAYER_ON_ENEMY,x     ; set player on enemy flag
     jsr player_land_on_ground
@@ -6812,9 +6836,9 @@ check_players_collision:
 ; player sprite collides with enemy, or enemy bullet
 @inside_enemy_collision_box:
     ldy ENEMY_CURRENT_SLOT ; load slot index of enemy that is being collided with
-    lda ENEMY_X_POS,y      ; load enemy x position on screen
+    lda ENEMY_X_POS,y      ; load enemy X position on screen
     sec                    ; set the carry flag in preparation for subtraction
-    sbc SPRITE_X_POS,x     ; subtract the x position of player sprite
+    sbc SPRITE_X_POS,x     ; subtract the X position of player sprite
     bcs @check_can_land_on ; branch if positive (player to left of enemy)
     eor #$ff               ; player to right of enemy - flip all bits
     adc #$01               ; add 1 for correction
@@ -6832,7 +6856,7 @@ check_players_collision:
     lda ENEMY_TYPE,y                   ; load current enemy type
     beq pick_up_weapon_item            ; branch if weapon item enemy
     lda NEW_LIFE_INVINCIBILITY_TIMER,x ; timer for invincibility (after dying)
-    bne @next_player                   ; when still invincibility after dying, player walks through enemy, skip
+    bne @next_player                   ; when still invincible after dying, player walks through enemy, skip
     lda INVINCIBILITY_TIMER,x
     bne @invincible_collision          ; branch if player is invincible (barrier weapon) to set enemy HP to #$00
     jsr kill_player                    ; player collided with enemy sprite, kill player
@@ -6869,7 +6893,7 @@ pick_up_weapon_item:
     lda #$1f                     ; a = #$1f (sound_1f)
     jsr play_sound               ; play weapon item taken sound
     lda ENEMY_ATTRIBUTES,y       ; get weapon item attributes
-    and #$07                     ; keep bits 0-3 (attributes)
+    and #$07                     ; keep bits 0-2 (attributes)
     beq @set_rapid_flag          ; set rapid flag for weapon if attribute is #$00
     cmp #$05                     ; check for b weapon (barrier). Gives invincibility
     bcc @compare_and_set_weapon  ; branch if less than #$05 (MFSL)
@@ -6881,10 +6905,10 @@ pick_up_weapon_item:
 
 ; b weapon effect (barrier). Gives invincibility
 ; decreases every 8 frames
-; NTSC is about #3c frames per second
+; NTSC is about #$3c frames per second
 ; PAL is close to #$32 frames per second
-; NTSC: #$80 * #$8 = #$400 / #$3c = 17.06667 (decimal) seconds
-; NTSC: #$90 * #$8 = #$480 / #$3c = 19.2 (decimal) seconds
+; NTSC: #$80 * #$08 = #$400 / #$3c = 17.06667 (decimal) seconds
+; NTSC: #$90 * #$08 = #$480 / #$3c = 19.2 (decimal) seconds
 @set_invincibility_timer:
     lda #$80          ; set duration of the b weapon effect
     ldy CURRENT_LEVEL ; current level
@@ -6925,6 +6949,8 @@ remove_current_enemy:
     jmp remove_enemy       ; remove enemy
 
 ; loop through player bullets and see if they collide with current enemy
+; input
+;  * x - enemy slot index
 bullet_enemy_collision_test:
     lda ENEMY_STATE_WIDTH,x     ; load current enemy ENEMY_STATE_WIDTH
     and #$30                    ; keep bits 4 and 5 (collision box code)
@@ -6945,7 +6971,7 @@ bullet_enemy_collision_test:
     lsr
     bcc @test_collision             ; branch for outdoor level
     ldy $10                         ; indoor level, load collision box code
-    bpl @bullet_delay               ; branch if collision box is positive, i.e. non-zero
+    bpl @bullet_delay               ; branch if collision box is >= #$00
     lda PLAYER_BULLET_SLOT,x        ; load bullet type + 1
     bmi @test_collision
     bpl @next_bullet                ; branch if bullet exists (PLAYER_BULLET_SLOT is non-zero)
@@ -6973,7 +6999,7 @@ bullet_enemy_collision_test:
 
 @bullet_enemy_collision:
     ldy ENEMY_CURRENT_SLOT    ; load the current enemy slot index
-    lda ENEMY_X_POS,y         ; load enemy x position on screen
+    lda ENEMY_X_POS,y         ; load enemy X position on screen
     sec                       ; set carry flag in preparation for subtraction
     sbc PLAYER_BULLET_X_POS,x ; ENEMY_X_POS - PLAYER_BULLET_X_POS
     bcs @continue             ; branch if bullet hits enemy from left
@@ -7011,6 +7037,8 @@ bullet_enemy_collision_test:
 
 ; set PLAYER_BULLET_ROUTINE,x to #$02, which destroys the bullet (player_bullet_collision_routine)
 ; set bullet delay to #$06
+; input
+;  * x - player bullet inex
 set_bullet_routine_to_2:
     lda #$02                    ; used to specify the bullet routine, see player_bullet_routine_0X_ptr_tbl and player_bullet_routine_indoor_0X_ptr_tbl
     sta PLAYER_BULLET_ROUTINE,x ; move to last bullet routine for bullet (player_bullet_collision_routine), this handles destroying the bullet
@@ -7020,6 +7048,8 @@ set_bullet_routine_to_2:
 
 ; subtract enemy HP, play collision sound (if appropriate), award points
 ; set enemy destroyed routine if HP is #$00
+; input
+;  * a - player bullet owner (0 = p1, 1 = p2)
 bullet_collision_logic:
     sta $17                ; store PLAYER_BULLET_OWNER in $17 0 = p1, 1 = p2
     stx $11                ; backup bullet index in $11 for logic
@@ -7067,7 +7097,7 @@ bullet_hit_sound_tbl:
 ;    * 2 - player is crouching
 ;    * 3 - normal
 ;    * 4 - bullet collision box code
-; stores collision corners for enemy in $08 (top left Y), $09 (top left X), $0a (width), $0b (height)
+; stores collision corners for enemy in $08 (top left Y), $09 (top left X), $0a (height), $0b (width)
 set_enemy_collision_box:
     stx $11                         ; temporarily save x into $11 for duration of method
     ldx ENEMY_CURRENT_SLOT          ; load current enemy slot index
@@ -7085,14 +7115,14 @@ set_enemy_collision_box:
     asl                             ; double collision code
     asl                             ; double again, since each collision box is 4 bytes
     tay                             ; transfer to offset register
-    lda ENEMY_Y_POS,x               ; load enemy y position on screen
-    adc ($0e),y                     ; add collision_box_codes_XX,y to y position (frequently this is actually subtraction)
-    sta $08                         ; store y position on screen of top-left of collision box
+    lda ENEMY_Y_POS,x               ; load enemy Y position on screen
+    adc ($0e),y                     ; add collision_box_codes_XX,y to Y position (frequently this is actually subtraction)
+    sta $08                         ; store Y position on screen of top-left of collision box
     iny                             ; move to next byte to read
-    lda ENEMY_X_POS,x               ; load enemy x position on screen
+    lda ENEMY_X_POS,x               ; load enemy X position on screen
     clc                             ; clear carry in preparation for addition
-    adc ($0e),y                     ; add (collision_box_codes_XX,y) from x position (frequently this is actually subtraction)
-    sta $09                         ; store x position on screen of top-left of collision box
+    adc ($0e),y                     ; add (collision_box_codes_XX,y) from X position (frequently this is actually subtraction)
+    sta $09                         ; store X position on screen of top-left of collision box
     iny                             ; move to next byte to read
     lda ($0e),y                     ; read height of collision box
     sta $0a                         ; store height in $0a
@@ -7109,20 +7139,20 @@ set_enemy_collision_box:
     asl                    ; shift bit 6 of ENEMY_ATTRIBUTES into carry
     lda ENEMY_VAR_1,x      ; load collision_code_f_base_tbl offset stored in ENEMY_VAR_1
     bcc @continue          ; branch if bit 6 of ENEMY_ATTRIBUTES,x is 0
-    eor #$ff               ; bit 6 set, negate the , flip all bits
+    eor #$ff               ; bit 6 set, negate the value, flip all bits
     adc #$00               ; add 1
 
 @continue:
     clc                               ; clear carry in preparation for addition
     adc #$08                          ; add #$08 to ENEMY_VAR_1,x
     sta $0c                           ; store result in $0c
-    tya                               ; transfer which collision box table to use to y [#$00-#$04]
+    tya                               ; transfer which collision box table to use to a [#$00-#$04]
     asl                               ; double (already doubled y) since each entry is #$04 bytes
     tay                               ; transfer back to offset register
-    lda collision_code_f_base_tbl,y   ; load initial y coordinate of top left of collision box
-    sta $08                           ; store y coordinate of top left of collision box in $08
-    lda collision_code_f_base_tbl+1,y ; load initial x coordinate of top left of collision box
-    sta $09                           ; store x coordinate of top left of collision box in $09
+    lda collision_code_f_base_tbl,y   ; load initial Y coordinate of top left of collision box
+    sta $08                           ; store Y coordinate of top left of collision box in $08
+    lda collision_code_f_base_tbl+1,y ; load initial X coordinate of top left of collision box
+    sta $09                           ; store X coordinate of top left of collision box in $09
     lda collision_code_f_base_tbl+2,y ; load initial height of top left of collision box
     sta $0a                           ; store height of collision box in $0a
     lda collision_code_f_base_tbl+3,y ; load initial width of top left of collision box
@@ -7134,20 +7164,20 @@ set_enemy_collision_box:
     lsr                               ; move high nibble to low nibble
     and #$0c                          ; keep bits .... xx.. (0, 4, or 8, or 12)
     tay                               ; transfer to offset register
-    lda collision_code_f_adj_tbl,y    ; load top-left y coordinate offset
+    lda collision_code_f_adj_tbl,y    ; load top-left Y coordinate offset
     jsr @replace_placeholder          ; if placeholder value, replace it with $c0 (or its negative)
     clc                               ; clear carry in preparation for addition
-    adc $08                           ; add to top-left y coordinate
+    adc $08                           ; add to top-left Y coordinate
     clc                               ; clear carry in preparation for addition
-    adc ENEMY_Y_POS,x                 ; add to enemy y position on screen
-    sta $08                           ; set top-left y coordinate of collision box based
-    lda collision_code_f_adj_tbl+1,y  ; load top-left x coordinate offset
+    adc ENEMY_Y_POS,x                 ; add to enemy Y position on screen
+    sta $08                           ; set top-left Y coordinate of collision box based
+    lda collision_code_f_adj_tbl+1,y  ; load top-left X coordinate offset
     jsr @replace_placeholder          ; if placeholder value, replace it with $c0 (or its negative)
     clc                               ; clear carry in preparation for addition
-    adc $09                           ; add to top-left x coordinate
+    adc $09                           ; add to top-left X coordinate
     clc                               ; clear carry in preparation for addition
-    adc ENEMY_X_POS,x                 ; add to enemy x position on screen
-    sta $09                           ; set top-left x coordinate of collision box based
+    adc ENEMY_X_POS,x                 ; add to enemy X position on screen
+    sta $09                           ; set top-left X coordinate of collision box based
     lda collision_code_f_adj_tbl+2,y  ; load collision box height adjustment
     jsr @replace_placeholder          ; if placeholder value, replace it with $c0 (or its negative)
     clc                               ; clear carry in preparation for addition
@@ -7171,20 +7201,20 @@ set_enemy_collision_box:
 ;    * if input a == #$ff, $0c
 ; note: $0c is ENEMY_VAR_1 or negative ENEMY_VAR_1 depending on bit 6 of ENEMY_ATTRIBUTES
 @replace_placeholder:
-    cmp #$fe  ; compare collision box adjustment value to to #$fe
+    cmp #$fe  ; compare collision box adjustment value to #$fe
     bcc @exit ; exit if value less than #$fe. it is not a placeholder
     lsr       ; shift bit 0 of collision_code_f_adj_tbl value to the carry flag
     lda $0c   ; load adjustment control variable
     bcs @exit ; exit to $0c if placeholder is #$ff (odd)
-    eor #$ff  ; placeholder is #$fe (event), return negative $0c, flip all bits
+    eor #$ff  ; placeholder is #$fe (even), return negative $0c, flip all bits
     adc #$01  ; add one
 
 @exit:
     rts
 
 ; table for f collision code initial collision box rectangles depending on collision code  ($14 bytes)
-; byte 0 - initial top left y coordinate
-; byte 1 - initial top left x coordinate
+; byte 0 - initial top left Y coordinate
+; byte 1 - initial top left X coordinate
 ; byte 2 - initial collision box height
 ; byte 3 - initial collision box width
 collision_code_f_base_tbl:
@@ -7196,8 +7226,8 @@ collision_code_f_base_tbl:
 
 ; table for adjustment of initial f code collision box based (indirectly) on ENEMY_VAR_1 ($10 bytes)
 ; these values will be overwritten if value is #$fe or #$ff
-; byte 0 - top left y coordinate adjustment
-; byte 1 - top left x coordinate adjustment
+; byte 0 - top left Y coordinate adjustment
+; byte 1 - top left X coordinate adjustment
 ; byte 2 - collision box height adjustment
 ; byte 3 - collision box width adjustment
 collision_code_f_adj_tbl:
@@ -7211,12 +7241,12 @@ collision_code_f_adj_tbl:
 collision_box_codes_tbl:
     .addr collision_box_codes_00 ; CPU address $e4f2 - player in water
     .addr collision_box_codes_01 ; CPU address $e52e - player jumping
-    .addr collision_box_codes_02 ; CPU address $e56a - player standing
-    .addr collision_box_codes_03 ; CPU address $e5a6 - player crouching
+    .addr collision_box_codes_02 ; CPU address $e56a - player crouching
+    .addr collision_box_codes_03 ; CPU address $e5a6 - player standing
     .addr collision_box_codes_04 ; CPU address $e5e2
 
-; each 4 bytes is a a collision box code
-; #$e different collision box codes
+; each 4 bytes is a collision box code
+; #$0e different collision box codes
 ; player is in water
 collision_box_codes_00:
     .byte $f1,$f7,$28,$12
@@ -7235,7 +7265,7 @@ collision_box_codes_00:
     .byte $ea,$ec,$37,$28
     .byte $f3,$f3,$11,$1a
 
-; each 4 bytes is a a collision box code
+; each 4 bytes is a collision box code
 ; player is jumping
 collision_box_codes_01:
     .byte $ea,$f8,$1e,$10
@@ -7254,7 +7284,7 @@ collision_box_codes_01:
     .byte $e2,$ed,$35,$26
     .byte $f3,$f1,$12,$1e
 
-; each 4 bytes is a a collision box code
+; each 4 bytes is a collision box code
 ; player is crouching
 collision_box_codes_02:
     .byte $f4,$f1,$0d,$1e
@@ -7273,7 +7303,7 @@ collision_box_codes_02:
     .byte $de,$e6,$2d,$34
     .byte $e9,$ea,$0d,$2c
 
-; each 4 bytes is a a collision box code
+; each 4 bytes is a collision box code
 ; player is standing on ground
 collision_box_codes_03:
     .byte $f3,$f8,$24,$10
@@ -7292,7 +7322,7 @@ collision_box_codes_03:
     .byte $da,$ed,$4a,$26
     .byte $e6,$f1,$2a,$1e
 
-; each 4 bytes is a a collision box code
+; each 4 bytes is a collision box code
 ; bullet collision code
 collision_box_codes_04:
     .byte $ee,$f5,$24,$16
@@ -7330,7 +7360,7 @@ exe_enemy_routine_loop:
     lda LEVEL_LOCATION_TYPE ; 0 = outdoor; 1 = indoor
     lsr
     bcc @handle_outdoor     ; branch for outdoor level
-    lda ENEMY_Y_POS,x       ; indoor level, load enemy y position on screen
+    lda ENEMY_Y_POS,x       ; indoor level, load enemy Y position on screen
     cmp #$9c
     bcc @continue
 
@@ -7345,7 +7375,7 @@ exe_enemy_routine_loop:
     bmi advance_enemy               ; branch if bit 7 is set
     jsr bullet_enemy_collision_test ; enemy is active, check collision
 
-; decrement x and if it's greater than #$00 jump back to execute enemy routine
+; decrement x and if it's >= #$00 jump back to execute enemy routine
 advance_enemy:
     dex
     bpl exe_enemy_routine_loop
@@ -7353,7 +7383,7 @@ advance_enemy:
 
 ; executes the xth enemy routine
 ; if the enemy type (ENEMY_TYPE,x) is >= #$10, then it is a level-specific enemy routine, i.e. an enemy unique for the level
-; each level uses different enemies for these values, they executed from this label as well
+; each level uses different enemies for these values, they are executed from this label as well
 ; input
 ;  * $04 - the enemy routine index (which sub-routine inside the enemy routine to execute)
 ; x has the current enemy slot number
@@ -7395,9 +7425,9 @@ load_level_enemies_to_mem:
     lda CURRENT_LEVEL                   ; load the current level
     asl                                 ; double the number since each address is 2 bytes
     tay                                 ; transfer offset to y
-    lda level_enemy_routine_ptr_tbl,y   ; load low byte of level-specific enemy table to y
+    lda level_enemy_routine_ptr_tbl,y   ; load low byte of level-specific enemy table to a
     sta ENEMY_LEVEL_ROUTINES            ; store low byte into $80
-    lda level_enemy_routine_ptr_tbl+1,y ; load high byte of level-specific enemy table to y
+    lda level_enemy_routine_ptr_tbl+1,y ; load high byte of level-specific enemy table to a
     sta ENEMY_LEVEL_ROUTINES+1          ; store high byte into $81
     rts
 
@@ -7435,14 +7465,14 @@ enemy_routine_ptr_tbl:
     .addr turret_man_routine_ptr_tbl-2        ; turret man (0e) - CPU address $f0bd
     .addr turret_man_bullet_routine_ptr_tbl-2 ; turret man bullet (0f) - CPU address $f119
 
-; pointer table for level 1 enemy routines (#$2 * #$3 = #$6 bytes)
+; pointer table for level 1 enemy routines (#$02 * #$03 = #$06 bytes)
 ; every entry is 2 bytes less than the actual label
 enemy_routine_level_1:
     .addr bomb_turret_routine_ptr_tbl-2           ; boss bomb turret (10) - CPU address $8b47
     .addr boss_wall_plated_door_routine_ptr_tbl-2 ; door plate with siren (11) - CPU address $8bc7
     .addr exploding_bridge_routine_ptr_tbl-2      ; exploding bridge (12) - CPU address $8c50
 
-; pointer table for level 2/4 enemy routines (#$11 * #$2 = #$22 bytes)
+; pointer table for level 2/4 enemy routines (#$11 * #$02 = #$22 bytes)
 ; every entry is 2 bytes less than the actual label
 enemy_routine_level_2_4:
     .addr boss_eye_routine_ptr_tbl-2             ; Boss Eye (10) - CPU address $8e65
@@ -7463,7 +7493,7 @@ enemy_routine_level_2_4:
     .addr red_soldier_routine_ptr_tbl-2          ; Red Shooting Guy (1F) - CPU address $a258
     .addr red_blue_soldier_gen_routine_ptr_tbl-2 ; Red/Blue Guys Generator (20) - CPU address $a2fc
 
-; pointer table for level 3 enemy routines (#$6 * #$2 = #$c bytes)
+; pointer table for level 3 enemy routines (#$06 * #$02 = #$0c bytes)
 ; every entry is 2 bytes less than the actual label
 enemy_routine_level_3:
     .addr floating_rock_routine_ptr_tbl-2  ; Rock Platform (10) - CPU address $97e3
@@ -7473,7 +7503,7 @@ enemy_routine_level_3:
     .addr boss_mouth_routine_ptr_tbl-2     ; Level 3 Boss Mouth (14) - CPU address $9916
     .addr dragon_arm_orb_routine_ptr_tbl-2 ; Level 3 Dragon Arm Orb (15) - CPU address $9a8a
 
-; pointer table for level 5 enemy routines (#$7 * #$2 = #$e bytes)
+; pointer table for level 5 enemy routines (#$07 * #$02 = #$0e bytes)
 ; every entry is 2 bytes less than the actual label
 enemy_routine_level_5:
     .addr ice_grenade_generator_routine_ptr_tbl-2 ; Grenade Generator (10) - CPU address $a382
@@ -7484,7 +7514,7 @@ enemy_routine_level_5:
     .addr mini_ufo_routine_ptr_tbl-2              ; Flying Saucer (15) - CPU address $a8ea
     .addr boss_ufo_bomb_routine_ptr_tbl-2         ; Drop Bomb (16) - CPU address $a96a
 
-; pointer table for level 6 enemy routines (#$5 * #$2 = #$a bytes)
+; pointer table for level 6 enemy routines (#$05 * #$02 = #$0a bytes)
 ; every entry is 2 bytes less than the actual label
 enemy_routine_level_6:
     .addr fire_beam_down_routine_ptr_tbl-2        ; Energy Beam - Down (10) - CPU address $a997
@@ -7493,11 +7523,11 @@ enemy_routine_level_6:
     .addr boss_giant_soldier_routine_ptr_tbl-2    ; Giant Boss Robot (13) - CPU address $ab7d
     .addr boss_giant_projectile_routine_ptr_tbl-2 ; Spiked Disk Projectile (14) - CPU address $ae40
 
-; pointer table for level 7 enemy routines (#$9 * #$2 = #$12 bytes)
+; pointer table for level 7 enemy routines (#$09 * #$02 = #$12 bytes)
 ; every entry is 2 bytes less than the actual label
 enemy_routine_level_7:
     .addr claw_routine_ptr_tbl-2                    ; Mechanical Claw (10) - CPU address $aeb9
-    .addr rising_spiked_wall_routine_ptr_tbl-2      ; Raising Spiked Wall (11) - CPU address $afc8
+    .addr rising_spiked_wall_routine_ptr_tbl-2      ; Rising Spiked Wall (11) - CPU address $afc8
     .addr spiked_wall_routine_ptr_tbl-2             ; Spiked Wall (12) - CPU address $b0f9
     .addr mine_cart_generator_routine_ptr_tbl-2     ; Cart Generator (13) - CPU address $b11c
     .addr moving_cart_routine_ptr_tbl-2             ; Cart - Moving (14) - CPU address $b178
@@ -7506,7 +7536,7 @@ enemy_routine_level_7:
     .addr boss_mortar_routine_ptr_tbl-2             ; Mortar Launcher (17) - CPU address $b272
     .addr boss_soldier_generator_routine_ptr_tbl-2  ; Boss Screen Soldier Generator (18) - CPU address $b32c
 
-; pointer table for level 8 enemy routines (#$6 * #$2 = #$c bytes)
+; pointer table for level 8 enemy routines (#$06 * #$02 = #$0c bytes)
 ; every entry is 2 bytes less than the actual label
 enemy_routine_level_8:
     .addr alien_guardian_routine_ptr_tbl-2     ; Alien Guardian (10) - CPU address $b422
@@ -7559,7 +7589,7 @@ mortar_shot_routine_03:
 explosion_sound_hide_enemy:
     sta ENEMY_STATE_WIDTH,x   ; set updated ENEMY_STATE_WIDTH to specify explosion triggered
     and #$02                  ; keep bit 1 .... ..x.
-    beq @skip_explosion_sound ; skip explosion sound if bit 1 is set
+    beq @skip_explosion_sound ; skip explosion sound if bit 1 is clear
     lda #$19                  ; a = #$19 (sound_19)
     jsr play_sound            ; play enemy destroyed sound
 
@@ -7585,19 +7615,22 @@ explosion_sound_hide_enemy:
 set_enemy_delay_adv_routine:
     sta ENEMY_ANIMATION_DELAY,x ; set enemy animation frame delay counter
 
-; advance to next routine
+; advances enemy x to next routine if non-zero
 ; input
-;  * x - enemy slot index of the enemy routine to advance
+;  * x - enemy slot index
 advance_enemy_routine:
     lda ENEMY_ROUTINE,x ; enemy routine index
-    beq set_sprite_0    ; if routine not set, exit
+    beq set_sprite_0    ; if routine not set, exit clearing enemy sprite
     inc ENEMY_ROUTINE,x ; increment enemy routine index
     rts
 
 ; dead code, never called !(UNUSED)
+; advances enemy x to next routine, playing and showing explosion
+; input
+;  * x - enemy slot index
 bank_7_unused_label_01:
     lda ENEMY_ROUTINE,x ; enemy routine index
-    beq set_sprite_0
+    beq set_sprite_0    ; if routine not set, exit clearing enemy sprite
     inc ENEMY_ROUTINE,x ; enemy routine index
     lda #$24            ; a = #$24 (sound of explosion)
     jmp play_sound      ; play sound
@@ -7672,8 +7705,10 @@ enemy_routine_explosion_exit:
 enemy_routine_remove_enemy:
     jsr add_scroll_to_enemy_pos ; add scrolling to enemy position
 
-; remove enemy
 ; CPU memory address $e809
+; removes enemy
+; input
+;  * x - enemy slot index
 remove_enemy:
     lda #$00            ; a = #$00
     sta ENEMY_ROUTINE,x ; enemy routine index
@@ -7701,14 +7736,14 @@ set_enemy_routine_to_a:
     sta ENEMY_ROUTINE,x ; enemy routine index
     rts
 
-; pointer table for explosion type sprites (#$4 * #$2 = #$8 bytes)
+; pointer table for explosion type sprites (#$04 * #$02 = #$08 bytes)
 explosion_type_ptr_tbl:
     .addr explosion_type_00 ; CPU address $e82b
     .addr explosion_type_01 ; CPU address $e82e
     .addr explosion_type_02 ; CPU address $e832
     .addr explosion_type_03 ; CPU address $e835
 
-; tables for explosion sprite codes (#$4 * #$3 = #$c bytes)
+; tables for explosion sprite codes (#$04 * #$03 = #$0c bytes)
 ; larger circular ring explosion
 ; sprite_38, sprite_39, sprite_3a
 explosion_type_00:
@@ -7736,12 +7771,12 @@ explosion_type_03:
 update_enemy_pos:
     lda LEVEL_SCROLLING_TYPE                 ; 0 = horizontal, indoor/base; 1 = vertical
     beq update_enemy_x_pos_rem_if_off_screen ; branch for non-vertical levels
-    jsr update_enemy_y_pos_with_scroll       ; vertical level; apply y velocity and update y position
+    jsr update_enemy_y_pos_with_scroll       ; vertical level; apply Y velocity and update Y position
     cmp #$e8                                 ; compare enemy Y position to #$e8
     bcs jmp_remove_enemy                     ; remove enemy if Y position is >= #$e8 (fallen off bottom of screen)
 
 ; apply X velocity to enemy X velocity
-; remove enemy if enemy's resulting X position is less than 8 (off screen to left)
+; remove enemy if enemy's resulting X position is less than 8 (off-screen to left)
 update_enemy_x_pos_rem_off_screen:
     jsr update_enemy_x_pos ; apply velocity to X position
     cmp #$08
@@ -7752,16 +7787,16 @@ apply_vel_exit:
 
 ; horizontal level, or indoor/base level
 update_enemy_x_pos_rem_if_off_screen:
-    jsr update_enemy_x_pos_with_scroll
+    jsr update_enemy_x_pos_with_scroll ; update enemy X position bsed on its X velocity accounting for frame scroll
     cmp #$08                           ; compare enemy X position to #$08
     bcc jmp_remove_enemy               ; if X position < #$08, remove enemy (fallen off from left of screen)
 
 ; apply Y velocity to enemy Y position
-; remove enemy if enemy's resulting Y position is greater than or equal to #$e8 (off screen to bottom)
+; remove enemy if enemy's resulting Y position is greater than or equal to #$e8 (off-screen to bottom)
 set_enemy_y_vel_rem_off_screen:
     jsr update_enemy_y_pos ; apply velocity to Y position
     cmp #$e8
-    bcc apply_vel_exit     ; remove enemy if resulting X position is greater than or equal to #$e8 (off screen to bottom)
+    bcc apply_vel_exit     ; branch if resulting Y position is less than #$e8 (still on screen)
 
 jmp_remove_enemy:
     jmp remove_enemy ; remove enemy
@@ -7774,19 +7809,19 @@ set_outdoor_weapon_item_vel:
     lda ENEMY_Y_VELOCITY_FAST,x           ; load Y velocity fast byte
     clc                                   ; clear carry in preparation for addition
     adc FRAME_SCROLL                      ; add FRAME_SCROLL to ENEMY_Y_VELOCITY_FAST
-    jsr set_weapon_item_y_vel_enemy_frame ; apply y velocity to y position,
+    jsr set_weapon_item_y_vel_enemy_frame ; apply Y velocity to Y position,
     beq jmp_remove_enemy                  ; remove weapon item if ENEMY_FRAME is #$01
-    jmp update_enemy_x_pos_rem_off_screen ; add velocity to enemy X pos; remove enemy if X position < #$08 (off screen to left)
+    jmp update_enemy_x_pos_rem_off_screen ; add velocity to enemy X pos; remove enemy if X position < #$08 (off-screen to left)
 
 ; horizontal levels
 @set_weapon_item_velocity:
-    jsr update_enemy_x_pos_with_scroll    ; update x position accounting for whether frame is scrolling
-    cmp #$08                              ; compare the x position to the left side of the screen
+    jsr update_enemy_x_pos_with_scroll    ; update enemy X position bsed on its X velocity accounting for frame scroll
+    cmp #$08                              ; compare the X position to the left side of the screen
     bcc remove_enemy_far                  ; remove weapon item if too far to the left (scrolled off screen)
     ldy #$00                              ; y = #$00
     lda ENEMY_Y_VELOCITY_FAST,x           ; load fast velocity so it is applied in next line
-    jsr set_weapon_item_y_vel_enemy_frame ; apply y velocity to y position, don't adjust ENEMY_FRAME
-    bne scroll_enemy_pos_exit             ; branch if weapon item, isn't off screen to bottom, otherwise remove
+    jsr set_weapon_item_y_vel_enemy_frame ; apply Y velocity to Y position, don't adjust ENEMY_FRAME
+    bne scroll_enemy_pos_exit             ; branch if weapon item, isn't off-screen to bottom, otherwise remove
 
 remove_enemy_far:
     jmp remove_enemy ; remove enemy
@@ -7798,7 +7833,7 @@ remove_enemy_far:
 ;  * a - how much to move current enemy's Y position
 ;  * y - number of frames to advance ENEMY_FRAME (set to -1 when picked up by player)
 ; output
-;  * compare ENEMY_FRAME to #$01, determines if y position overflow (off screen)
+;  * compare ENEMY_FRAME to #$01, determines if Y position overflow (off screen)
 set_weapon_item_y_vel_enemy_frame:
     bpl @set_y_vel_enemy_frame
     dey                        ; subtract 1 from ENEMY_FRAME advance since enemy is moving in positive Y (accommodate overflow)
@@ -7809,27 +7844,29 @@ set_weapon_item_y_vel_enemy_frame:
     lda ENEMY_Y_VEL_ACCUM,x      ; load current accumulated ENEMY_Y_VELOCITY_FRACT total
     clc                          ; clear carry in preparation for addition
     adc ENEMY_Y_VELOCITY_FRACT,x ; a = ENEMY_Y_VELOCITY_FRACT + ENEMY_Y_VEL_ACCUM
-    sta ENEMY_Y_VEL_ACCUM,x      ; add another ENEMY_X_VELOCITY_FRACT to accumulator
-    lda ENEMY_Y_POS,x            ; load enemy y position on screen
+    sta ENEMY_Y_VEL_ACCUM,x      ; add another ENEMY_Y_VELOCITY_FRACT to accumulator
+    lda ENEMY_Y_POS,x            ; load enemy Y position on screen
     adc $00                      ; add $00 units to Y position
                                  ; along with an additional 1 unit if ENEMY_Y_VEL_ACCUM rolled over
     sta ENEMY_Y_POS,x            ; set new Y position
     lda ENEMY_FRAME,x            ; load enemy animation frame number
-    adc $01                      ; add ENEMY_FRAME to $01, carry could be set from adc $00 above
+    adc $01                      ; add $01 to ENEMY_FRAME (in a), carry could be set from adc $00 above
     sta ENEMY_FRAME,x            ; set new value
-    cmp #$01                     ; if any carry from previous addition, then y position is > #$ff, so remove weapon item, it's off screen
+    cmp #$01                     ; if any carry from previous addition, then Y position is > #$ff, so remove weapon item, it's off screen
     rts
 
-; if the screen is scrolling add that amount to the enemy position
+; adds any frame scrolling to enemy bullet position, removing if off screen
+; input
+;  * x - enemy slot index
 add_scroll_to_enemy_pos:
     lda LEVEL_SCROLLING_TYPE  ; 0 = horizontal, indoor/base; 1 = vertical
     beq add_horizontal_scroll
-    lda ENEMY_Y_POS,x         ; vertical level, load enemy y position on screen
+    lda ENEMY_Y_POS,x         ; vertical level, load enemy Y position on screen
     clc                       ; clear carry in preparation for addition
-    adc FRAME_SCROLL          ; how much to scroll the screen (#00 - no scroll)
-    sta ENEMY_Y_POS,x         ; enemy y position on screen
+    adc FRAME_SCROLL          ; how much to scroll the screen (#$00 - no scroll)
+    sta ENEMY_Y_POS,x         ; enemy Y position on screen
     cmp #$e8
-    bcs remove_enemy_far      ; remove enemy if far above screen for vertical level
+    bcs remove_enemy_far      ; remove enemy if Y position is off screen bottom (#$e8 or more) for vertical level
 
 scroll_enemy_pos_exit:
     rts
@@ -7837,85 +7874,100 @@ scroll_enemy_pos_exit:
 ; add X scrolling to enemy X position
 ; horizontal scrolling level
 add_horizontal_scroll:
-    lda ENEMY_X_POS,x    ; load enemy x position on screen
+    lda ENEMY_X_POS,x    ; load enemy X position on screen
     sec                  ; set carry flag in preparation for subtraction
     sbc FRAME_SCROLL     ; subtract the frame scroll amount
-    sta ENEMY_X_POS,x    ; set new enemy x position
+    sta ENEMY_X_POS,x    ; set new enemy X position
     cmp #$08             ; remove enemy if too far to the left
     bcc remove_enemy_far ; remove enemy if leaving the left of the screen
     rts
 
 ; dead code, never called !(UNUSED)
 bank_7_unused_label_02:
-    jsr update_enemy_x_pos_rem_off_screen ; add velocity to enemy X position; remove enemy if X position < #$08 (off screen to left)
-    jmp set_enemy_y_vel_rem_off_screen    ; add velocity to enemy Y position; remove enemy if Y position >= #$e8 (off screen to bottom)
+    jsr update_enemy_x_pos_rem_off_screen ; add velocity to enemy X position; remove enemy if X position < #$08 (off-screen to left)
+    jmp set_enemy_y_vel_rem_off_screen    ; add velocity to enemy Y position; remove enemy if Y position >= #$e8 (off-screen to bottom)
 
-; set x/y velocities to zero
+; set enemy X and Y velocities to zero
+; input
+;  * x - enemy slot index
 set_enemy_velocity_to_0:
     jsr set_enemy_x_velocity_to_0
 
-; set y velocity to zero
+; set Y velocity to zero
+; input
+;  * x - enemy slot index
 set_enemy_y_velocity_to_0:
     lda #$00                     ; a = #$00
     sta ENEMY_Y_VELOCITY_FRACT,x
     sta ENEMY_Y_VELOCITY_FAST,x
     rts
 
-; set x velocity to zero
+; set X velocity to zero
+; input
+;  * x - enemy slot index
 set_enemy_x_velocity_to_0:
     lda #$00                     ; a = #$00
     sta ENEMY_X_VELOCITY_FRACT,x
     sta ENEMY_X_VELOCITY_FAST,x
     rts
 
+; updates enemy x's Y position based on its Y velocity adjusting for frame scrolling
+; input
+;  * x - enemy slot index
+; output
+;  * a - updated enemy Y position
 update_enemy_y_pos_with_scroll:
-    jsr update_enemy_y_pos ; apply velocity to y position
+    jsr update_enemy_y_pos ; apply velocity to Y position
     clc                    ; clear carry in preparation for addition
-    adc FRAME_SCROLL       ; how much to scroll the screen (#00 - no scroll)
-    sta ENEMY_Y_POS,x      ; enemy y position on screen
+    adc FRAME_SCROLL       ; how much to scroll the screen (#$00 - no scroll)
+    sta ENEMY_Y_POS,x      ; enemy Y position on screen
     rts
 
 ; apply Y velocity and update enemy's Y position
+; input
+;  * x - enemy slot index
 ; output
 ;  * a - ENEMY_Y_POS
 update_enemy_y_pos:
     lda ENEMY_Y_VEL_ACCUM,x      ; load current accumulated ENEMY_Y_VELOCITY_FRACT total
     clc                          ; clear carry in preparation for addition
     adc ENEMY_Y_VELOCITY_FRACT,x ; a = ENEMY_Y_VELOCITY_FRACT + ENEMY_Y_VEL_ACCUM
-    sta ENEMY_Y_VEL_ACCUM,x      ; add another ENEMY_X_VELOCITY_FRACT to accumulator
+    sta ENEMY_Y_VEL_ACCUM,x      ; add another ENEMY_Y_VELOCITY_FRACT to accumulator
     lda ENEMY_Y_POS,x
     adc ENEMY_Y_VELOCITY_FAST,x  ; add ENEMY_Y_VELOCITY_FAST units to Y position
                                  ; along with an additional 1 unit if ENEMY_Y_VEL_ACCUM rolled over
     sta ENEMY_Y_POS,x            ; set new Y position
     rts
 
-; updates enemy position based on velocity and adjusts when frame is scrolling
+; updates enemy x's X position based on its X velocity adjusting for frame scrolling
 ; input
-;  * x - enemy to adjust x position
+;  * x - enemy slot index
 ; output
-;  * a - updated enemy x position
+;  * a - updated enemy X position
 update_enemy_x_pos_with_scroll:
-    jsr update_enemy_x_pos ; apply velocity to x position
+    jsr update_enemy_x_pos ; apply velocity to X position
     sec                    ; set carry flag in preparation for subtraction
-    sbc FRAME_SCROLL       ; how much to scroll the screen (#00 - no scroll)
-    sta ENEMY_X_POS,x      ; set enemy x position on screen
+    sbc FRAME_SCROLL       ; subtract how much to scroll the screen (#$00 - no scroll) from ENEMY_X_POS,x
+    sta ENEMY_X_POS,x      ; set new enemy X position on screen
     rts
 
 ; apply X velocity and update enemy's X position
+; input
+;  * x - enemy slot index
 ; output
 ;  * a - ENEMY_X_POS
 update_enemy_x_pos:
     lda ENEMY_X_VEL_ACCUM,x      ; load current accumulated ENEMY_X_VELOCITY_FRACT total
     clc                          ; clear carry in preparation for addition
     adc ENEMY_X_VELOCITY_FRACT,x ; a = ENEMY_X_VELOCITY_FRACT + ENEMY_X_VEL_ACCUM
-    sta ENEMY_X_VEL_ACCUM,x      ; add another ENEMY_X_VELOCITY_FRACT to accumulator
-    lda ENEMY_X_POS,x            ; load current enemy x position
+    sta ENEMY_X_VEL_ACCUM,x      ; add another ENEMY_Y_VELOCITY_FRACT to accumulator
+    lda ENEMY_X_POS,x            ; load current enemy X position
     adc ENEMY_X_VELOCITY_FAST,x  ; add ENEMY_X_VELOCITY_FAST units to X position
                                  ; along with an additional 1 unit if ENEMY_X_VEL_ACCUM rolled over
     sta ENEMY_X_POS,x            ; set new X position
     rts
 
-; reverse x direction
+; reverse X direction
 reverse_enemy_x_direction:
     lda #$00                     ; a = #$00
     sec                          ; set carry flag in preparation for subtraction
@@ -7926,7 +7978,7 @@ reverse_enemy_x_direction:
     sta ENEMY_X_VELOCITY_FAST,x
     rts
 
-; reverse y direction
+; reverse Y direction
 ; dead code, never called !(UNUSED)
 bank_7_unused_label_03:
     lda #$00                     ; a = #$00
@@ -7941,6 +7993,8 @@ bank_7_unused_label_03:
 ; get score of current enemy according to score code
 ; adds score amount to player score
 ; sets enemy destroyed routine
+; input
+;  * x - enemy slot index
 add_enemy_score_set_enemy_routine:
     lda ENEMY_SCORE_COLLISION,x     ; pull score bits from byte
     lsr
@@ -7955,7 +8009,7 @@ add_enemy_score_set_enemy_routine:
     lda #$13                        ; a = #$13 (#$1388 = 5000 decimal = 500,000 points)
     sta $01                         ; store in score to add high byte
     ldy $17                         ; load current player number (0 or 1)
-    jsr add_player_score            ; add $00 and $01 to player score, get extra life, check if high score
+    jsr add_player_score            ; add $00 and $01 to player score, possibly give extra life, check if high score
     jmp @continue
 
 @add_y_code_to_player_score:
@@ -8006,7 +8060,7 @@ set_destroyed_enemy_routine:
 @exit:
     rts
 
-; table for score codes (#$a bytes)
+; table for score codes (#$0a bytes)
 ; type #$0a is hard-coded and gives 500,000 points
 score_codes_tbl:
     .byte $00 ; type 0:      0 points
@@ -8020,7 +8074,7 @@ score_codes_tbl:
     .byte $64 ; type 8: 10,000 points
     .byte $96 ; type 9: 15,000 points
 
-; pointer table for which enemy routine to execute when destroyed (#$9 * #$2 = #$12 bytes)
+; pointer table for which enemy routine to execute when destroyed (#$09 * #$02 = #$12 bytes)
 enemy_destroyed_routine_ptr_tbl:
     .addr enemy_destroyed_routine_00 ; CPU address $e9bf - Level 1
     .addr enemy_destroyed_routine_01 ; CPU address $e9c1 - Level 2
@@ -8034,7 +8088,7 @@ enemy_destroyed_routine_ptr_tbl:
 
 ; table for enemy routine index when destroyed
 ; also used for falcon item or when boss is destroyed to destroy all enemies
-; #$4 bits per enemy, 2 enemies per byte
+; #$04 bits per enemy, 2 enemies per byte
 ; if enemy type is odd, then smaller nibble is used
 ; if enemy type byte is even, then high nibble is used
 ; keep in mind that all routines are offset by -2
@@ -8139,7 +8193,7 @@ remove_all_enemies:
 ; sets background collision code to #$00 (empty) for a single super-tile, or #$10 pattern table tiles (4 2x2 tiles)
 ; at PPU address $12 (low) $13 (high)
 ; input
-;  * PPU nametable collision address: $12 (low) and $13 (high)
+;  * $12 - 2-byte PPU nametable address
 clear_supertile_bg_collision:
     lda #$00 ; a = #$00
 
@@ -8147,7 +8201,7 @@ clear_supertile_bg_collision:
 ; at PPU address $12 (low) $13 (high)
 ; input
 ;  * a - the bg collision code for the entire super-tile (4 2x2 tiles) [#$00-#$0f]
-;  * PPU nametable collision address: $12 (low) and $13 (high)
+;  * $12 - 2-byte PPU nametable address
 set_supertile_bg_collision:
     tay
 
@@ -8157,13 +8211,13 @@ set_supertile_bg_collision:
 ;  * a - left two collision tiles [#$00-#$0f]
 ;    * bits 0 and 1 - the top-left collision code (1 2x2 nametable tile)
 ;    * bits 2 and 3 - the bottom-left collision code (1 2x2 nametable tile)
-;  * a - right two collision tiles [#$00-#$0f]
+;  * y - right two collision tiles [#$00-#$0f]
 ;    * bits 0 and 1 - the top-right collision code (1 2x2 nametable tile)
 ;    * bits 2 and 3 - the bottom-right collision code (1 2x2 nametable tile)
 ;  * PPU nametable collision address: $12 (low) and $13 (high)
 set_supertile_bg_collisions:
     sta $11  ; save first 2x2 bg collision code to $11
-    sty $14  ; save second 2x2 bg collision code to $11
+    sty $14  ; save second 2x2 bg collision code to $14
              ; start calculation BG_COLLISION_DATA offset from PPU address, e.g. $2190 goes to #$1a
     lda $12  ; load low byte of PPU nametable address
     lsr      ; shift value to the right
@@ -8255,7 +8309,7 @@ set_supertile_bg_collisions:
     bpl @set_quadrant_bg_collision ; branch if more bg collision tiles to update the next quadrant of the super-tile
     rts
 
-; table for bit masks (#$4 bytes)
+; table for bit masks (#$04 bytes)
 ; each 2 bits encode 2 pattern table tiles (1/4 of a super-tile's collision information)
 ; 0011 1111
 ; 1100 1111
@@ -8273,8 +8327,8 @@ create_explosion_89:
 
 ; creates 2 sets of explosion #$89 at location ($09, $08)
 ; input
-;  * $09 - x location
-;  * $08 - y location
+;  * $09 - X location
+;  * $08 - Y location
 create_two_explosion_89:
     lda #$89               ; set ENEMY_STATE_WIDTH to #$89 (explosion type)
     bne create_explosion_a ; always jump
@@ -8282,21 +8336,21 @@ create_two_explosion_89:
 ; create new pill box sensor set to routine enemy_routine_init_explosion
 ; pill box sensor isn't important, it's just an enemy that has the enemy_routine_init_explosion routine sequence
 ; input
-;  * $09 - x position to create enemy at
-;  * $08 - y position to create enemy at
+;  * $09 - X position to create enemy at
+;  * $08 - Y position to create enemy at
 create_enemy_for_explosion:
     lda #$08 ; set ENEMY_STATE_WIDTH to #$08 (explosion type)
 
 ; input
-;  * $09 - x position to create enemy at
-;  * $08 - y position to create enemy at
+;  * $09 - X position to create enemy at
+;  * $08 - Y position to create enemy at
 create_explosion_a:
     sta $0a  ; set explosion type
     lda #$06 ; a = #$06 (enemy_routine_init_explosion, 2 rounds of explosions)
 
 ; input
-;  * $09 - x position to create enemy at
-;  * $08 - y position to create enemy at
+;  * $09 - X position to create enemy at
+;  * $08 - Y position to create enemy at
 create_explosion_sequence:
     sta $0b                  ; set weapon box enemy routine
     stx $10                  ; save x to be restored after function call
@@ -8312,10 +8366,10 @@ create_explosion_sequence:
     sta ENEMY_SPRITES,x      ; write enemy sprite code to CPU buffer
     lda $0a                  ; load explosion type
     sta ENEMY_STATE_WIDTH,x  ; set explosion type
-    lda $08                  ; load y position of explosions
-    sta ENEMY_Y_POS,x        ; set explosion y position on screen
-    lda $09                  ; load x position of explosions
-    sta ENEMY_X_POS,x        ; set explosion x position on screen
+    lda $08                  ; load Y position of explosions
+    sta ENEMY_Y_POS,x        ; set explosion Y position on screen
+    lda $09                  ; load X position of explosions
+    sta ENEMY_X_POS,x        ; set explosion X position on screen
 
 @exit:
     ldx $10 ; restore x from before create_explosion_sequence call
@@ -8383,58 +8437,71 @@ set_enemy_state_width_to_a:
     sta ENEMY_STATE_WIDTH,x
     rts
 
-; add a to enemy y position on screen
+; adds a to enemy Y position on screen
+; input
+;  * a - the amount to add to enemy x's Y position
+;  * x - enemy slot index
 add_a_to_enemy_y_pos:
     clc               ; clear carry in preparation for addition
     adc ENEMY_Y_POS,x
-    sta ENEMY_Y_POS,x ; enemy y position on screen
+    sta ENEMY_Y_POS,x ; enemy Y position on screen
     rts
 
-; add a to enemy x position on screen
+; adds a to enemy X position on screen
+; input
+;  * a - the amount to add to enemy x's X position
+;  * x - enemy slot index
 add_a_to_enemy_x_pos:
     clc               ; clear carry in preparation for addition
-    adc ENEMY_X_POS,x ; add to enemy x position on screen
-    sta ENEMY_X_POS,x ; set enemy x position on screen
+    adc ENEMY_X_POS,x ; add to enemy X position on screen
+    sta ENEMY_X_POS,x ; set enemy X position on screen
     rts
 
-; set memory $08 and $09 to enemy X's Y and X position respectively
+; copy enemy x's X and Y position to ($09, $08)
 ; output
-;  * $08 - enemy y position
-;  * $09 - enemy x position
-;  * a - enemy y position
-;  * y - enemy y position
+;  * $08 - enemy Y position
+;  * $09 - enemy X position
+;  * a - enemy Y position
+;  * y - enemy Y position
 set_08_09_to_enemy_pos:
     lda #$00 ; a = #$00
     tay
 
-; adds register a to the enemy x position, stores result in $09
-; adds register y to the enemy y position, stores result in $08
+; adds register a to the enemy x's X position, stores result in $09
+; adds register y to the enemy x's Y position, stores result in $08
+; enemy position is not modified
 ; input
-;  * a - distance to add to x position
-;  * y - distance to add to y position
+;  * a - distance to add to X position
+;  * x - enemy slot index
+;  * y - distance to add to Y position
 ; output
-;  * $08 - y to the enemy y position
-;  * $09 - a to the enemy x position
+;  * $08 - y added to the enemy Y position
+;  * $09 - a added to the enemy X position
 add_with_enemy_pos:
     clc               ; clear carry in preparation for addition
-    adc ENEMY_X_POS,x ; add a to enemy x position on screen
+    adc ENEMY_X_POS,x ; add a to enemy X position on screen
     sta $09           ; store result in $09
     tya
     clc               ; clear carry in preparation for addition
-    adc ENEMY_Y_POS,x ; add a to enemy y position on screen
+    adc ENEMY_Y_POS,x ; add a to enemy Y position on screen
     sta $08           ; store value in $08
     rts
 
-; add .06 to y velocity
+; add .06 to Y velocity for enemy in slot x
+; input
+;  * x - enemy slot index
 add_10_to_enemy_y_fract_vel:
     lda #$10 ; a = #$10
 
-; add a to enemy y fractional velocity, incorporating carry into fast y velocity
+; add a to enemy Y fractional velocity, incorporating carry into fast Y velocity
+; input
+;  * x - enemy slot index
+;  * a - the amount to add to enemy x's Y fractional velocity
 add_a_to_enemy_y_fract_vel:
     clc                          ; clear carry in preparation for addition
-    adc ENEMY_Y_VELOCITY_FRACT,x ; add a to enemy y fractional velocity
-    sta ENEMY_Y_VELOCITY_FRACT,x ; store updated result in enemy y fractional velocity
-    lda ENEMY_Y_VELOCITY_FAST,x  ; load the y fast velocity
+    adc ENEMY_Y_VELOCITY_FRACT,x ; add a to enemy Y fractional velocity
+    sta ENEMY_Y_VELOCITY_FRACT,x ; store updated result in enemy Y fractional velocity
+    lda ENEMY_Y_VELOCITY_FAST,x  ; load the Y fast velocity
     adc #$00                     ; add any carry from adding to fractional velocity
     sta ENEMY_Y_VELOCITY_FAST,x  ; store updated fast velocity if any carry occurred
     rts
@@ -8453,8 +8520,8 @@ generate_enemy_a:
 ; generate enemy type $0a at relative position a,y
 ; input
 ;  * $0a - enemy type
-;  * a - x position
-;  * y - y position
+;  * a - X position
+;  * y - Y position
 ; output
 ;  * a - #$01 when no enemy created, #$00 when enemy created
 ;  * y - created enemy slot number
@@ -8468,14 +8535,14 @@ generate_enemy_at_pos:
     lda $0a                  ; load enemy type
     sta ENEMY_TYPE,x         ; set enemy type
     jsr initialize_enemy
-    lda ENEMY_Y_POS,y        ; enemy y position on screen
+    lda ENEMY_Y_POS,y        ; enemy Y position on screen
     clc                      ; clear carry in preparation for addition
     adc $08
     sta ENEMY_Y_POS,x
-    lda ENEMY_X_POS,y        ; load enemy x position on screen
+    lda ENEMY_X_POS,y        ; load enemy X position on screen
     clc                      ; clear carry in preparation for addition
     adc $09
-    sta ENEMY_X_POS,x        ; set enemy x position on screen
+    sta ENEMY_X_POS,x        ; set enemy X position on screen
     txa
     tay
     ldx ENEMY_CURRENT_SLOT
@@ -8487,11 +8554,16 @@ generate_enemy_at_pos:
     lda #$01               ; a = #$01
     rts
 
-; add #$04 to the enemy y position accounting for VERTICAL_SCROLL overflow on vertical levels
+; add #$04 to the enemy Y position accounting for VERTICAL_SCROLL overflow on vertical levels
+; input
+;  * x - enemy slot index
 add_4_to_enemy_y_pos:
     lda #$04
 
-; add a to the enemy y position accounting for VERTICAL_SCROLL overflow on vertical levels
+; add a to the enemy Y position accounting for VERTICAL_SCROLL overflow on vertical levels
+; input
+;  * a - the amount to add to enemy x's Y position
+;  * x - enemy slot index
 add_a_with_vert_scroll_to_enemy_y_pos:
     sta $01
     lda VERTICAL_SCROLL ; vertical scroll offset
@@ -8505,7 +8577,7 @@ add_a_with_vert_scroll_to_enemy_y_pos:
     sbc $00
     clc                 ; clear carry in preparation for addition
     adc $01
-    sta ENEMY_Y_POS,x   ; enemy y position on screen
+    sta ENEMY_Y_POS,x   ; enemy Y position on screen
     rts
 
 ; draw the nametable tiles from level_xx_tile_animation (a) at the enemy position
@@ -8550,15 +8622,15 @@ draw_enemy_supertile_a:
 ; output
 ; * carry flag - clear when successful, set when CPU_GRAPHICS_BUFFER is full
 draw_enemy_supertile_10:
-    lda ENEMY_Y_POS,x                          ; load enemy y position on screen
+    lda ENEMY_Y_POS,x                          ; load enemy Y position on screen
     sec                                        ; set carry flag in preparation for subtraction
-    sbc #$0c                                   ; subtract #$0c from enemy y position
-    bcc nametable_update_exit                  ; exit if negative (off screen to the top)
-    tay                                        ; transfer y position to y
-    lda ENEMY_X_POS,x                          ; load enemy x position on screen
+    sbc #$0c                                   ; subtract #$0c from enemy Y position
+    bcc nametable_update_exit                  ; exit if negative (off-screen to the top)
+    tay                                        ; transfer Y position to y
+    lda ENEMY_X_POS,x                          ; load enemy X position on screen
     sec                                        ; set carry flag in preparation for subtraction
-    sbc #$0c                                   ; subtract #$0c from enemy x position
-    bcc nametable_update_exit                  ; exit if negative (off screen to the left)
+    sbc #$0c                                   ; subtract #$0c from enemy X position
+    bcc nametable_update_exit                  ; exit if negative (off-screen to the left)
     jsr load_bank_3_update_nametable_supertile ; draw super-tile $10 at position (a,y)
     ldx ENEMY_CURRENT_SLOT
     rts
@@ -8586,15 +8658,15 @@ update_2_enemy_supertiles:
     jsr set_supertile_bg_collisions ; update bg collision codes for a single super-tile at PPU address $12 (low) $13 (high)
 
 @continue:
-    lda ENEMY_Y_POS,x                          ; load enemy y position on screen
+    lda ENEMY_Y_POS,x                          ; load enemy Y position on screen
     clc                                        ; clear carry in preparation for addition
-    adc #$14                                   ; add #$14 to enemy y position
-    bcs nametable_update_exit                  ; exit if off screen to the bottom
-    tay                                        ; set update super-tile y position
-    lda ENEMY_X_POS,x                          ; load enemy x position on screen
+    adc #$14                                   ; add #$14 to enemy Y position
+    bcs nametable_update_exit                  ; exit if off-screen to the bottom
+    tay                                        ; set update super-tile Y position
+    lda ENEMY_X_POS,x                          ; load enemy X position on screen
     sec                                        ; set carry flag in preparation for subtraction
-    sbc #$0c                                   ; subtract #$0c from enemy x position
-    bcc nametable_update_exit                  ; exit if off screen to the left
+    sbc #$0c                                   ; subtract #$0c from enemy X position
+    bcc nametable_update_exit                  ; exit if off-screen to the left
     jsr load_bank_3_update_nametable_supertile ; draw super-tile $10 at position (a,y)
     bcs @set_slot_exit                         ; exit if CPU_GRAPHICS_BUFFER is full
     lda $07                                    ; load whether or not to set collision
@@ -8630,14 +8702,14 @@ update_enemy_nametable_tiles_no_palette:
 ;  * carry - clear when successful, set when CPU_GRAPHICS_BUFFER is full
 update_enemy_nametable_tiles:
     sta $10                                ; store offset in $10
-    lda ENEMY_Y_POS,x                      ; load enemy y position on screen
+    lda ENEMY_Y_POS,x                      ; load enemy Y position on screen
     sec                                    ; set carry flag in preparation for subtraction
-    sbc #$04                               ; subtract #$04 from y position (top)
+    sbc #$04                               ; subtract #$04 from Y position (top)
     bcc nametable_update_exit
-    tay                                    ; set enemy y position for load_bank_3_update_nametable_tiles
-    lda ENEMY_X_POS,x                      ; load enemy x position on screen
+    tay                                    ; set enemy Y position for load_bank_3_update_nametable_tiles
+    lda ENEMY_X_POS,x                      ; load enemy X position on screen
     sec                                    ; set carry flag in preparation for subtraction
-    sbc #$04                               ; subtract #$04 from x position (left)
+    sbc #$04                               ; subtract #$04 from X position (left)
     bcc nametable_update_exit
     jsr load_bank_3_update_nametable_tiles ; draw tile code $10 to nametable at (a, y)
     ldx ENEMY_CURRENT_SLOT                 ; restore x to point to current enemy
@@ -8651,6 +8723,8 @@ nametable_update_exit:
 ; gets enemy's bg collision code and look for solid collision
 ; if collision with floor, load collision code one row down (half supertile)
 ; to see if it's a floor collision on top of a solid object
+; input
+;  * x - enemy slot index
 ; output
 ;  * a - collision code of half row down if floor collision, otherwise, current collision code
 ;  * carry flag - set when collision code #$80 (solid)
@@ -8669,13 +8743,15 @@ check_enemy_collision_solid_bg:
 init_vars_get_enemy_bg_collision:
     ldy #$00 ; y = #$00
 
-; adds y to enemy y position and gets bg collision code
+; adds y to enemy x's Y position, then determins background collision
+; ENEMY_X_POS and ENEMY_Y_POS are unaffected
 ; input
+;  * x - enemy slot index
 ;  * y - added to enemy Y position
 ; output
-;  * a collision code #$00 (empty), #$01 (floor), #$02 (water), or #$80 (solid)
-;  * carry set when collision is with floor (#$01)
-;  * negative flag set when solid collision (#$80)
+;  * a - collision code #$00 (empty), #$01 (floor), #$02 (water), or #$80 (solid)
+;  * carry - set when collision is with floor (#$01)
+;  * negative flag - set when solid collision (#$80)
 add_y_to_y_pos_get_bg_collision:
     lda #$00 ; a = #$00
 
@@ -8683,21 +8759,22 @@ add_y_to_y_pos_get_bg_collision:
 ; ENEMY_X_POS and ENEMY_Y_POS are unaffected
 ; returns the bg collision code for current enemy
 ; input
-;  * a - added to enemy X position
-;  * y - added to enemy Y position
+;  * a - amount to add to enemy x's X position for collision detection
+;  * x - enemy slot index
+;  * y - amount to add to to enemy x's Y position for collision detection
 ; output
-;  * a collision code #$00 (empty), #$01 (floor), #$02 (water), or #$80 (solid)
-;  * carry set when collision is with floor (#$01)
-;  * negative flag set when solid collision (#$80)
+;  * a - collision code #$00 (empty), #$01 (floor), #$02 (water), or #$80 (solid)
+;  * carry - set when collision is with floor (#$01)
+;  * negative flag - set when solid collision (#$80)
 add_a_y_to_enemy_pos_get_bg_collision:
     clc                        ; clear carry in preparation for addition
-    adc ENEMY_X_POS,x          ; add to enemy x position on screen
-    sta $13                    ; store enemy x position in $13 for get_enemy_bg_collision
-    tya                        ; transfer amount to add to y enemy y position into a
+    adc ENEMY_X_POS,x          ; add to enemy X position on screen
+    sta $13                    ; store enemy X position in $13 for get_enemy_bg_collision
+    tya                        ; transfer amount to add to y enemy Y position into a
     clc                        ; clear carry in preparation for addition
-    adc ENEMY_Y_POS,x          ; add to enemy y position on screen
-    bcs @exit                  ; exit if overflow, i.e. enemy y position is off screen towards bottom
-    tay                        ; set enemy y position in y for bg collision detection
+    adc ENEMY_Y_POS,x          ; add to enemy Y position on screen
+    bcs @exit                  ; exit if overflow, i.e. enemy Y position is off-screen towards bottom
+    tay                        ; set enemy Y position in y for bg collision detection
     jmp get_enemy_bg_collision ; get bg collision code for position ($13, y)
 
 @exit:
@@ -8710,7 +8787,7 @@ bank_7_unused_label_04:
 
 ; flying_capsule_routine_01 horizontal level
 set_flying_capsule_y_vel:
-    lda ENEMY_Y_POS,x            ; load enemy y position on screen
+    lda ENEMY_Y_POS,x            ; load enemy Y position on screen
     sta $01
     lda ENEMY_VAR_1,x
     sta $03
@@ -8730,14 +8807,14 @@ bank_7_unused_label_05:
     ldy #$00 ; y = #$00
 
 ; flying_capsule_routine_01 vertical level
-; set various local variables to x velocity
+; set various local variables to X velocity
 ; output
 ;  * $01 - ENEMY_X_POS
 ;  * $03 - ENEMY_VAR_2
 ;  * $04 - ENEMY_X_VELOCITY_FAST
 ;  * $05 - ENEMY_X_VELOCITY_FRACT
 set_flying_capsule_x_vel:
-    lda ENEMY_X_POS,x            ; load enemy x position on screen
+    lda ENEMY_X_POS,x            ; load enemy X position on screen
     sta $01
     lda ENEMY_VAR_2,x
     sta $03
@@ -8763,10 +8840,10 @@ bank_7_unused_label_06:
 ;  * $04 - ENEMY_X_VELOCITY_FAST or ENEMY_Y_VELOCITY_FAST
 ;  * $05 - ENEMY_X_VELOCITY_FRACT or ENEMY_Y_VELOCITY_FRACT
 set_flying_capsule_path:
-    lda $01            ; load position point (x or y position)
+    lda $01            ; load position point (X or Y position)
     sec                ; set carry flag in preparation for subtraction
-    sbc $03            ; subtract ENEMY_VAR_1 or ENEMY_VAR_2 from x or y position
-    sta $01            ; store new x position back in $01
+    sbc $03            ; subtract ENEMY_VAR_1 or ENEMY_VAR_2 from X or Y position
+    sta $01            ; store new X position back in $01
     lda #$00           ; a = #$00
     sbc #$00           ; subtract #$00 and any overflow
     sta $00            ; new fractional velocity in $00
@@ -8776,7 +8853,7 @@ set_flying_capsule_path:
     bmi @loop2
 
 @loop:
-    asl $01            ; shift left the x or y position
+    asl $01            ; shift left the X or Y position
     rol $00            ; rotate fractional velocity left, bringing in any bit 7 from $01
     dey
     bne @loop
@@ -8801,28 +8878,28 @@ set_flying_capsule_path:
 
 ; red turret
 red_turret_find_target_player:
-    jsr player_enemy_x_dist ; a = closest x distance to enemy from players, y = closest player (#$00 or #$01)
+    jsr player_enemy_x_dist ; a = closest X distance to enemy from players, y = closest player (#$00 or #$01)
     tya                     ; set the closest player to a #$00 for p1, #$01 for p2
     eor #$01                ; flip to other player
     sta $0c                 ; store farther player in $0c
-    lda $08                 ; load player 1 x distance to enemy
-    sta $0a                 ; store player 1 x distance to enemy in $0a
-    lda $09                 ; load player 2 x distance to enemy
-    sta $0b                 ; store player 2 x distance to enemy in $0b
-    jsr player_enemy_y_dist ; a = closest y distance to enemy from players, y = closest player (#$00 or #$01)
+    lda $08                 ; load player 1 X distance to enemy
+    sta $0a                 ; store player 1 X distance to enemy in $0a
+    lda $09                 ; load player 2 X distance to enemy
+    sta $0b                 ; store player 2 X distance to enemy in $0b
+    jsr player_enemy_y_dist ; a = closest Y distance to enemy from players, y = closest player (#$00 or #$01)
     tya                     ; set the closest player to a #$00 for p1, #$01 for p2
     eor #$01                ; flip to other player
     cmp $0c                 ; compare farther y player to farther x player
     bne @continue           ; branch if not the same player
-    tya                     ; one player is farther in both x and y axises, transfer farther player to a
+    tya                     ; one player is farther in both X and Y axises, transfer farther player to a
     sta $0c                 ; transfer farther player to $0c
 
 @continue:
     tax       ; transfer farther y player to x
     tay       ; transfer farther y player to y
     lda $08,x ; load the farther y player's distance
-    ldx $0c   ; load the farther player's y distance
-    cmp $0a,x ; compare farther player's x distance
+    ldx $0c   ; load the farther player's index (0 = p1, 1 = p2)
+    cmp $0a,x ; compare farther player's X distance
     bcc @exit ; branch if
     ldy $0c   ; set y to the player to target
     lda $0a,x ; load
@@ -8831,54 +8908,54 @@ red_turret_find_target_player:
     ldx ENEMY_CURRENT_SLOT
     rts
 
-; calculates x distance between p1 and the enemy and p2 and the enemy
+; calculates X distance between p1 and the enemy and p2 and the enemy
 ; stores shortest distance in a, player number in y
 ; input
 ;  * x - the current enemy offset
 ; output
-;  * a - the shortest x distance to current enemy (either p1 or p2)
+;  * a - the shortest X distance to current enemy (either p1 or p2)
 ;  * y - the player closest, #$00 for p1, #$01 for p2
-;  * $08 - p1 x distance
-;  * $09 - p2 x distance
+;  * $08 - p1 X distance
+;  * $09 - p2 X distance
 ; when player state is not #$01, #$fe is stored in $08 or #$ff in $09
 player_enemy_x_dist:
-    lda SPRITE_X_POS    ; load player 1 x position
+    lda SPRITE_X_POS    ; load player 1 X position
     sec                 ; prepare for subtraction
-    sbc ENEMY_X_POS,x   ; enemy x position on screen
+    sbc ENEMY_X_POS,x   ; enemy X position on screen
     bcs @continue_to_p2 ; branch if no overflow occurred
     eor #$ff            ; overflow occurred, flip bits and add one (two's compliment)
     adc #$01
 
 @continue_to_p2:
     sta $08                 ; store distance between player and enemy in $08
-    lda SPRITE_X_POS+1      ; load player 2 x position
+    lda SPRITE_X_POS+1      ; load player 2 X position
     sec                     ; prepare for subtraction
-    sbc ENEMY_X_POS,x       ; enemy x position on screen
+    sbc ENEMY_X_POS,x       ; enemy X position on screen
     jmp lda_closer_distance ; jump to determine smallest of $08 (p1) and $09 (p2) store in a
 
-; calculates y distance between p1 and p2 with the current enemy (x register)
+; calculates Y distance between p1 and p2 with the current enemy (x register)
 ; input
 ;  * x - the current enemy offset
 ; output
-;  * a - the shortest y distance to current enemy (either p1 or p2)
+;  * a - the shortest Y distance to current enemy (either p1 or p2)
 ;    if both players are in non-normal state, a is set to #$fe
 ;  * y - the player closest, #$00 for p1, #$01 for p2
-;  * $08 - p1 y distance
-;  * $09 - p2 y distance
+;  * $08 - p1 Y distance
+;  * $09 - p2 Y distance
 ; when player state is not #$01, #$fe is stored in $08 or #$ff in $09
 player_enemy_y_dist:
-    lda SPRITE_Y_POS    ; load player 1 y position
+    lda SPRITE_Y_POS    ; load player 1 Y position
     sec                 ; prepare for subtraction
-    sbc ENEMY_Y_POS,x   ; enemy y position on screen
+    sbc ENEMY_Y_POS,x   ; enemy Y position on screen
     bcs @continue_to_p2 ; branch if no overflow occurred
     eor #$ff            ; overflow occurred, flip bits and add one (two's compliment)
     adc #$01
 
 @continue_to_p2:
     sta $08            ; store distance between player and enemy in $08
-    lda SPRITE_Y_POS+1 ; load player 2 y position
+    lda SPRITE_Y_POS+1 ; load player 2 Y position
     sec                ; prepare for subtraction
-    sbc ENEMY_Y_POS,x  ; enemy y position on screen
+    sbc ENEMY_Y_POS,x  ; enemy Y position on screen
 
 ; take the smallest of $08 (p1) and $09 (p2) and store in a accounting for overflow
 ; ignoring non-normal player state
@@ -8888,7 +8965,7 @@ lda_closer_distance:
     adc #$01
 
 @continue:
-    sta $09          ; store player 2 x or y distance from current enemy in $09
+    sta $09          ; store player 2 X or Y distance from current enemy in $09
     ldy #$fe         ; y = #$fe
     lda PLAYER_STATE ; load player state (#$00 dropping into level, #$01 normal, #$02 dead, #$03 can't move)
     cmp #$01
@@ -8916,7 +8993,7 @@ lda_closer_distance:
 ; gets a number from #$06 to #$00 indicating how far the enemy at position $09 is from the left of the screen
 ; starting from #$06 for farthest left, down to #$00 for farthest right
 ; very similar to find_close_segment in bank 0
-; usually used together to compare player and enemy x positions on indoor levels
+; usually used together to compare player and enemy X positions on indoor levels
 ; input
 ;  * $09 - current enemy X position
 ; output
@@ -8927,7 +9004,7 @@ find_far_segment_for_x_pos:
 ; gets a number from #$06 to #$00 indicating how far the enemy is from the left of the screen
 ; starting from #$06 for farthest left, down to #$00 for farthest right
 ; very similar to find_close_segment in bank 0
-; usually used together to compare player and enemy x positions on indoor levels
+; usually used together to compare player and enemy X positions on indoor levels
 find_far_segment_for_a:
     ldy #$06 ; y = #$06
 
@@ -8946,7 +9023,7 @@ find_far_segment_for_a:
     tya ; move far_segment_code_tbl into a
     rts
 
-; table for segment based on distance (#$7 bytes)
+; table for segment based on distance (#$07 bytes)
 far_segment_code_tbl:
     .byte $ff,$94,$8c,$84,$7c,$74,$6c
 
@@ -8973,8 +9050,8 @@ set_enemy_falling_arc_pos:
     bcs @remove_enemy
     clc                                   ; clear carry in preparation for addition
     adc ENEMY_VAR_3,x
-    sta ENEMY_Y_POS,x                     ; enemy y position on screen
-    jmp update_enemy_x_pos_rem_off_screen ; add velocity to enemy X position; remove enemy if X position < #$08 (off screen to left)
+    sta ENEMY_Y_POS,x                     ; enemy Y position on screen
+    jmp update_enemy_x_pos_rem_off_screen ; add velocity to enemy X position; remove enemy if X position < #$08 (off-screen to left)
 
 @remove_enemy:
     jmp remove_enemy ; remove enemy
@@ -8984,7 +9061,7 @@ set_enemy_falling_arc_pos:
 ; sets Y velocity to #$01 for the high byte and #$00 for the low byte
 ; doesn't use weapon_item_init_vel_tbl like outdoor levels
 set_weapon_item_indoor_velocity:
-    lda ENEMY_X_POS,x                  ; load enemy x position on screen
+    lda ENEMY_X_POS,x                  ; load enemy X position on screen
     jsr find_far_segment_for_a         ; find the appropriate velocity code, given the X position
     asl                                ; double since each entry is #$02 bytes
     tay
@@ -8998,7 +9075,7 @@ set_weapon_item_indoor_velocity:
     sta ENEMY_Y_VELOCITY_FAST,x        ; set Y velocity fast value to #$01
     rts
 
-; two-byte values for weapon item X velocity in indoor levels (#$e bytes)
+; two-byte values for weapon item X velocity in indoor levels (#$0e bytes)
 ; byte 0 - X fractional velocity value
 ; byte 1 - X velocity fast value
 weapon_item_indoor_vel_tbl:
@@ -9029,7 +9106,7 @@ find_next_enemy_slot_x_to_0:
     lda ENEMY_ROUTINE,x
     beq find_enemy_routine_slot_exit
     dex                              ; decrement offset
-    bpl find_next_enemy_slot_x_to_0  ; if not zero loop to see if a lower index is available
+    bpl find_next_enemy_slot_x_to_0  ; if not negative (x >= 0), loop to see if a lower index is available
 
 find_enemy_routine_slot_exit:
     rts
@@ -9147,7 +9224,7 @@ initialize_enemy:
     tay                         ; restore previous value of y from stack
     rts
 
-; pointer table for enemy properties (#$9 * #$2 = #$12 bytes)
+; pointer table for enemy properties (#$09 * #$02 = #$12 bytes)
 ; enemy width, enemy score code, enemy collision box code, enemy HP, and enemy hit sound
 enemy_prop_ptr_tbl:
     .addr enemy_prop_00 ; Level 1 - CPU address $ee9f
@@ -9160,7 +9237,7 @@ enemy_prop_ptr_tbl:
     .addr enemy_prop_07 ; Level 8 - CPU address $ef5b
     .addr enemy_prop_00 ; shared enemies (ENEMY_TYPE < #$10)
 
-; (#$46 * #$4 = #$118 bytes)
+; (#$46 * #$04 = #$118 bytes)
 ; byte 0: ENEMY_STATE_WIDTH - related to facing direction and/or enemy width
 ; byte 1: ENEMY_SCORE_COLLISION - score code (bits 4-7), explosion type (bit 3), collision box code
 ; byte 2: ENEMY_HP - enemy hp
@@ -9265,7 +9342,7 @@ enemy_prop_07:
     .byte $06,$62,$10,$01 ; spider spawn (15)
     .byte $04,$a7,$01,$03 ; heart (16)
 
-; pointer table for triple cannon (#$9 * #$2 = #$12 bytes)
+; pointer table for triple cannon (#$09 * #$02 = #$12 bytes)
 wall_cannon_routine_ptr_tbl:
     .addr wall_cannon_routine_00       ; CPU address $efc7 - set hp to #$08, animation delay to #$50, advance routine
     .addr wall_cannon_routine_01       ; CPU address $efd4
@@ -9316,6 +9393,10 @@ wall_cannon_set_delays:
     lda #$40                             ; a = #$40 (delay between attack and closing)
     bne set_anim_delay_adv_enemy_routine ; set ENEMY_ANIMATION_DELAY to #$40 and advance enemy routine
 
+; input
+;  * x - enemy slot index
+; output
+; * carry flag - clear when successful, set when CPU_GRAPHICS_BUFFER is full
 animate_wall_cannon:
     lda #$06                             ; a = #$06 (delay between frames when open/close)
     sta ENEMY_ANIMATION_DELAY,x          ; set enemy animation frame delay counter
@@ -9334,7 +9415,7 @@ wall_cannon_routine_02:
     ldy $16                                 ; load remaining number of bullets to fire
     lda wall_cannon_bullet_x_offset,y       ; set horizontal offset from enemy position (param for add_with_enemy_pos)
     ldy #$08                                ; set vertical offset from enemy position (param for add_with_enemy_pos)
-    jsr add_with_enemy_pos                  ; stores absolute screen x position in $09, and y position in $08
+    jsr add_with_enemy_pos                  ; stores absolute screen X position in $09, and Y position in $08
     ldy $16                                 ; load remaining number of bullets to fire
     lda wall_cannon_bullet_type_and_angle,y ; load bullet type (xxx. ....) and angle index (...x xxxx)
     ldy #$07                                ; set bullet speed to #$07
@@ -9352,11 +9433,11 @@ wall_cannon_routine_02:
     lda #$06                             ; a = #$06
     jmp set_anim_delay_adv_enemy_routine ; set ENEMY_ANIMATION_DELAY to #$06 and advance enemy routine
 
-; table for bullets starting x positions (#$3 bytes)
+; table for bullets starting X positions (#$03 bytes)
 wall_cannon_bullet_x_offset:
     .byte $f8,$00,$08
 
-; table for bullets type and angle (#$3 bytes)
+; table for bullets type and angle (#$03 bytes)
 wall_cannon_bullet_type_and_angle:
     .byte $48,$46,$44
 
@@ -9390,7 +9471,7 @@ wall_cannon_routine_04:
     bcs wall_cannon_exit_01
     jmp advance_enemy_routine  ; advance to next routine
 
-; pointer table for wall plating (#$7 * #$2 = #$e bytes)
+; pointer table for wall plating (#$07 * #$02 = #$0e bytes)
 ; level 2/4 boss screen targets
 ;  * 4 exist on level 2 boss screen
 ;  * 3 exist on level 4 boss screen
@@ -9422,7 +9503,7 @@ wall_plating_routine_01:
     inc ENEMY_FRAME,x                    ; increment enemy animation frame number
     lda ENEMY_FRAME,x                    ; load enemy animation frame number
     cmp #$02                             ; see if wall plating is now open
-    bcc wall_plating_routine_02          ; exit if wall cannon is open
+    bcc wall_plating_routine_02          ; exit if wall plating is not yet fully open (frame < #$02)
     lda #$0a                             ; a = #$0a (hp for wall plating)
     sta ENEMY_HP,x                       ; set enemy hp
     bcs wall_plating_adv_enemy_routine
@@ -9442,7 +9523,7 @@ wall_plating_routine_03:
 wall_plating_adv_enemy_routine:
     jmp advance_enemy_routine ; advance to next routine
 
-; pointer table for turret man (#$6 * #$2 = #$c bytes)
+; pointer table for turret man (#$06 * #$02 = #$0c bytes)
 turret_man_routine_ptr_tbl:
     .addr turret_man_routine_00        ; CPU address $f0c9
     .addr turret_man_routine_01        ; CPU address $f0db
@@ -9497,7 +9578,7 @@ turret_man_routine_02:
     lda #$02                    ; a = #$02
     jmp set_enemy_routine_to_a  ; set enemy routine index to a
 
-; pointer table for turret man bullet (#$3 * #$2 = #$6 bytes)
+; pointer table for turret man bullet (#$03 * #$02 = #$06 bytes)
 turret_man_bullet_routine_ptr_tbl:
     .addr turret_man_bullet_routine_00 ; CPU address $f11f
     .addr turret_man_bullet_routine_01 ; CPU address $f131
@@ -9517,12 +9598,12 @@ turret_man_adv_routine:
 
 ; turret man bullet - pointer 2
 turret_man_bullet_routine_01:
-    lda ENEMY_X_POS,x          ; load enemy x position on screen
+    lda ENEMY_X_POS,x          ; load enemy X position on screen
     cmp #$f0
     bcs turret_man_adv_routine
     jmp update_enemy_pos       ; apply velocities and scrolling adjust
 
-; pointer table for scuba diver (#$6 * #$2 = #$c bytes)
+; pointer table for scuba diver (#$06 * #$02 = #$0c bytes)
 scuba_soldier_routine_ptr_tbl:
     .addr scuba_soldier_routine_00     ; CPU address $f147
     .addr scuba_soldier_routine_01     ; CPU address $f14c
@@ -9549,7 +9630,7 @@ scuba_soldier_routine_01:
     asl
     asl
     lda #$08                    ; a = #$08
-    bcc @continue               ; #$07 out of every #$08 frames use #$08, otherwise use #$00
+    bcc @continue               ; use #$08 or #$00 alternating every 16 frames (tests bit 4 of delay timer)
     lda #$00                    ; a = #$00
 
 @continue:
@@ -9557,9 +9638,9 @@ scuba_soldier_routine_01:
     jsr add_scroll_to_enemy_pos ; add scrolling to enemy position
     dec ENEMY_ANIMATION_DELAY,x ; decrement enemy animation frame delay counter
     bne @exit                   ; exit if animation delay hasn't elapsed
-    lda ENEMY_Y_POS,x           ; load enemy y position on screen
+    lda ENEMY_Y_POS,x           ; load enemy Y position on screen
     cmp #$b8                    ; if vertical, don't shoot until this height
-    bcs @activate_scuba_soldier ; scuba soldier is at heigh #$b8 or higher (lower on screen), 'activate' enemy
+    bcs @activate_scuba_soldier ; scuba soldier is at height #$b8 or higher (lower on screen), 'activate' enemy
     lda #$10                    ; wait another #$10 frames before checking again
     sta ENEMY_ANIMATION_DELAY,x ; set enemy animation frame delay counter
 
@@ -9582,7 +9663,7 @@ scuba_soldier_routine_02:
     lda #$00            ; a = #$00
     ldy ENEMY_VAR_1,x   ; load gun recoil delay timer
     beq @continue       ; continue to firing logic, if elapsed
-    dec ENEMY_VAR_1,x   ; recoil delay timer elapsed, set gun recoil
+    dec ENEMY_VAR_1,x   ; timer still running, decrement recoil delay timer
     lda #$08            ; a = #$08 (gun recoil flag)
 
 ; create mortar shot (#$07) if timers have elapsed
@@ -9596,8 +9677,8 @@ scuba_soldier_routine_02:
     sta ENEMY_VAR_1,x                  ; store recoil timer
     lda #$0b                           ; a = #$0b (mortar shot)
     sta $0a                            ; set enemy type to #$0b (mortar shot)
-    ldy #$e8                           ; y = #$e8 (mortar initial relative y position)
-    lda #$05                           ; a = #$05 (mortar initial relative x position)
+    ldy #$e8                           ; y = #$e8 (mortar initial relative Y position)
+    lda #$05                           ; a = #$05 (mortar initial relative X position)
     jsr generate_enemy_at_pos          ; generate enemy type #$0b at relative position (#$05,#$e8)
 
 @add_scroll_exit:
@@ -9611,7 +9692,7 @@ scuba_soldier_routine_02:
     lda #$02                    ; a = #$02
     jmp set_enemy_routine_to_a  ; set enemy routine index to scuba_soldier_routine_01
 
-; pointer table for mortar shot (#$9 * #$2 = #$12 bytes)
+; pointer table for mortar shot (#$09 * #$02 = #$12 bytes)
 mortar_shot_routine_ptr_tbl:
     .addr mortar_shot_routine_00       ; CPU address $f1d6 - set explosion sound, sprite, palette, and velocities
     .addr mortar_shot_routine_01       ; CPU address $f237
@@ -9651,23 +9732,23 @@ mortar_shot_routine_00:
     asl
     asl                              ; quadruple since each entry is #$04 bytes
     tay                              ; transfer to offset register
-    lda mortar_shot_velocity_tbl,y   ; load mortar shot fractional y velocity
-    sta ENEMY_Y_VELOCITY_FRACT,x     ; set mortar shot fractional y velocity
-    lda mortar_shot_velocity_tbl+1,y ; load mortar shot fast y velocity
-    sta ENEMY_Y_VELOCITY_FAST,x      ; set mortar shot fast y velocity
-    lda mortar_shot_velocity_tbl+2,y ; load mortar shot fractional x velocity
-    sta ENEMY_X_VELOCITY_FRACT,x     ; set mortar shot fractional x velocity
-    lda mortar_shot_velocity_tbl+3,y ; load mortar shot fast x velocity
-    sta ENEMY_X_VELOCITY_FAST,x      ; set mortar shot fast x velocity
+    lda mortar_shot_velocity_tbl,y   ; load mortar shot fractional Y velocity
+    sta ENEMY_Y_VELOCITY_FRACT,x     ; set mortar shot fractional Y velocity
+    lda mortar_shot_velocity_tbl+1,y ; load mortar shot fast Y velocity
+    sta ENEMY_Y_VELOCITY_FAST,x      ; set mortar shot fast Y velocity
+    lda mortar_shot_velocity_tbl+2,y ; load mortar shot fractional X velocity
+    sta ENEMY_X_VELOCITY_FRACT,x     ; set mortar shot fractional X velocity
+    lda mortar_shot_velocity_tbl+3,y ; load mortar shot fast X velocity
+    sta ENEMY_X_VELOCITY_FAST,x      ; set mortar shot fast X velocity
 
 mortar_shot_adv_routine:
     jmp advance_enemy_routine ; advance to next routine
 
 ; table for mortar velocities (#$20 bytes)
-; byte 0 - mortar shot fractional y velocity
-; byte 1 - mortar shot fast y velocity
-; byte 2 - mortar shot fractional x velocity
-; byte 3 - mortar shot fast x velocity
+; byte 0 - mortar shot fractional Y velocity
+; byte 1 - mortar shot fast Y velocity
+; byte 2 - mortar shot fractional X velocity
+; byte 3 - mortar shot fast X velocity
 mortar_shot_velocity_tbl:
     .byte $00,$fb,$00,$00 ; ( -5 ,     0      ) default initial mortar shot (straight up fast)
     .byte $00,$fe,$00,$00 ; ( -2 ,     0      ) one of 3 split mortar shot (straight up slow)
@@ -9682,13 +9763,13 @@ mortar_shot_velocity_tbl:
 
 ; apply gravity, apply velocity, advance routine if reached apex of initial mortar shot
 mortar_shot_routine_01:
-    jsr add_10_to_enemy_y_fract_vel ; add #$10 (gravity) to y fractional velocity (.06 faster)
+    jsr add_10_to_enemy_y_fract_vel ; add #$10 (gravity) to Y fractional velocity (.06 faster)
     jsr update_enemy_pos            ; apply velocities and scrolling adjust
     lda ENEMY_ATTRIBUTES,x          ; load enemy attributes
     bne @split_mortar               ; branch if not initial mortar shot
-    lda ENEMY_Y_VELOCITY_FAST,x     ; initial mortar shot, load y fast velocity
+    lda ENEMY_Y_VELOCITY_FAST,x     ; initial mortar shot, load Y fast velocity
     bpl mortar_shot_adv_routine     ; advance to next routine if mortar falling down
-    lda ENEMY_Y_POS,x               ; load enemy y position on screen
+    lda ENEMY_Y_POS,x               ; load enemy Y position on screen
     cmp #$30                        ; height for mortar to divide
     bcc mortar_shot_adv_routine     ; branch if mortar shot has reached its apex to advance the routine
 
@@ -9697,12 +9778,12 @@ mortar_shot_routine_01:
 
 ; split mortar shot, e.g. ENEMY_ATTRIBUTES > 0, check collision if necessary if so
 @split_mortar:
-    lda ENEMY_Y_VELOCITY_FAST,x          ; load fast y velocity
+    lda ENEMY_Y_VELOCITY_FAST,x          ; load fast Y velocity
     bmi @mortar_shot_routine_01_exit     ; exit if y split mortar is still shooting up
-    jsr player_enemy_x_dist              ; split mortar falling, a = closest x distance to enemy from players, y = closest player (#$00 or #$01)
-    lda ENEMY_Y_POS,x                    ; load enemy y position on screen
-    cmp SPRITE_Y_POS,y                   ; compare closest player by x distance's y position to current enemy y position
-    bcc @mortar_shot_routine_01_exit     ; exit if mortar shot y position is higher than closest player is
+    jsr player_enemy_x_dist              ; split mortar falling, a = closest X distance to enemy from players, y = closest player (#$00 or #$01)
+    lda ENEMY_Y_POS,x                    ; load enemy Y position on screen
+    cmp SPRITE_Y_POS,y                   ; compare closest player by X distance's Y position to current enemy Y position
+    bcc @mortar_shot_routine_01_exit     ; exit if mortar shot Y position is higher than closest player is
     jsr init_vars_get_enemy_bg_collision ; initialize required memory and call get_enemy_bg_collision to determine bg collision
     beq @mortar_shot_routine_01_exit     ; exit if no bg collision
     lda #$24                             ; bg collision, a = #$24 (sound_24)
@@ -9724,12 +9805,12 @@ mortar_shot_routine_02:
     lda #$0b                   ; a = #$0b (#$0b = mortar)
     sta ENEMY_TYPE,x           ; set current enemy type to mortar
     jsr initialize_enemy       ; initialize enemy attributes
-    lda ENEMY_X_POS,y          ; load created enemy x position on screen
-    sta ENEMY_X_POS,x          ; set current mortar x position on screen to match
-    lda ENEMY_Y_POS,y          ; load created enemy y position on screen
-    sta ENEMY_Y_POS,x          ; set current mortar y position on screen to match
+    lda ENEMY_X_POS,y          ; load created enemy X position on screen
+    sta ENEMY_X_POS,x          ; set current mortar X position on screen to match
+    lda ENEMY_Y_POS,y          ; load created enemy Y position on screen
+    sta ENEMY_Y_POS,x          ; set current mortar Y position on screen to match
     lda $08                    ; load enemy attributes
-    sta ENEMY_ATTRIBUTES,x     ; load appropriate enemy attribute (mortar velocities)
+    sta ENEMY_ATTRIBUTES,x     ; store appropriate enemy attribute (mortar velocities)
                                ; (see mortar_shot_velocity_tbl starting at 3rd entry)
     dec $08                    ; decrement mortar shot creation count
     bne @generate_mortar_shot  ; if haven't created 3 mortar shots loop to create next one
@@ -9738,25 +9819,25 @@ mortar_shot_routine_02:
     ldx ENEMY_CURRENT_SLOT    ; restore enemy slot
     jmp advance_enemy_routine ; advance enemy x to next routine
 
-; determines firing direction based on enemy position ($08, $09) and player position ($0b, $0a)
+; determines firing direction based on enemy position ($09, $08) and player position ($0b, $0a)
 ; and creates bullet if appropriate
 ; input
 ;  * a - bullet type
-;  * y - bullet speed code
-;  * $08 - enemy x position
-;  * $09 - enemy y position
-;  * $0b - player x position
-;  * $0a - player y position
+;  * y - bullet speed code (0 through 8 inclusively)
+;  * $08 - enemy Y position
+;  * $09 - enemy X position
+;  * $0b - player X position
+;  * $0a - player Y position
 aim_and_create_enemy_bullet:
     sty $06                           ; store bullet speed code in $06
     sta $00                           ; store bullet type temporarily
     lda #$01                          ; a = #$01, use quadrant_aim_dir_01
     sta $0f                           ; quadrant_aim_dir_lookup_ptr_tbl offset (quadrant_aim_dir_01)
-    lda $0a                           ; load player y position
+    lda $0a                           ; load player Y position
     bpl @continue                     ; branch if >= #$00
-    lda $0c                           ; load player y position
-    sta $0a                           ; set target y position
-    jsr get_quadrant_aim_dir          ; get aim direction code for target ($0b, $0a) from location ($08, $09) using table code $0f
+    lda $0c                           ; load player Y position
+    sta $0a                           ; set target Y position
+    jsr get_quadrant_aim_dir          ; get aim direction code for target ($0b, $0a) from location ($09, $08) using table code $0f
     jmp @create_bullet_if_appropriate
 
 @continue:
@@ -9773,8 +9854,8 @@ aim_and_create_enemy_bullet:
 ; input
 ;  * a = bullet type and angle
 ;  * y = bullet speed (enemy attributes)
-;  * $08 = y position
-;  * $09 = x position
+;  * $08 = Y position
+;  * $09 = X position
 bullet_generation:
     asl
 
@@ -9789,8 +9870,8 @@ bullet_generation:
 ;    * #$04 - level 3 dragon boss fire ball (dragon arm orb projectile)
 ;  * a - (...x xxxx) specifies bullet angle value (see bullet_fract_vel_dir_lookup_tbl)
 ;    [#$00-#$17] is pointing right as value increments direction goes clockwise
-;  * $08 - y position
-;  * $09 - x position
+;  * $08 - Y position
+;  * $09 - X position
 ; output
 ; zero flag - set when bullet created, clear when unable to create
 create_enemy_bullet_angle_a:
@@ -9815,8 +9896,8 @@ create_enemy_bullet_angle_a:
 ; create enemy bullet (type $0a) at ($09, $08) in quadrant $07 with quadrant aim dir in $0a and speed $06
 ; if ENEMY_ATTACK_FLAG is set or if level 1 boss cannonball
 ; input
-;  * $08 - y position
-;  * $09 - x position
+;  * $08 - Y position
+;  * $09 - X position
 ;  * $0a - (xxx. ....) specifies enemy bullet type:
 ;    * #$00 - regular bullet
 ;    * #$01 - level 1 boss large cannonball
@@ -9830,17 +9911,17 @@ create_enemy_bullet_angle_a:
 ;    * bit 0 - 0 = bottom half of plane (quadrants III and IV), 1 = top half of plane (quadrants I and II)
 ;    * bit 1 - 0 = right half of the plan (quadrants I and IV), 1 = left half of plane (quadrants II and III)
 create_enemy_bullet_if_attack_enabled:
-    lda $0a                 ; load bullet type and bullet angle
-    and #$e0                ; keep bits xxx. .... (keep type value)
-    cmp #$20                ; compare to level 1 large cannonball (boss screen) bullet type
-    beq create_enemy_bullet ; always create bullet if bullet type #$01 (level 1 boss large cannonball)
-    lda ENEMY_ATTACK_FLAG   ; see if enemies should attack
-    beq bullet_gen_exit     ; don't shoot/create enemy bullet if ENEMY_ATTACK_FLAG is set
+    lda $0a                  ; load bullet type and bullet angle
+    and #$e0                 ; keep bits xxx. .... (keep type value)
+    cmp #$20                 ; compare to level 1 large cannonball (boss screen) bullet type
+    beq @create_enemy_bullet ; always create bullet if bullet type #$01 (level 1 boss large cannonball)
+    lda ENEMY_ATTACK_FLAG    ; see if enemies should attack
+    beq bullet_gen_exit      ; don't shoot/create enemy bullet if ENEMY_ATTACK_FLAG is #$00
 
 ; create enemy bullet
 ; input
-;  * $08 - y position
-;  * $09 - x position
+;  * $08 - Y position
+;  * $09 - X position
 ;  * $0a - (xxx. ....) specifies enemy bullet type:
 ;    * #$00 - regular bullet
 ;    * #$01 - level 1 boss large cannonball
@@ -9854,7 +9935,7 @@ create_enemy_bullet_if_attack_enabled:
 ;    * bit 1 - 0 = right half of the plan (quadrants I and IV), 1 = left half of plane (quadrants II and III)
 ; output
 ; zero flag - set when bullet created, clear when unable to create
-create_enemy_bullet:
+@create_enemy_bullet:
     jsr find_next_enemy_slot ; find next available enemy slot for bullet, put result in x register
     bne bullet_gen_exit      ; branch if no enemy slot was found
     lda #$01                 ; a = #$01 (bullet)
@@ -9871,13 +9952,14 @@ create_enemy_bullet:
     cmp #$07                 ; see if speed code is >= #$07
     bcc @continue            ; continue if not too high
     lda #$07                 ; can't have more than speed code #$07, set to #$07
+                             ; !(OBS) technically support for speed code #$08 (2x) exists
 
 @continue:
     sta $06           ; store speed code in $06
-    lda $08           ; load created bullet enemy y position
-    sta ENEMY_Y_POS,x ; set created bullet enemy y position
-    lda $09           ; load created bullet enemy y position
-    sta ENEMY_X_POS,x ; set created bullet enemy x position
+    lda $08           ; load enemy bullet Y position
+    sta ENEMY_Y_POS,x ; store enemy bullet Y position on screen
+    lda $09           ; load enemy bullet X position
+    sta ENEMY_X_POS,x ; store enemy bullet X position on screen
     lda $0a
     and #$1f          ; keep bits ...x xxxx (quadrant aim dir)
 
@@ -9885,21 +9967,23 @@ create_enemy_bullet:
 ; used by bullets, eye projectile, and spinning bubbles
 ; input
 ;  * a - bullet angle value (bullet_fract_vel_dir_lookup_tbl offset)
+;  * $06 - bullet speed code (0 through 8 inclusively)
 ;  * $07 - specifies quadrant to aim in (0 = quadrant IV, 1 = quadrant I, 2 = quadrant III, 3 = quadrant II)
 ;    * bit 0 - 0 = bottom half of plane (quadrants III and IV), 1 = top half of plane (quadrants I and II)
 ;    * bit 1 - 0 = right half of the plan (quadrants I and IV), 1 = left half of plane (quadrants II and III)
 ; output
 ;  * a - #$00
 set_bullet_velocities:
-    jsr calc_bullet_velocities   ; determine the bullet velocities based on quadrant aim dir (a) and quadrant ($07)
-    lda $05                      ; load enemy bullet y velocity fast
-    sta ENEMY_Y_VELOCITY_FAST,x  ; set enemy bullet y velocity fast
-    lda $04                      ; load enemy bullet y fractional velocity
-    sta ENEMY_Y_VELOCITY_FRACT,x ; set enemy bullet y fractional velocity
-    lda $0b                      ; load enemy bullet x velocity fast
-    sta ENEMY_X_VELOCITY_FAST,x  ; set enemy bullet x velocity fast
-    lda $0a                      ; load enemy bullet x fractional velocity
-    sta ENEMY_X_VELOCITY_FRACT,x ; set enemy bullet x fractional velocity
+    jsr calc_bullet_velocities   ; determine bullet velocities using
+                                 ; quadrant aim dir (a), quadrant ($07), and speed code ($06)
+    lda $05                      ; load enemy bullet Y velocity fast
+    sta ENEMY_Y_VELOCITY_FAST,x  ; set enemy bullet Y velocity fast
+    lda $04                      ; load enemy bullet Y fractional velocity
+    sta ENEMY_Y_VELOCITY_FRACT,x ; set enemy bullet Y fractional velocity
+    lda $0b                      ; load enemy bullet X velocity fast
+    sta ENEMY_X_VELOCITY_FAST,x  ; set enemy bullet X velocity fast
+    lda $0a                      ; load enemy bullet X fractional velocity
+    sta ENEMY_X_VELOCITY_FRACT,x ; set enemy bullet X fractional velocity
     ldx ENEMY_CURRENT_SLOT       ; load enemy current slot (doesn't seem necessary)
     lda #$00                     ; clear a
     rts
@@ -9913,42 +9997,43 @@ bullet_gen_exit:
 ; determine the bullet velocities based on quadrant aim dir (a) and quadrant ($07)
 ; input
 ;  * a - quadrant aim dir (see bullet_fract_vel_dir_lookup_tbl)
+;  * $06 - bullet speed code (0 through 8 inclusively)
 ;  * $07 - specifies quadrant to aim in (0 = quadrant IV, 1 = quadrant I, 2 = quadrant III, 3 = quadrant II)
 ;    * bit 0 - 0 = bottom half of plane (quadrants III and IV), 1 = top half of plane (quadrants I and II)
 ;    * bit 1 - 0 = right half of the plan (quadrants I and IV), 1 = left half of plane (quadrants II and III)
 ; output
-;  * $04 - bullet y fractional velocity value
-;  * $05 - bullet y velocity fast value
-;  * $0a - bullet x fractional velocity value
-;  * $0b - bullet x velocity fast value
+;  * $04 - bullet Y fractional velocity value
+;  * $05 - bullet Y velocity fast value
+;  * $0a - bullet X fractional velocity value
+;  * $0b - bullet X velocity fast value
 calc_bullet_velocities:
     tay                                   ; store quadrant aim direction in y
     lda bullet_fract_vel_dir_lookup_tbl,y
     tay
-    lda bullet_fract_vel_tbl+1,y          ; load the bullet fractional x velocity
-    sta $04                               ; store bullet x fractional velocity byte
-    lda #$00                              ; set x velocity fast value to #$00
-    sta $05                               ; store bullet x velocity fast value
-    jsr adjust_bullet_velocity            ; adjust bullet x velocity based on speed code ($06)
-    lda $04                               ; load bullet x fractional velocity byte
-    sta $0a                               ; set bullet x fractional velocity byte
-    lda $05                               ; load bullet x velocity fast value
-    sta $0b                               ; set bullet x velocity fast value
-    lda bullet_fract_vel_tbl,y            ; load bullet y fractional velocity
-    sta $04                               ; set bullet y fractional velocity
-    lda #$00                              ; load bullet y fast velocity
-    sta $05                               ; set bullet y fast velocity
-    jsr adjust_bullet_velocity            ; adjust bullet y velocity based on speed code ($06)
+    lda bullet_fract_vel_tbl+1,y          ; load the bullet fractional X velocity
+    sta $04                               ; store bullet X fractional velocity byte
+    lda #$00                              ; set X velocity fast value to #$00
+    sta $05                               ; store bullet X velocity fast value
+    jsr adjust_bullet_velocity            ; adjust bullet X velocity based on speed code ($06)
+    lda $04                               ; load bullet X fractional velocity byte
+    sta $0a                               ; set bullet X fractional velocity byte
+    lda $05                               ; load bullet X velocity fast value
+    sta $0b                               ; set bullet X velocity fast value
+    lda bullet_fract_vel_tbl,y            ; load bullet Y fractional velocity
+    sta $04                               ; set bullet Y fractional velocity
+    lda #$00                              ; load bullet Y fast velocity
+    sta $05                               ; set bullet Y fast velocity
+    jsr adjust_bullet_velocity            ; adjust bullet Y velocity based on speed code ($06)
     lda $07                               ; load bullet direction
     lsr                                   ; puts bit 0 to carry (up down bit)
     bcc @set_x_vel                        ; branch if firing down
-    lda #$00                              ; bullet firing up, flip y velocity so bullet travels up instead of down
+    lda #$00                              ; bullet firing up, flip Y velocity so bullet travels up instead of down
     sec                                   ; set carry flag in preparation for subtraction
     sbc $04                               ; #$00 - $04
-    sta $04                               ; update y fractional velocity to be negative
+    sta $04                               ; update Y fractional velocity to be negative
     lda #$00                              ; a = #$00
     sbc $05                               ; #$00 - $05
-    sta $05                               ; update y velocity fast to be negative
+    sta $05                               ; update Y velocity fast to be negative
 
 @set_x_vel:
     lda $07   ; load bullet direction
@@ -9957,11 +10042,11 @@ calc_bullet_velocities:
     bcc @exit ; exit if firing right
     lda #$00  ; firing left, a = #$00
     sec       ; set carry flag in preparation for subtraction
-    sbc $0a   ; negate bullet x fractional velocity
-    sta $0a   ; set bullet x fractional velocity value
+    sbc $0a   ; negate bullet X fractional velocity
+    sta $0a   ; set bullet X fractional velocity value
     lda #$00  ; a = #$00
-    sbc $0b   ; negate bullet x fast velocity
-    sta $0b   ; set bullet x velocity fast value
+    sbc $0b   ; negate bullet X fast velocity
+    sta $0b   ; set bullet X velocity fast value
 
 @exit:
     rts
@@ -9976,11 +10061,11 @@ bullet_fract_vel_dir_lookup_tbl:
     .byte $00,$02,$04,$06,$08,$0a ; quadrant II
     .byte $0c,$0a,$08,$06,$04,$02 ; quadrant I
 
-; table for bullet x and y fractional velocities, based on index specified from bullet_fract_vel_dir_lookup_tbl (#$d bytes)
-; byte 0 - y fractional velocity
-; byte 1 - x fractional velocity
+; table for bullet X and Y fractional velocities, based on index specified from bullet_fract_vel_dir_lookup_tbl (#$0d bytes)
+; byte 0 - Y fractional velocity
+; byte 1 - X fractional velocity
 bullet_fract_vel_tbl:
-    .byte $00,$ff ; x velocity
+    .byte $00,$ff ; X velocity
     .byte $42,$f7
     .byte $80,$dd
     .byte $b5,$b5
@@ -9988,13 +10073,13 @@ bullet_fract_vel_tbl:
     .byte $f7,$42
     .byte $ff,$00 ; shooting horizontally
 
-; adjusts bullet x or y velocity based on speed code (#$0-#$07)
+; adjusts bullet X or Y velocity based on speed code (#$0-#$07)
 ; e.g. bullet speed code #$01 is .75 speed
 ; assumes fast velocity will always be #$00, otherwise, math won't work in all cases
 ; input
 ;  * $04 - bullet fractional velocity value (either x dir or y dir)
 ;  * $05 - bullet velocity fast value (either x dir or y dir)
-;  * $06 - bullet speed code
+;  * $06 - bullet speed code (0 through 8 inclusively)
 ; output
 ;  * $04 - bullet fractional velocity value (either x dir or y dir)
 ;  * $05 - bullet velocity fast value (either x dir or y dir)
@@ -10003,7 +10088,7 @@ adjust_bullet_velocity:
     and #$07                       ; keep bits .... .xxx
     jsr run_routine_from_tbl_below ; run routine a in the following table (bullet_velocity_adjust_ptr_tbl)
 
-; pointer table for bullet speeds (#$9 * #$2 = #$12 bytes)
+; pointer table for bullet speeds (#$09 * #$02 = #$12 bytes)
 bullet_velocity_adjust_ptr_tbl:
     .addr bullet_velocity_adjust_00 ; CPU address $f3be (.5x speed)
     .addr bullet_velocity_adjust_01 ; CPU address $f3c3 (.75x speed)
@@ -10013,7 +10098,7 @@ bullet_velocity_adjust_ptr_tbl:
     .addr bullet_velocity_adjust_05 ; CPU address $f3e5 (1.62x speed)
     .addr bullet_velocity_adjust_06 ; CPU address $f3f0 (1.75x speed)
     .addr bullet_velocity_adjust_07 ; CPU address $f3ff (1.87x speed)
-    .addr bullet_velocity_adjust_08 ; CPU address $f415 (2x speed) impossible? !(HUH)
+    .addr bullet_velocity_adjust_08 ; CPU address $f415 (2x speed) !(UNUSED)
 
 ; bullet speed 0 (.5x speed)
 ; halves fast and slow velocity, e.g. #$03 #80 (3.5) becomes #$01 #$c0 (1.75)
@@ -10102,7 +10187,7 @@ bullet_velocity_adjust_07:
     adc $01
     jmp bullet_velocity_adjust_add_a
 
-; bullet speed 8 (2x speed) (impossible ?)
+; bullet speed 8 (2x speed) !(UNUSED)
 bullet_velocity_adjust_08:
     asl $04 ; double fast velocity
     rol $05
@@ -10111,6 +10196,7 @@ bullet_velocity_adjust_08:
 ; either increments or decrements ENEMY_VAR_1 by 1 to aim towards the player using quadrant_aim_dir_01
 ; used by spinning bubbles (enemy type = #$1d), tank (enemy type = #$12), and white blob (enemy type = #$13)
 ; input
+;  * x - enemy slot index
 ;  * $0a - player index
 ; output
 ;  * carry flag - set when enemy already aiming at player, clear when rotation happened
@@ -10122,6 +10208,11 @@ aim_var_1_for_quadrant_aim_dir_01:
 
 ; either increments or decrements ENEMY_VAR_1 by 1 to aim towards the player using quadrant_aim_dir_00
 ; used by rotating gun (enemy type = #$04) and alien fetus (enemy type = #$11)
+; input
+;  * x - enemy slot index
+;  * $0a - player index to target, 0 = player 1, 1 = player 2
+;  * $08 - source Y position
+;  * $09 - source X position
 ; output
 ;  * ENEMY_VAR_1,x - enemy aim direction [#$00-#$0b] #$00 when facing right incrementing clockwise
 ;  * carry flag - set when enemy already aiming at player, clear when rotation happened
@@ -10130,9 +10221,13 @@ aim_var_1_for_quadrant_aim_dir_00:
 
 ; rotate the enemy's aim by one in a clockwise or counterclockwise direction
 ; input
+;  * x - enemy slot index
 ;  * minus flag - set when enemy is already aiming at player and no rotation is required
 ;  * carry flag - set when enemy already aiming at player, clear when rotation happened
 ;  * zero flag - clear when clockwise direction, set when counterclockwise
+; output
+;  * ENEMY_VAR_1,x - enemy aim direction [#$00-#$0b] #$00 when facing right incrementing clockwise
+;  * carry flag - set when enemy already aiming at player, clear when rotation happened
 rotate_enemy_var_1:
     bmi @set_carry_exit            ; exit if enemy is already aiming at the player
     bne @rotate_1_counterclockwise ; if a = #$01, then a counterclockwise rotation
@@ -10171,8 +10266,8 @@ rotate_enemy_var_1:
 ; targeting player index ($0a)
 ; input
 ;  * $0a - player index to target, 0 = player 1, 1 = player 2
-;  * $08 - source y position
-;  * $09 - source x position
+;  * $08 - source Y position
+;  * $09 - source X position
 ; output
 ;  * negative flag - set when enemy is already aiming at player and no rotation is needed
 ;  * a - rotation direction, #$00 clockwise, #$01 counterclockwise, #$80 no rotation needed
@@ -10185,8 +10280,8 @@ get_rotate_00:
 ; targeting player index ($0a)
 ; input
 ;  * $0a - player index to target, 0 = player 1, 1 = player 2
-;  * $08 - source y position
-;  * $09 - source x position
+;  * $08 - source Y position
+;  * $09 - source X position
 ; output
 ;  * negative flag - set when enemy is already aiming at player and no rotation is needed
 ;  * a - rotation direction, #$00 clockwise, #$01 counterclockwise, #$80 no rotation needed
@@ -10199,8 +10294,8 @@ get_rotate_01:
 ; input
 ;  * a - quadrant_aim_dir_lookup_ptr_tbl offset table
 ;  * $0a - player index to target, 0 = player 1, 1 = player 2
-;  * $08 - source y position
-;  * $09 - source x position
+;  * $08 - source Y position
+;  * $09 - source X position
 ; output
 ;  * negative flag - set when enemy is already aiming at player and no rotation is needed
 ;  * a - rotation direction, #$00 clockwise, #$01 counterclockwise, #$80 no rotation needed
@@ -10246,14 +10341,14 @@ get_rotate_dir:
     ldy #$18      ; maximum aim direction (same as #$00 aim dir), i.e. 3 o'clock
 
 @continue:
-    sta $05               ; store either #$06 or #$0c into $06, which is the midway aim direction, i.e. 9 o'clock
+    sta $05               ; store either #$06 or #$0c into $05, which is the midway aim direction, i.e. 9 o'clock
     sty $06               ; store either #$0c or #$18 into $06, which is the maximum aim direction, i.e. 3 o'clock
     lda $07               ; load player position relative to enemy (left/right and above/below)
     and #$02              ; keep bit 1 (set when player to the left)
     beq @check_player_pos ; branch if player to the right of the enemy (#$00 or #$01)
     lda $05               ; player to left of enemy enemy, load mid way direction (either #$06 or #$0c)
     sec                   ; set carry flag in preparation for subtraction
-    sbc $0c               ; subtract quadrant aim direction code from from midway direction point ($05 - $0c)
+    sbc $0c               ; subtract quadrant aim direction code from midway direction point ($05 - $0c)
     sta $0c               ; store result back into $0c
 
 @check_player_pos:
@@ -10339,7 +10434,7 @@ get_rotate_dir:
 ;  * minus flag - set when orb doesn't need to move, clear otherwise
 ;  * a - #$00, #$01 or #$80
 dragon_arm_orb_seek_should_move:
-    jsr set_08_09_to_enemy_pos          ; set $08 and $09 to enemy x's X and Y position
+    jsr set_08_09_to_enemy_pos          ; copy enemy x's X and Y position to ($09, $08)
     lda #$02                            ; dragon arm orb is only enemy that uses quadrant_aim_dir_02
     sta $0f                             ; set quadrant_aim_dir_lookup_ptr_tbl offset to use quadrant_aim_dir_02
     jsr get_quadrant_aim_dir_for_player ; set a to the aim direction within a quadrant
@@ -10379,7 +10474,7 @@ dragon_arm_orb_seek_should_move:
 @b3:
     sta $0d                     ; store adjusted enemy position index in $0d
     lda $0c                     ; load enemy aim direction
-    cmp ENEMY_X_VELOCITY_FAST,y ; compare enemy aim direction to next dragon arm orb's fast x velocity
+    cmp ENEMY_X_VELOCITY_FAST,y ; compare enemy aim direction to next dragon arm orb's fast X velocity
     beq @set_negative_exit
     ldy $0e                     ; load whether or not the position index was on the last row
     bne @continue
@@ -10412,8 +10507,8 @@ dragon_arm_orb_seek_should_move:
 ; input
 ;  * $0f - quadrant_aim_dir_lookup_ptr_tbl offset [#$00-#$02]
 ;  * $0a - player index of player to target (#$00 for p1 or #$01 for p2)
-;  * $08 - source y position
-;  * $09 - source x position
+;  * $08 - source Y position
+;  * $09 - source X position
 ; output
 ;  * a - player aim direction (for most things this is an offset into bullet_fract_vel_dir_lookup_tbl)
 ;        when called for dragon boss arm orbs, it is a reference to dragon_arm_orb_pos_tbl)
@@ -10436,30 +10531,30 @@ get_quadrant_aim_dir_for_player:
     cmp #$01                 ; see if normal state
     beq @get_y_pos           ; branch if normal state
     lda #$ff                 ; other player also not in normal state
-    sta $0a                  ; set player y position to #$ff (bottom of screen)
+    sta $0a                  ; set player Y position to #$ff (bottom of screen)
     lda #$80                 ; a = #$80
-    sta $0b                  ; set player x position to #$80 (center of screen)
+    sta $0b                  ; set player X position to #$80 (center of screen)
     bne get_quadrant_aim_dir ; always branch, get aim direction code for target ($0b, $0a) from location ($08, $09) using table code $0f
 
 @get_y_pos:
     lda LEVEL_LOCATION_TYPE ; 0 = outdoor; 1 = indoor
     lsr
-    lda #$b0                ; player y position is set at #$a8 on indoor levels
+    lda #$b0                ; player Y position is set at #$a8 on indoor levels
                             ; note this means that enemies won't aim correctly at a player who is jumping on an indoor level
     bcs @get_x_pos          ; branch for indoor level
-    lda SPRITE_Y_POS,y      ; outdoor level, load y position from memory
+    lda SPRITE_Y_POS,y      ; outdoor level, load Y position from memory
 
 @get_x_pos:
     sta $0a            ; store player Y location in $0a
-    lda SPRITE_X_POS,y ; load x position from memory
+    lda SPRITE_X_POS,y ; load X position from memory
     sta $0b            ; store player X position in $0b
 
 ; determines the aim direction within a quadrant based on source position ($09, $08) targeting player location ($0b, $0a)
 ; input
-;  * $08 - source y position
-;  * $09 - source x position
-;  * $0a - closest player y position
-;  * $0b - closest player x position
+;  * $08 - source Y position
+;  * $09 - source X position
+;  * $0a - closest player Y position
+;  * $0b - closest player X position
 ;  * $0f - which of the #$03 tables from quadrant_aim_dir_lookup_ptr_tbl to use
 ; output
 ;  * a - quadrant aim direction (quadrant_aim_dir_xx value)
@@ -10468,9 +10563,9 @@ get_quadrant_aim_dir_for_player:
 ;    * bit 1 - 0 = right half of the plan (quadrants I and IV), 1 = left half of plane (quadrants II and III)
 get_quadrant_aim_dir:
     ldy #$00              ; default assume player is to the right and equal to or below enemy
-    lda $0a               ; load closest player y position
+    lda $0a               ; load closest player Y position
     sec                   ; set carry flag in preparation for subtraction
-    sbc $08               ; subtract enemy y position from player y position
+    sbc $08               ; subtract enemy Y position from player Y position
     bcs @shift_get_x_diff ; branch if no overflow occurred (enemy above player or same vertical position)
     eor #$ff              ; enemy below player, handle overflow, flip all bits and add one
     adc #$01
@@ -10484,9 +10579,9 @@ get_quadrant_aim_dir:
     lsr
     lsr
     sta $0a       ; store result in $0a (row offset for quadrant_aim_dir_xx)
-    lda $0b       ; load player x position
+    lda $0b       ; load player X position
     sec           ; set carry flag in preparation for subtraction
-    sbc $09       ; subtract enemy x position from player x position
+    sbc $09       ; subtract enemy X position from player X position
     bcs @continue ; branch if no overflow (player to right of enemy)
     eor #$ff      ; enemy to left of player, handle overflow, flip all bits and add one
     adc #$01
@@ -10501,11 +10596,11 @@ get_quadrant_aim_dir:
     lsr
     sty $07                                 ; store position of player relative to enemy in $07 (above/below, left/right)
     lsr                                     ; push bit 5 to the carry flag for use after plp instruction below
-    sta $0b                                 ; overwrite player x position with shifted bits 6 and 7
+    sta $0b                                 ; overwrite player X position with shifted bits 6 and 7
                                             ; (values [#$00-#$03]) of horizontal distance
     php                                     ; backup CPU status flags on stack
     lda $0f                                 ; load which of the #$03 tables from quadrant_aim_dir_lookup_ptr_tbl to use
-    asl                                     ; double since each entry is #$2 bytes
+    asl                                     ; double since each entry is #$02 bytes
     tay                                     ; transfer to offset register
     lda quadrant_aim_dir_lookup_ptr_tbl,y   ; get low byte of quadrant_aim_dir_xx address
     sta $0c                                 ; store low byte of pointer address in $0c
@@ -10514,7 +10609,7 @@ get_quadrant_aim_dir:
     lda $0a                                 ; load y difference to determine row offset
     asl
     asl                                     ; quadruple since each entry is #$04 bytes to get correct row
-    adc $0b                                 ; add the x distance between player and enemy as offset into the entry to load
+    adc $0b                                 ; add the X distance between player and enemy as offset into the entry to load
                                             ; this gets the column of the aim direction
     tay                                     ; transfer to offset register
     lda ($0c),y                             ; load specific byte
@@ -10529,7 +10624,7 @@ get_quadrant_aim_dir:
     and #$0f ; keep low nibble
     rts
 
-; pointer table for set of quadrant aim directions (#$3 * #$2 = #$6 bytes)
+; pointer table for set of quadrant aim directions (#$03 * #$02 = #$06 bytes)
 quadrant_aim_dir_lookup_ptr_tbl:
     .addr quadrant_aim_dir_00 ; CPU address $f5b2 (soldiers, weapon boxes, red turrets, wall core)
     .addr quadrant_aim_dir_01 ; CPU address $f5d2 (rotating gun, wall turrets, sniper, eye projectile, spinning bubbles, jumping soldier, white blob)
@@ -10585,7 +10680,7 @@ quadrant_aim_dir_02:
     .byte $fe,$db,$a9,$87
     .byte $ff,$dc,$ba,$98
 
-; unused #$5ee bytes out of #$4,000 bytes total (90.73% full)
+; unused #$5ee bytes out of #$4000 bytes total (90.73% full)
 ; unused 1,518 bytes out of 16,384 bytes total (90.73% full)
 ; filled with 1,518 #$ff bytes by contra.cfg configuration
 bank_7_unused_space:
@@ -10653,22 +10748,26 @@ prg_rom_banks:
 konami_catalog_number:
     .byte $52,$44,$30,$30,$38,$ff,$ff,$ff ; RD008 in ASCII
 
-; NES undocumented footer
-; https://forums.nesdev.org/viewtopic.php?p=56921
-; game name left-padded with zeros
+; Nintendo identification footer/header
+; used by Nintendo FamicomBox (SSS-CDS)/FamicomStation (AN-560)
+; references:
+;  * https://www.nesdev.org/wiki/Nintendo_header
+;  * https://forums.nesdev.org/viewtopic.php?p=56921
+;  * https://github.com/pinobatch/240p-test-mini/blob/master/nes/tools/sssfix.py
+; 15-byte ASCII game title, left-padded with zeros
 nes_footer_rom_name:
     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
     .byte $43,$4f,$4e,$54,$52,$41                 ; CONTRA in ASCII
 
-; checksum of game bytes
-;   * add all bytes together (setting checksum bytes to #$00)
-;   * take smallest 2 bytes bytes of result
+; 2-byte checksum of ROM bytes
+;   * compute the sum of all bytes with these checksum bytes set to #$00
+;   * take the low 2 bytes of the result
 ; actual sum of all bytes excluding checksum bytes is 14,256,747 (#$d98a6b)
 nes_footer_checksum:
     .byte $8a,$6b
 
 ; CHR ROM checksum - the sum of all bytes in the CHR ROM
-; no CHR ROM for game so #$00 #$00
+; Contra uses CHR RAM instead of CHR ROM, so this field is #$00 #$00
 nes_footer_chr_checksum:
     .byte $00,$00
 
@@ -10678,17 +10777,18 @@ nes_footer_chr_checksum:
 nes_footer_size:
     .byte $38
 
-; #$02 vertical mirroring
-;  * #$02 - vertical
-;  * #$81 or #$82 - horizontal
-;  * #$04 - mapper controlled
-nes_footer_mirroring:
+;  * bit 7 clear - vertical mirroring
+;  * bits 0-2 encode the board type used by the cartridge (UNROM-compatible)
+nes_footer_board_type:
     .byte $02
 
-; byte 0 - country code - #$01 - North America
-; byte 1 - unknown, almost always #$01
-; byte 2 - company code - #$a4 - Konami
-; byte 3 - unknown (matches Japanese Contra ROM)
+; byte 0 - region/title flag: North America with title present
+; byte 1 - title length minus 1 (CONTRA = 6 letters)
+; byte 2 - licensee/company code - #$a4 - Konami
+; byte 3 - header validation byte = #$1c
+;  * low byte of the sum from $fff2-$fff9 must equal #$00
+;  * nes_footer_chr_checksum through nes_footer_maker_code
+;  * #$38 + #$02 + #$01 + #$05 + #$a4 + #$1c = #$100
 nes_footer_maker_code:
     .byte $01,$05,$a4,$1c
 

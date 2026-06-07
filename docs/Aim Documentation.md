@@ -62,7 +62,7 @@ into the full aim direction.  Then the full aim direction is used by
 `calc_bullet_velocities` as an offset into `bullet_fract_vel_dir_lookup_tbl`.
 This value is then used as an offset into `bullet_fract_vel_tbl`.  These values,
 along with the bullet speed code and quadrant, are used to determine the bullet
-x and y velocities.
+X and Y velocities.
 
 For most enemy generated bullets, the method `aim_and_create_enemy_bullet` is
 used.  This method calls `get_quadrant_aim_dir` and `calc_bullet_velocities`.
@@ -88,7 +88,7 @@ table, the quadrant is incorporated to adjust the signs (+/-) on the direction.
 Finally, the velocity is adjusted again based on bullet speed code
 (`adjust_bullet_velocity`).
 
-| `bullet_fract_vel_dir_lookup_tbl` | `bullet_fract_vel_tbl` | x vel        | y vel        | degree off axis |
+| `bullet_fract_vel_dir_lookup_tbl` | `bullet_fract_vel_tbl` | X vel        | Y vel        | degree off axis |
 |-----------------------------------|------------------------|--------------|--------------|-----------------|
 | #$00                              | #$00                   | #$ff (.9961) | #$00         | 0°              |
 | #$01                              | #$02                   | #$f7 (.9648) | #$42 (.2578) | 15°             |

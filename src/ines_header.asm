@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.3
+; Contra US Disassembly - v1.4
 ; https://github.com/vermiceli/nes-contra-us
 
 .segment        "HEADER"
@@ -31,8 +31,8 @@
 ;    +--------+------+------------------------------------------+
 
 .byte $4e,$45,$53,$1a         ; "NES"^Z
-.byte $08                     ; Specifies the number of 16k prg banks.
-.byte $00                     ; Specifies the number of 8k chr banks.
+.byte $08                     ; Specifies the number of 16 KB PRG-ROM banks.
+.byte $00                     ; Specifies the number of 8 KB CHR banks.
 .byte $21                     ; Mapper 002 (UxROM), vertical mirroring, no battery
 .byte $00                     ; Nintendo Entertainment System (NES) console, iNES header (not NES 2.0)
 .byte 00,00,00,00,00,00,00,00 ; 8 zeroes

@@ -2,7 +2,7 @@
 This repository contains an annotated disassembly of the _Contra_ (US) NES ROM
 and the build script(s) to reassemble the assembly into a byte-for-byte match of
 the game.  This repo also contains supplemental documentation, diagrams,
-scripts, and tools to further understand the game.
+scripts, and tools to help further understand the game.
 
 A special thanks goes to Trax.  This project would not have gotten started
 without the amazing initial disassembly by him for his [Revenge of the Red
@@ -21,20 +21,20 @@ https://github.com/vermiceli/nes-super-c/
 |-- src - the source code for the game
 |   |-- assets - the compressed graphics data and encoded audio for the game
 |-- assets.txt - a list of assets, their offset in baserom.nes and their length
-|-- build.bat - build script for Windows cmd (no PowerShell)
+|-- build.bat - build script for Windows Command Prompt (CMD) (no PowerShell)
 |-- build.ps1 - recommended build script for Windows (PowerShell)
-|-- build.sh - bash build script for Linux/mac
+|-- build.sh - bash build script for Linux/macOS
 |-- contra.cfg - memory mapping of PRG banks used when building
 |-- README.md
 |-- set_bytes.vbs - script used by build.bat to extract data from baserom.nes
 ```
 # Building
 
-In addition to _Contra_ (US), this repo can also build the _Probotector_ rom.
+In addition to _Contra_ (US), this repo can also build the _Probotector_ ROM.
 To keep instructions simple, the section below only contains instructions for
 building _Contra_ (US).
 
-If you are interested in building a _Probotector_ rom file, first read this
+If you are interested in building a _Probotector_ ROM file, first read this
 section to understand what is needed, then follow the instructions in the
 section titled _Probotector_.
 
@@ -51,7 +51,7 @@ section titled _Probotector_.
 
 ## Instructions
 There are 3 build scripts in this repository. All of them do the same thing.  To
-build the resulting .nes rom file, simply execute the appropriate build script
+build the resulting .nes ROM file, simply execute the appropriate build script
 based on your environment.
 
 | Environment             | Command       |
@@ -125,7 +125,7 @@ engine loop routines and in what order those routines are called.
 * `bank1.asm` - responsible for audio and sprites.  The audio code takes up
   about 3/4 of the bank. The remaining 1/4 of the bank is for sprite data and
   code to draw sprites.
-* `bank2.asm` - starts with RLE-encoded level data (graphic super tiles for the
+* `bank2.asm` - starts with RLE-encoded level data (graphic super-tiles for the
   level screens).  It then contains compressed tile data and alternate tile data
   and occasional attribute table data.  Then, bank 2 contains logic for setting
   the players' sprite based on player state.  Next, bank 2 contains the level
@@ -133,7 +133,7 @@ engine loop routines and in what order those routines are called.
   that specifies which enemies are on which screen and their attributes.  Bank
   2 also contains the soldier enemy generation code.
 * `bank3.asm` - starts with the data that specifies which pattern table tiles
-  comprises super-tiles along with the color palettes.  This bank also has the
+  comprise super-tiles along with the color palettes.  This bank also has the
   routines to manage the end of levels.
 * `bank4.asm` - mostly contains compressed graphic data. The rest of bank 4 is
   the code for the ending scene animation and the ending credits, including the
@@ -146,7 +146,7 @@ engine loop routines and in what order those routines are called.
   players' weapons and bullets.
 * `bank7.asm` - the core of the game's programming. Reset, NMI, and IRQ vectors
   are in this bank and is the entry point to the game.  Bank 7 contains the code
-  for drawing of nametables and sprites, bank switching, routines for the intro
+  for drawing nametables and sprites, bank switching, routines for the intro
   sequence, controller input, score calculation, graphics decompression
   routines, palette codes, collision detection, pointer table for enemy
   routines, shared enemy logic, score table, enemy attributes, and bullet angles
@@ -165,7 +165,7 @@ interesting observations.  You can search the code for these annotations.
 
 # Debugging
 
-One of the biggest advantages of building this rom is that the build scripts
+One of the biggest advantages of building this ROM is that the build scripts
 also build the debugging symbols.  Debugging symbols can be read by emulators
 and be included in the source view while debugging the game.  For example,
 [Mesen](https://github.com/SourMesen/Mesen2) will automatically load the
@@ -215,7 +215,7 @@ and cl65 to link the .o files into a single ROM file. Creating these build
 scripts required defining the memory addresses and bank layouts in the
 `contra.cfg` file.
 
-At this point, I had a repository that could be built that matched the NES rom
+At this point, I had a repository that could be built that matched the NES ROM
 byte for byte.  Then, I found and was able to incorporate the comments from
 Trax's IDA Pro disassembly.  This was incredibly helpful, but more work had to
 be done as Trax's disassembly couldn't be used directly for reassembly.  For
@@ -229,7 +229,7 @@ offsets.  The goal here was twofold:
 
  * make the code more readable and similar to what the original developers would
    have written
- * allow rom hacking without breaking the entire build due to breaking
+ * allow ROM hacking without breaking the entire build due to breaking
    hard-coded memory offsets
 
 When all of this was done, the project could assemble and be byte-for-byte
@@ -238,7 +238,7 @@ documenting the codebase.  Every label had to be given an appropriate name, and
 each line of assembly had to be documented.
 
 # Probotector
-This repo can also produce a _Probotector_ rom file.  _Probotector_ is the
+This repo can also produce a _Probotector_ ROM file.  _Probotector_ is the
 PAL-specific variation of the _Contra_ (US) game.  It is mostly identical except
 different sprites.  For a full list of differences, see the document
 `docs/Probotector.md`.
@@ -246,7 +246,7 @@ different sprites.  For a full list of differences, see the document
 ## Building
 
 First read the section above for building _Contra_ (US) in general.  The process
-is very similar.  Place a _Probotector_ rom in the root folder with the name
+is very similar.  Place a _Probotector_ ROM in the root folder with the name
 `baserom.nes`.  It should have a MD5 hash of `7127F616C13B58087481DD9E93AEB2FF`.
 
 Then, depending on your environment, run one of the following commands.
@@ -261,11 +261,11 @@ Notes of caution, especially for people building both _Contra_ (US) and
 _Probotector_.
 
 1.  Be sure you have the correct `baserom.nes` for the game you are building.
-Otherwise, the generated rom will be incorrect.
+Otherwise, the generated ROM will be incorrect.
 2.  If you have _Contra_ (US) assets in the `/src/assets/` folder and are
 building _Probotector_, or vice versa, the build scripts will delete the graphic
 asset data and re-extract it from the `baserom.nes`. This prevents accidentally
-using the wrong game's assets in the result rom.
+using the wrong game's assets in the result ROM.
 
 # Build Details
 
@@ -273,7 +273,7 @@ The build scripts accomplish the following tasks:
  * extracts necessary data from `baserom.nes` into `src/assets`
  * assemble each bank .asm file into a .o file
  * assemble constants.asm and ines_header into .o files
- * link all output .o files into a single .nes rom file
+ * link all output .o files into a single .nes ROM file
 
 The build scripts all utilize [cc65 compiler suite](https://cc65.github.io/) to
 assemble and link the 6502 assembly files.  The asset data is pulled from
@@ -290,12 +290,12 @@ During assembly, if any symbol is undefined and not explicitly defined in an
 
 ## 2. Linking
 Linking is the concept of combining the various .o object files into a single
-.nes rom file.  This is done by the cl65 linker.  Its job is to replace labels
+.nes ROM file.  This is done by the cl65 linker.  Its job is to replace labels
 with actual CPU memory addresses where the labels will exist when loaded. These
-are then stored in the resulting contra.nes rom file. This is aided by the
+are then stored in the resulting contra.nes ROM file. This is aided by the
 linker configuration file contra.cfg.
 
-This file specifies the layout of the .net rom file.  Without this file, or with
+This file specifies the layout of the .net ROM file.  Without this file, or with
 a misconfigured file, the linker would not generate an identical .nes file.
 There are two parts to the contra.cfg file: MEMORY layout and SEGMENTS layout.
 
@@ -308,7 +308,7 @@ configuration file memory section specifies.
 
 ### Contra.cfg SEGMENTS Layout
 This section specifies defines in which order the .o files should appear in the
-resulting .nes rom file.
+resulting .nes ROM file.
 
 # References
  * Trax's [Disassembly of _Contra (US)_](https://www.bwass.org/romhack/contra/)

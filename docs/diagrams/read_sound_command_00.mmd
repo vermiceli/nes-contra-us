@@ -13,13 +13,13 @@ flowchart TD
     8 --> |control byte\n#$fd, #$fe, #$ff|16(sound_cmd_routine_03)
     11 --> |high nibble #$f|16
     11 --> |high nibble #$d|20(control_nibble_d)
-    11 --> |high nibble not #$d not #$f|21(sound_byte_calc_cmd_delay)
+    11 --> |high nibble not #$0d not #$f|21(sound_byte_calc_cmd_delay)
     17 --> |high nibble not #$2|24("@high_nibble_not_2")
     17 --> |high nibble #$2|52[set length multiplier and config]
     52 -.-> 8
-    24 --> |high nibble #$1 low nibble not #$0|54[flatten note]
+    24 --> |high nibble #$01 low nibble not #$0|54[flatten note]
     54 -.-> 8
-    24 --> |high nibble #$1 low nibble #$0|26[set sweep if specified]
+    24 --> |high nibble #$01 low nibble #$0|26[set sweep if specified]
     24 --> |high nibble not #$1|27("@high_nibble_not_1")
     26 -.-> 8
     27 --> 55[set sound multiplier]

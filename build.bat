@@ -15,6 +15,7 @@ IF %GAME% == "Probotector" (
     SET ROM_NAME="probotector.nes"
     SET DBG_NAME="probotector.dbg"
     SET ASSETS_NAME=probotector-assets.txt
+    SET GAME="Probotector"
 ) ELSE (
     SET GAME="Contra"
 )
@@ -46,7 +47,7 @@ IF EXIST %ASSET_GAME_TYPE% (
 rem If the assets are from a different game, then delete them
 rem For example, if the assets were extracted from Contra and currently building
 rem Probotector, then delete the assets and extract them from the Probotector baserom.nes
-IF NOT %LAST_BUILD_TYPE% == %Game% (
+IF NOT "%LAST_BUILD_TYPE%" == %Game% (
     echo Removing graphic asset files
     del src\assets\graphic_data\*.bin
 )
@@ -62,7 +63,7 @@ IF EXIST %ASSET_GAME_TYPE% (
     del %ASSET_GAME_TYPE%
 )
 
-echo %GAME%>%ASSET_GAME_TYPE%
+<nul SET /P "=%GAME%" > %ASSET_GAME_TYPE%
 
 rem show commands run in output
 echo Assembling PRG Rom Banks

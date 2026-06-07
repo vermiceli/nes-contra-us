@@ -400,7 +400,7 @@ $A2FE#red_blue_soldier_gen_routine_ptr_tbl#
 $A304#red_blue_soldier_gen_routine_00#
 $A309#red_blue_soldier_gen_routine_01#
 $A367#red_blue_soldier_gen_routine_01_exit#
-$A368#red_blue_solider_data_tbl#
+$A368#red_blue_soldier_data_tbl#
 $A384#ice_grenade_generator_routine_ptr_tbl#
 $A38A#ice_grenade_generator_routine_00#
 $A399#ice_grenade_generator_routine_01#

@@ -225,7 +225,7 @@ after it's drawn for certain animations (claw, fire beam, etc).  For horizontal
 levels, a background is composed of #$38 super-tiles (8x7). For the vertical
 level, a background is composed of #$40 super-tiles (8x8).
 
-Within a super-tile, there are 4 2x2 sections each #$4 bytes long.
+Within a super-tile, there are 4 2x2 sections each #$04 bytes long.
 
 The location of the pattern table tiles of each super-tile pattern is specified
 in the 2-byte level header data byte #$04 (`LEVEL_SUPERTILE_DATA_PTR`).  For
@@ -283,10 +283,10 @@ sprites.  The list below shows how the sprite CPU buffer is partitioned
 |--------------------|------------|-------------------|------------------------------------------------------------------------------------|
 | `$0300` to `0309`  | #$0a bytes | PLAYER_SPRITES    | sprite number for player and player bullets (`sprite_ptr_tbl` or `sprite_ptr_tbl_1`|
 | `$030a` to `0319`  | #$10 bytes | ENEMY_SPRITES     | enemy sprite number (`sprite_ptr_tbl` or `sprite_ptr_tbl_1`)                       |
-| `$031a` to `0323`  | #$0a bytes | SPRITE_Y_POS      | y position on screen of the each sprite                                            |
-| `$0324` to `$0333` | #$10 bytes | ENEMY_Y_POS       | y position of each enemy sprite                                                    |
-| `$0334` to `$033d` | #$0a bytes | SPRITE_X_POS      | x position on screen of the each sprite                                            |
-| `$033e` to `$034d` | #$10 bytes | ENEMY_X_POS       | x position on screen of the each enemy sprite                                      |
+| `$031a` to `0323`  | #$0a bytes | SPRITE_Y_POS      | Y position on screen of the each sprite                                            |
+| `$0324` to `$0333` | #$10 bytes | ENEMY_Y_POS       | Y position of each enemy sprite                                                    |
+| `$0334` to `$033d` | #$0a bytes | SPRITE_X_POS      | X position on screen of the each sprite                                            |
+| `$033e` to `$034d` | #$10 bytes | ENEMY_X_POS       | X position on screen of the each enemy sprite                                      |
 | `$034e` to `$0357` | #$0a bytes | SPRITE_ATTR       | sprite attributes (palette, whether to flip horizontally, vertically)              |
 | `$0358` to `$0367` | #$10 bytes | ENEMY_SPRITE_ATTR | sprite attributes (palette, whether to flip horizontally, vertically)              |
 
@@ -312,13 +312,13 @@ decay that OAM has.
 ## Sprite Number Encoding
 The sprite data in bank 1 is encoded.  Except when #$fe, the first byte
 specifies the number of entries in the sprite.  Then there are that many groups
-of 4-bytes. Each #$4 bytes specify two tiles that are stacked vertically.
+of 4-bytes. Each #$04 bytes specify two tiles that are stacked vertically.
 Except when the first byte is #$80, these four bytes follow the PPU OAM byte
 specification.  For details on this data structure,
 [NES Dev Wiki](https://wiki.nesdev.org/w/index.php?title=PPU_OAM) has a good
 article on this.  These specifics are also outlined below.
 
-  * Byte 0 specifies the y position of the tile relative to where the sprite is
+  * Byte 0 specifies the Y position of the tile relative to where the sprite is
     placed on the screen. This can be negative.
     * If Byte 0 is #$80, then it is a signal to change the read address. The
       next two bytes specify the CPU address to move to. This functionality
@@ -342,13 +342,13 @@ article on this.  These specifics are also outlined below.
       * 0 = in front of background; 1 = behind background
     * Bits 1 and 0 (`.... ..xx`) specify the palette code
       * These bits specify the palette to use for the sprite
-  * Byte 3 specifies the x position of the tile relative to where the sprite is
+  * Byte 3 specifies the X position of the tile relative to where the sprite is
     placed on the screen. This can be negative.
 
 When the first byte of the sprite code is #$fe, the sprite is a "small" sprite.
-Small sprites are composed of #$3 bytes, including the #$fe byte.  Small sprites
-always have their X position shifted left by #$04 and their Y position shifted
-up by #$08.
+Small sprites are composed of #$03 bytes, including the #$fe byte.  Small
+sprites always have their X position shifted left by #$04 and their Y position
+shifted up by #$08.
 
   * Byte 0 is #$fe and signifies the sprite is a small sprite
   * Byte 1 specifies the tile number

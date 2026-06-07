@@ -1,4 +1,4 @@
-; Contra US Disassembly - v1.3
+; Contra US Disassembly - v1.4
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 6 contains compressed graphics data, data for short text sequences like
 ; level names and menu options.  Bank 6 also contains the code for the players'
@@ -23,7 +23,7 @@
 .byte $06 ; The PRG ROM bank number (6)
 
 ; compressed graphics data - code 0c (#$cdb bytes)
-; same PPU addresses as graphic_data_0d
+; decompresses to the same PPU address ranges as graphic_data_0d
 ; pattern table data - writes addresses
 ; * [$09a0-$0a80)
 ; * [$0dc0-$0ee0)
@@ -51,14 +51,14 @@ graphic_data_0e:
     .incbin "assets/graphic_data/graphic_data_0e.bin"
 
 ; compressed graphics data - code 15 (#$e2 bytes)
-; Turret Guy
+; turret guy
 ; left pattern data - writes addresses [$0ee0-$0fc0)
 ; CPU address $b07a
 graphic_data_15:
     .incbin "assets/graphic_data/graphic_data_15.bin"
 
 ; compressed graphics data - code 16 (#$106 bytes)
-; Weapon Box
+; weapon box
 ; right pattern data - writes addresses [$1200-$1320)
 ; CPU address $b15c
 graphic_data_16:
@@ -70,9 +70,9 @@ short_text_pointer_table:
     .addr text_1_player              ; CPU address $b2e1 - 1 PLAYER
     .addr text_2_players             ; CPU address $b2ec - 2 PLAYERS
     .addr text_play_select           ; CPU address $b2d3 - PLAY SELECT
-    .addr intro_background_palette2  ; CPU address $b3b4 - These are the intro screen palettes and intro palettes for Bill and Lance (players)
+    .addr intro_background_palette2  ; CPU address $b3b4 - These are the intro screen palettes including palettes for Bill and Lance (players)
     .addr text_jungle                ; CPU address $b356 - JUNGLE
-    .addr transition_screen_palettes ; CPU address $b333 - These are the intro screen palettes and intro palettes for Bill and Lance (players)
+    .addr transition_screen_palettes ; CPU address $b333 - These are the intro screen palettes including palettes for Bill and Lance (players)
     .addr text_rest                  ; CPU address $b2f8 - REST
     .addr text_rest2                 ; CPU address $b302 - REST
     .addr text_hi                    ; CPU address $b30c - HI
@@ -131,7 +131,7 @@ text_continue:
 .ifdef Probotector
     .byte $22,$ac  ; change to PPU address $22ac and read next text (text_end)
 .else
-    .byte $22,$cc  ; change to PPU address $22ac and read next text (text_end)
+    .byte $22,$cc  ; change to PPU address $22cc and read next text (text_end)
 .endif
 
 ; "END" text, written when writing previous text text_continue
@@ -183,7 +183,7 @@ text_2p:
 
 ; background palette data for use with graphic_data_02 nametable
 ; palettes for intro screen, and screen showing level name and high score (#$12 bytes)
-; when reading this label, reads continue through intro_sprite_palettes until #$fe
+; when reading this label, reading continues through intro_sprite_palettes until #$fe
 ; CPU address $b333
 ; PPU address $3f00 (start of palette data)
 transition_screen_palettes:
@@ -290,14 +290,14 @@ intro_background_palette2:
 check_player_fire:
     lda PLAYER_HIDDEN,x        ; 0 - visible; #$01/#$ff = invisible (any non-zero)
     ora ELECTROCUTED_TIMER,x   ; counter for electrocution
-    bne check_player_fire_exit ; exit if being electrocuted or $ba,x is set
+    bne check_player_fire_exit ; exit if being electrocuted or player is hidden
     lda PLAYER_WATER_STATE,x   ; see if player in water
     beq @player_shoot_test
     lda PLAYER_AIM_DIR,x       ; can't shoot downward if in water
     cmp #$03
     bcc @player_shoot_test     ; continue if < 3 (up, up-right, and right)
     cmp #$07
-    bcc check_player_fire_exit ; exit if less than 7 and greater than 3 (down-right, down, down-left)
+    bcc check_player_fire_exit ; exit if 3, 4, 5, or 6 (down-right, down facing right, down facing left, down-left)
 
 @player_shoot_test:
     lda P1_CURRENT_WEAPON,x ; current player's weapon
@@ -369,10 +369,10 @@ run_create_bullet_routine:
 ; runs the appropriate weapon routine, based on current weapon type (Standard, M, F, S, L)
 @fire_weapon_routine:
     sta $0b                 ; store PLAYER_AIM_DIR in $0b
-    lda SPRITE_X_POS,x      ; load player x position on screen
-    sta $0c                 ; store player x position on screen
-    lda SPRITE_Y_POS,x      ; load player y position on screen
-    sta $0d                 ; store player y position on screen
+    lda SPRITE_X_POS,x      ; load player X position on screen
+    sta $0c                 ; store player X position on screen
+    lda SPRITE_Y_POS,x      ; load player Y position on screen
+    sta $0d                 ; store player Y position on screen
     lda $08                 ; load weapon type (Standard, M, F, S, L)
     ldy LEVEL_LOCATION_TYPE ; 0 = outdoor; 1 = indoor
     bmi fire_weapon_routine ; branch if base/indoor boss level screen
@@ -384,7 +384,7 @@ run_create_bullet_routine:
 fire_weapon_routine:
     jsr run_routine_from_tbl_below ; run routine a in the following table (fire_weapon_routine_ptr_tbl)
 
-; pointer table for weapon routines (a * 2 = 14 bytes)
+; pointer table for weapon routines (#$0a * #$02 = #$14 bytes)
 fire_weapon_routine_ptr_tbl:
     .addr fire_weapon_routine_standard        ; Standard Weapon CPU address $b455
     .addr fire_weapon_routine_m               ; M Weapon CPU address $b46e
@@ -397,14 +397,14 @@ fire_weapon_routine_ptr_tbl:
     .addr fire_weapon_routine_s               ; indoor/base level S Weapon address $b4ca
     .addr fire_weapon_routine_l               ; indoor/base level L Weapon address $b508
 
-; standard weapon
+; Standard Weapon
 fire_weapon_routine_standard:
     jsr create_bullet_max_04 ; create bullet if possible
     bne weapon_routine_exit  ; exit if no bullet slot found
 
 init_bullet_pos_and_velocity:
     jsr init_bullet_sprite_pos ; set initial bullet sprite position
-    jmp set_bullet_velocity    ; set the bullet x and y velocities
+    jmp set_bullet_velocity    ; set the bullet X and Y velocities
 
 ; indoor/base level Standard Weapon
 fire_weapon_routine_indoor_standard:
@@ -416,7 +416,7 @@ init_indoor_bullet_pos_and_vel:
     jsr set_indoor_bullet_vel
     jmp set_indoor_bullet_delay
 
-; m weapon
+; M weapon
 fire_weapon_routine_m:
     jsr gen_m_bullet_if_delay_met    ; possibly generate a bullet based on PLAYER_M_WEAPON_FIRE_TIME
     beq init_bullet_pos_and_velocity ; set initial bullet position and velocity if bullet was created
@@ -433,7 +433,7 @@ fire_weapon_routine_indoor_m:
     beq init_indoor_bullet_pos_and_vel ; set initial bullet position and velocity if bullet was created
     rts
 
-; indoor and outdoor m weapon
+; indoor and outdoor M weapon
 ; checks PLAYER_M_WEAPON_FIRE_TIME to determine if a bullet should be generated
 ; updates PLAYER_M_WEAPON_FIRE_TIME based on logic
 gen_m_bullet_if_delay_met:
@@ -446,8 +446,8 @@ gen_m_bullet_if_delay_met:
 
 @continue:
     sty $0f                         ; store either #$08 or #$0f in $0f
-    and #$0f                        ; low nibble of of burst fire time
-    cmp $0f                         ; compare to burst fire time time
+    and #$0f                        ; low nibble of burst fire time
+    cmp $0f                         ; compare to burst fire time
     bcc gen_m_bullet_exit           ; exit if less than #$08 (delay between bullets hasn't elapsed)
                                     ; also exit when low nibble less than #$0f when burst time >= #$60
                                     ; e.g. must wait a full #$0f frames before next bullet will generate
@@ -462,7 +462,7 @@ gen_m_bullet_if_delay_met:
 @gen_m_bullet:
     and #$f0                        ; keep high nibble
     sta PLAYER_M_WEAPON_FIRE_TIME,x ; set new time value with only high nibble set (or #$00)
-    lda #$05                        ; a = #$05 (up to #$06 bullets on screen for m weapon)
+    lda #$05                        ; a = #$05 (up to #$06 bullets on screen for M weapon)
     jsr create_bullet_max_a_p2_0a   ; create bullet if possible, p2 starting at slot #$0a
     bne @no_bullet_created          ; if #$06 bullets on screen, branch
     rts
@@ -471,15 +471,15 @@ gen_m_bullet_if_delay_met:
     ldy $11                         ; load player index
     lda #$07                        ; set a = #$07, clears zero flag
                                     ; this will allow the bullet to be reattempted to be created the next frame
-    sta PLAYER_M_WEAPON_FIRE_TIME,y ; reset $ac back down to #$07
+    sta PLAYER_M_WEAPON_FIRE_TIME,y ; reset back down to #$07
     rts
 
-; f weapon (outdoor)
+; F weapon (outdoor)
 fire_weapon_routine_f:
     jsr create_bullet_max_04         ; create bullet if possible
     bne weapon_routine_exit          ; exit if no bullet slot found
     jsr init_bullet_pos_and_velocity ; set initial bullet position and velocity
-    jmp f_bullet_outdoor_init_center ; initialize the center x and y point that is swirled around
+    jmp f_bullet_outdoor_init_center ; initialize the center X and Y point that is swirled around
 
 ; indoor/base level F Weapon
 fire_weapon_routine_indoor_f:
@@ -498,14 +498,14 @@ fire_weapon_routine_s:
 
 ; loop through creating up to #$05 bullets in a spray pattern
 @loop:
-    lda #$09                      ; a = #$09 (up to #$0a bullets total for s weapon)
+    lda #$09                      ; a = #$09 (up to #$0a bullets total for S weapon)
     ldx #$06                      ; set p2 bullet slot starting offset at #$06
     jsr create_bullet_max_a       ; create bullet if slot available
     bne weapon_s_l_exit           ; exit if no bullet was generated
     jsr init_s_bullet_pos_and_vel
     inc $17                       ; increment number of bullets created in current shot
     lda $17
-    cmp #$05                      ; max bullets per shot for s weapon
+    cmp #$05                      ; max bullets per shot for S weapon
     bcc @loop                     ; loop if more bullets to create for current shot
 
 weapon_s_l_exit:
@@ -519,7 +519,7 @@ init_s_bullet_pos_and_vel:
     beq @outdoor_or_indoor_boss        ; branch if outdoor
     jsr set_indoor_bullet_pos_and_slot ; indoor/base, set bullet position and slot
     jsr set_indoor_bullet_vel
-    lda PLAYER_BULLET_X_POS,x          ; load bullet's x position
+    lda PLAYER_BULLET_X_POS,x          ; load bullet's X position
     sta PLAYER_BULLET_FS_X,x
     lda $09                            ; rapid fire flag
     sta PLAYER_BULLET_S_RAPID,x        ; store in memory specifically for S weapon
@@ -529,7 +529,7 @@ init_s_bullet_pos_and_vel:
     jsr init_bullet_sprite_pos          ; set initial bullet sprite position
     jmp s_weapon_init_bullet_velocities
 
-; l weapon
+; L weapon
 fire_weapon_routine_l:
     lda #$01      ; a = #$01
     sta $09       ; set rapid fire flag
@@ -589,7 +589,7 @@ fire_weapon_routine_l:
 @init_bullet_pos_and_velocity:
     jmp init_bullet_pos_and_velocity ; set initial bullet position and velocity
 
-; table for laser bullet delays (#$8 bytes)
+; table for laser bullet delays (#$08 bytes)
 laser_bullet_delay_tbl:
     .byte $0a,$07,$04,$01 ; outdoor and indoor boss
     .byte $07,$05,$03,$01 ; indoor
@@ -640,19 +640,18 @@ create_enemy_bullet:
     lda #$00                            ; a = #$00
     rts
 
-; table for weapon sounds (#$4 bytes)
+; table for weapon sounds (#$04 bytes)
 ; sound_0a, sound_0c, sound_10, sound_12
 ; next table byte 0 is sound_0e for L
 weapon_sound_tbl:
     .byte $0a,$0c,$10,$12
 
-; table for weapon bullet types (#$5 bytes)
-; subtract 2 to get sprite code
+; table for weapon bullet types (#$06 bytes)
 ; * #$0e - belongs to previous table L weapon sound (sound_0e)
 ;        - not used for sprites, as read offset for this table is at least #$01
 ; * #$1f - sprite_1f (M Bullet)
 ; * #$22 - sprite_22 (F bullet)
-; * #$00 - for l bullet, but not used, overwritten with #$24 from l_bullet_sprite_code_tbl
+; * #$00 - for L bullet, but not used, overwritten with #$24 from l_bullet_sprite_code_tbl
 weapon_bullet_sprite_code_tbl:
     .byte $0e,$1e,$1f,$22,$1f,$00
 
@@ -693,16 +692,16 @@ init_bullet_sprite_pos:
     tay                                ; set as offset into bullet_dir_XX
     lda ($0e),y                        ; load bullet initial offset based on player aim direction
     clc                                ; clear carry in preparation for addition
-    adc $0c                            ; add offset to player x position on screen
+    adc $0c                            ; add offset to player X position on screen
     sta PLAYER_BULLET_X_POS,x
     iny
     lda ($0e),y
     clc                                ; clear carry in preparation for addition
-    adc $0d                            ; add offset to player y position on screen
+    adc $0d                            ; add offset to player Y position on screen
     sta PLAYER_BULLET_Y_POS,x
     rts
 
-; pointer table for initial bullet offsets (4 * 2 = 8 bytes)
+; pointer table for initial bullet offsets (#$04 * #$02 = #$08 bytes)
 bullet_initial_pos_ptr_tbl:
     .addr bullet_initial_pos_00 ; outdoor CPU address $b5fa
     .addr bullet_initial_pos_01 ; outdoor - jumping CPU address $b60e
@@ -710,8 +709,8 @@ bullet_initial_pos_ptr_tbl:
     .addr bullet_initial_pos_03 ; indoor jumping CPU address $b63a
 
 ; initial bullet offset - outdoor - on ground (#$14 bytes)
-; byte #$01 - x offset from player position
-; byte #$02 - y offset from player position
+; byte #$01 - X offset from player position
+; byte #$02 - Y offset from player position
 bullet_initial_pos_00:
 .ifdef Probotector
     .byte $03,$e5  ;  $05 -1b Up
@@ -738,8 +737,8 @@ bullet_initial_pos_00:
 .endif
 
 ; initial bullet offset - outdoor - jumping (#$18 bytes)
-; byte #$01 - x offset from player position
-; byte #$02 - y offset from player position
+; byte #$01 - X offset from player position
+; byte #$02 - Y offset from player position
 bullet_initial_pos_01:
     .byte $00,$f0
     .byte $0f,$f1
@@ -755,8 +754,8 @@ bullet_initial_pos_01:
     .byte $00,$10
 
 ; initial bullet offsets - indoor - on ground (#$14 bytes)
-; byte #$01 - x offset from player position
-; byte #$02 - y offset from player position
+; byte #$01 - X offset from player position
+; byte #$02 - Y offset from player position
 bullet_initial_pos_02:
     .byte $ff,$e8
     .byte $0f,$f0
@@ -770,8 +769,8 @@ bullet_initial_pos_02:
     .byte $ff,$e8
 
 ; initial bullet offsets - indoor - jumping (#$18 bytes)
-; byte #$01 - x offset from player position
-; byte #$02 - y offset from player position
+; byte #$01 - X offset from player position
+; byte #$02 - Y offset from player position
 bullet_initial_pos_03:
     .byte $00,$f0
     .byte $0f,$f1
@@ -788,35 +787,35 @@ bullet_initial_pos_03:
 
 set_indoor_bullet_pos_and_slot:
     lda #$00              ; a = #$00
-    sta $0e               ; set bullet x position offset to #$00
-    ldy #$00              ; set bullet y offset position to #$00
+    sta $0e               ; set bullet X position offset to #$00
+    ldy #$00              ; set bullet Y offset position to #$00
     lda $0a               ; load jump status
     bne @set_pos_and_slot ; branch if jumping
     ldy #$f4              ; start with assuming player is crouching
-                          ; set bullet y offset position to #$f4
-    dec $0e               ; set bullet x position offset to #$ff
+                          ; set bullet Y offset position to #$f4
+    dec $0e               ; set bullet X position offset to #$ff
     lda $0b               ; load player aim direction
     cmp #$04              ; see if aiming down facing right
     beq @set_pos_and_slot ; branch if aiming down facing right
-    cmp #$05              ; see if aiming dow facing left
+    cmp #$05              ; see if aiming down facing left
     beq @set_pos_and_slot ; branch if aiming down facing left
-    ldy #$e8              ; set bullet y position offset to #$e8
+    ldy #$e8              ; set bullet Y position offset to #$e8
     bcs @set_pos_and_slot
     lda #$01              ; a = #$01
-    sta $0e               ; set bullet x position offset to #$01
+    sta $0e               ; set bullet X position offset to #$01
 
-; y is bullet y offset from player
-; a is bullet x offset from player
+; y is bullet Y offset from player
+; a is bullet X offset from player
 @set_pos_and_slot:
     tya
     clc                       ; clear carry in preparation for addition
-    adc $0d                   ; add offset to player y position
-    sta PLAYER_BULLET_Y_POS,x ; store bullet y position
-    lda $0e                   ; load bullet x position offset
+    adc $0d                   ; add offset to player Y position
+    sta PLAYER_BULLET_Y_POS,x ; store bullet Y position
+    lda $0e                   ; load bullet X position offset
     clc                       ; clear carry in preparation for addition
-    adc $0c                   ; add bullet offset to player x position
-    sta PLAYER_BULLET_X_POS,x ; store bullet x position
-    cpy #$f4                  ; compare bullet y offset to #$f4
+    adc $0c                   ; add bullet offset to player X position
+    sta PLAYER_BULLET_X_POS,x ; store bullet X position
+    cpy #$f4                  ; compare bullet Y offset to #$f4
     bne @continue             ; branch if not crouching while shooting
     lda PLAYER_BULLET_SLOT,x  ; player is crouching (pressing down while shooting)
     ora #$80                  ; set bits x... ....
@@ -834,14 +833,14 @@ set_indoor_bullet_pos_and_slot:
 @exit:
     rts
 
-; not used for s weapon
+; not used for S weapon
 set_bullet_velocity:
     ldy #$04              ; y = #$04
     lda $08               ; load weapon type (Standard, M, F, S, L) in $08
-    cmp #$02              ; 02 = f weapon
-    beq @check_rapid_flag ; branch if f weapon
+    cmp #$02              ; 02 = F weapon
+    beq @check_rapid_flag ; branch if F weapon
     ldy #$02              ; y = #$02
-    cmp #$04              ; 04 = l weapon
+    cmp #$04              ; 04 = L weapon
     beq @check_rapid_flag
     ldy #$00              ; y = #$00
 
@@ -863,20 +862,20 @@ set_bullet_velocity:
     asl                             ; each entry is #$04 bytes
     asl                             ; double twice to get correct offset
     tay
-    lda ($01),y                     ; load x velocity fast value
-    sta PLAYER_BULLET_X_VEL_FAST,x  ; store x velocity fast value
+    lda ($01),y                     ; load X velocity fast value
+    sta PLAYER_BULLET_X_VEL_FAST,x  ; store X velocity fast value
     iny                             ; increment velocity table read offset
-    lda ($01),y                     ; load x fractional velocity value
-    sta PLAYER_BULLET_X_VEL_FRACT,x ; store x fractional velocity value
+    lda ($01),y                     ; load X fractional velocity value
+    sta PLAYER_BULLET_X_VEL_FRACT,x ; store X fractional velocity value
     iny                             ; increment velocity table read offset
-    lda ($01),y                     ; load y velocity fast value
-    sta PLAYER_BULLET_Y_VEL_FAST,x  ; store y velocity fast value
+    lda ($01),y                     ; load Y velocity fast value
+    sta PLAYER_BULLET_Y_VEL_FAST,x  ; store Y velocity fast value
     iny                             ; increment velocity table read offset
-    lda ($01),y                     ; load y fractional velocity byte
-    sta PLAYER_BULLET_Y_VEL_FRACT,x ; store y fractional velocity byte
+    lda ($01),y                     ; load Y fractional velocity byte
+    sta PLAYER_BULLET_Y_VEL_FRACT,x ; store Y fractional velocity byte
     rts
 
-; pointer table for player bullet velocity (6 * 2 = c bytes)
+; pointer table for player bullet velocity (#$06 * #$02 = #$0c bytes)
 bullet_velocity_ptr_tbl:
     .addr bullet_velocity_normal  ; Standard, M - Normal CPU address $b6e9
     .addr bullet_velocity_rapid   ; Standard, M - Rapid Fire CPU address $b719
@@ -885,14 +884,14 @@ bullet_velocity_ptr_tbl:
     .addr bullet_velocity_f       ; F Weapon - Normal CPU address $b779
     .addr bullet_velocity_f_rapid ; F Weapon - Rapid Fire CPU address $b749
 
-; player bullet velocity - standard, and m weapon - normal (#$30 bytes)
-; #$4 bytes per angle (#$2 bytes for x, #$2 bytes for y)
-; #$c velocities in table, but only #$0a are accessible due to possible PLAYER_AIM_DIR values !(WHY?)
+; player bullet velocity - standard, and M weapon - normal (#$30 bytes)
+; #$04 bytes per angle (#$02 bytes for x, #$02 bytes for y)
+; #$0c velocities in table, but only #$0a are accessible due to possible PLAYER_AIM_DIR values !(WHY?)
 ; all values are calculated assuming a velocity of #$300 (768 decimal)
 ; format: XX XX YY YY
 ; ex:
-; 00 00 - X Velocity - (high byte, low byte) - #$0000 = 0
-; FD 00 - Y Velocity - (high byte, low byte) - #$fd00 = -768
+; 00 00 - X velocity - (high byte, low byte) - #$0000 = 0
+; FD 00 - Y velocity - (high byte, low byte) - #$fd00 = -768
 ; for angled shots use sin(45 deg) = 0.707
 ; 768 * 0.707 = 543 -> #$21f
 bullet_velocity_normal:
@@ -909,15 +908,15 @@ bullet_velocity_normal:
     .byte $00,$00,$fd,$00 ; (0, -3)        - unused
     .byte $00,$00,$03,$00 ; (0, 3)         - jumping shooting down facing right or left
 
-; player bullet velocity - standard, and m weapon - rapid fire (#$30 bytes)
-; l weapon uses this table for both normal and rapid fire
-; #$4 bytes per angle (#$2 bytes for x, #$2 bytes for y)
-; #$c velocities in table, but only #$0a are accessible due to possible PLAYER_AIM_DIR values !(HUH)
+; player bullet velocity - standard, and M weapon - rapid fire (#$30 bytes)
+; L weapon uses this table for both normal and rapid fire
+; #$04 bytes per angle (#$02 bytes for x, #$02 bytes for y)
+; #$0c velocities in table, but only #$0a are accessible due to possible PLAYER_AIM_DIR values !(HUH)
 ; all values are calculated assuming a velocity of #$400 (1024 decimal)
 ; format: XX XX YY YY
 ; ex:
-; 00 00 - X Velocity - (high byte, low byte) - #$0000 = 0
-; FC 00 - Y Velocity - (high byte, low byte) - #$fc00 = -1024
+; 00 00 - X velocity - (high byte, low byte) - #$0000 = 0
+; FC 00 - Y velocity - (high byte, low byte) - #$fc00 = -1024
 ; for angled shots use sin(45 deg) = 0.707
 ; 1024 * 0.707 = 724 -> #$2d4
 bullet_velocity_rapid:
@@ -934,53 +933,53 @@ bullet_velocity_rapid:
     .byte $00,$00,$fc,$00 ; unused
     .byte $00,$00,$04,$00 ; (0, 4)         - jumping shooting down facing right or left
 
-; player bullet velocity - f weapon - rapid fire (#$30 bytes)
-; #$4 bytes per angle (#$2 bytes for x, #$2 bytes for y)
-; #$c velocities in table, but only #$0a are accessible due to possible PLAYER_AIM_DIR values !(HUH)
+; player bullet velocity - F weapon - rapid fire (#$30 bytes)
+; #$04 bytes per angle (#$02 bytes for x, #$02 bytes for y)
+; #$0c velocities in table, but only #$0a are accessible due to possible PLAYER_AIM_DIR values !(HUH)
 ; all values are calculated assuming a velocity of #$200 (512 decimal)
 ; format: XX XX YY YY
 ; ex:
-; 00 00 - X Velocity - (high byte, low byte) - #$0000 = 0
-; FE 00 - Y Velocity - (high byte, low byte) - #$fe00 = -512
+; 00 00 - X velocity - (high byte, low byte) - #$0000 = 0
+; FE 00 - Y velocity - (high byte, low byte) - #$fe00 = -512
 ; for angled shots use sin(45 deg) = 0.707
 ; 512 * 0.707 = 362 -> #$16a
 bullet_velocity_f_rapid:
-    .byte $00,$00,$fe,$00 ; (0, -2)       - up facing right
-    .byte $01,$6a,$fe,$96 ; (1.41, -1.41) - up right
-    .byte $02,$00,$00,$00 ; (2, 0)        - right
-    .byte $01,$6a,$01,$6a ; (1.41, 1.41)  - right down
-    .byte $02,$00,$00,$00 ; (2, 0)        - crouch facing right
-    .byte $fe,$00,$00,$00 ; (-2, 0)       - crouch facing left
-    .byte $fe,$96,$01,$6a ; (-1.41, 1.41) - down left
-    .byte $fe,$00,$00,$00 ; (-2, 0)       - left
-    .byte $fe,$96,$fe,$96 ; (1.41, -1.41) - up left
-    .byte $00,$00,$fe,$00 ; (0, -2)       - up facing left
-    .byte $00,$00,$fe,$00 ; (0, -2)       - unused
-    .byte $00,$00,$02,$00 ; (0, 2)        - jumping shooting down facing right or left
+    .byte $00,$00,$fe,$00 ; (0, -2)        - up facing right
+    .byte $01,$6a,$fe,$96 ; (1.41, -1.41)  - up right
+    .byte $02,$00,$00,$00 ; (2, 0)         - right
+    .byte $01,$6a,$01,$6a ; (1.41, 1.41)   - right down
+    .byte $02,$00,$00,$00 ; (2, 0)         - crouch facing right
+    .byte $fe,$00,$00,$00 ; (-2, 0)        - crouch facing left
+    .byte $fe,$96,$01,$6a ; (-1.41, 1.41)  - down left
+    .byte $fe,$00,$00,$00 ; (-2, 0)        - left
+    .byte $fe,$96,$fe,$96 ; (-1.41, -1.41) - up left
+    .byte $00,$00,$fe,$00 ; (0, -2)        - up facing left
+    .byte $00,$00,$fe,$00 ; (0, -2)        - unused
+    .byte $00,$00,$02,$00 ; (0, 2)         - jumping shooting down facing right or left
 
-; player bullet velocity - f weapon - normal (#$30 bytes)
-; #$4 bytes per angle (#$2 bytes for x, #$2 bytes for y)
-; #$c velocities in table, but only #$0a are accessible due to possible PLAYER_AIM_DIR values !(HUH)
+; player bullet velocity - F weapon - normal (#$30 bytes)
+; #$04 bytes per angle (#$02 bytes for x, #$02 bytes for y)
+; #$0c velocities in table, but only #$0a are accessible due to possible PLAYER_AIM_DIR values !(HUH)
 ; all values are calculated assuming a velocity of #$180 (384 decimal)
 ; format: XX XX YY YY
 ; ex:
-; 00 00 - X Velocity - (high byte, low byte) - #$0000 = 0
-; FE 80 - Y Velocity - (high byte, low byte) - #$fe80 = -384
+; 00 00 - X velocity - (high byte, low byte) - #$0000 = 0
+; FE 80 - Y velocity - (high byte, low byte) - #$fe80 = -384
 ; for angled shots use sin(45 deg) = 0.707
 ; 384 * 0.707 = 271 -> #$10f
 bullet_velocity_f:
-    .byte $00,$00,$fe,$80 ; (0,-1.5)     - up facing right
-    .byte $01,$0f,$fe,$f1 ; (1.06,-1.06) - up right
-    .byte $01,$80,$00,$00 ; (1.5,0)      - right
-    .byte $01,$0f,$01,$0f ; (1.06,1.06)  - right down
-    .byte $01,$80,$00,$00 ; (1.5,0)      - crouch facing right
-    .byte $fe,$80,$00,$00 ; (-1.5,0)     - crouch facing left
-    .byte $fe,$f1,$01,$0f ; (-1.06,1.06) - down left
-    .byte $fe,$80,$00,$00 ; (-1.5,0)     - left
-    .byte $fe,$f1,$fe,$f1 ; (1.06,-1.06) - up left
-    .byte $00,$00,$fe,$80 ; (0,-1.5)     - up facing left
-    .byte $00,$00,$fe,$80 ; (0,-1.5)     - unused
-    .byte $00,$00,$01,$80 ; (0,1.5)      - jumping shooting down facing right or left
+    .byte $00,$00,$fe,$80 ; (0,-1.5)      - up facing right
+    .byte $01,$0f,$fe,$f1 ; (1.06,-1.06)  - up right
+    .byte $01,$80,$00,$00 ; (1.5,0)       - right
+    .byte $01,$0f,$01,$0f ; (1.06,1.06)   - right down
+    .byte $01,$80,$00,$00 ; (1.5,0)       - crouch facing right
+    .byte $fe,$80,$00,$00 ; (-1.5,0)      - crouch facing left
+    .byte $fe,$f1,$01,$0f ; (-1.06,1.06)  - down left
+    .byte $fe,$80,$00,$00 ; (-1.5,0)      - left
+    .byte $fe,$f1,$fe,$f1 ; (-1.06,-1.06) - up left
+    .byte $00,$00,$fe,$80 ; (0,-1.5)      - up facing left
+    .byte $00,$00,$fe,$80 ; (0,-1.5)      - unused
+    .byte $00,$00,$01,$80 ; (0,1.5)       - jumping shooting down facing right or left
 
 set_indoor_bullet_vel:
     lda #$00                        ; a = #$00
@@ -988,9 +987,9 @@ set_indoor_bullet_vel:
     lda #$40                        ; a = #$40 (bullet speed code)
     jsr @set_vel_for_speed_code     ; convert 'speed code' to fast and fractional velocities based on rapid fire flag
     lda $0f                         ; load resulting fast velocity
-    sta PLAYER_BULLET_Y_VEL_FAST,x  ; set indoor bullet fast y velocity
+    sta PLAYER_BULLET_Y_VEL_FAST,x  ; set indoor bullet fast Y velocity
     lda $0e                         ; load resulting fractional velocity
-    sta PLAYER_BULLET_Y_VEL_FRACT,x ; set indoor bullet fractional y velocity
+    sta PLAYER_BULLET_Y_VEL_FRACT,x ; set indoor bullet fractional Y velocity
     lda $0c
     sec                             ; set carry flag in preparation for subtraction
     sbc #$80
@@ -1002,17 +1001,17 @@ set_indoor_bullet_vel:
 @set_x_vel:
     jsr @set_vel_for_speed_code     ; determine fast and fractional velocity based on a and whether rapid fire is enabled
     lda $0f                         ; load resulting fast velocity
-    sta PLAYER_BULLET_X_VEL_FAST,x  ; set indoor bullet fast x velocity
+    sta PLAYER_BULLET_X_VEL_FAST,x  ; set indoor bullet fast X velocity
     lda $0e                         ; load resulting fractional velocity
-    sta PLAYER_BULLET_X_VEL_FRACT,x ; set indoor bullet fractional x velocity
+    sta PLAYER_BULLET_X_VEL_FRACT,x ; set indoor bullet fractional X velocity
     rts
 
 ; input
-;  * a - a sort-of speed code, this value is split into fast and fractional velocity based on rapid fire flag
-; output
+;  * a - speed code, this value is split into fast and fractional velocity based on rapid fire flag (see set_vel_for_speed_vars)
 ;  * $09 - rapid fire flag
-;  * $0e - bullet x or y fractional velocity
-;  * $0f - bullet x or y fast velocity
+; output
+;  * $0e - bullet X or Y fractional velocity
+;  * $0f - bullet X or Y fast velocity
 @set_vel_for_speed_code:
     sta $0f       ; set initial 'speed code'
     lda #$00      ; a = #$00
@@ -1025,7 +1024,7 @@ set_indoor_bullet_vel:
 @continue:
     jmp set_vel_for_speed_vars ; set fast ($0f) and fractional ($0e) velocities based on $0f and y
 
-; f weapon (outdoor) initialization of the center x and y point that is swirled around
+; F weapon (outdoor) initialization of the center X and Y point that is swirled around
 f_bullet_outdoor_init_center:
     lda $0b                             ; load player aim direction
     asl
@@ -1036,32 +1035,32 @@ f_bullet_outdoor_init_center:
     sta PLAYER_BULLET_TIMER,x           ; set initial bullet timer value
     lda f_bullet_initialization_tbl+1,y ; load PLAYER_BULLET_FS_X offset amount
     clc                                 ; clear carry in preparation for addition
-    adc PLAYER_BULLET_X_POS,x           ; add to bullet's generated x position
-    sta PLAYER_BULLET_FS_X,x            ; set center x position on screen f bullet swirls around
+    adc PLAYER_BULLET_X_POS,x           ; add to bullet's generated X position
+    sta PLAYER_BULLET_FS_X,x            ; set center X position on screen F bullet swirls around
     lda f_bullet_initialization_tbl+2,y ; load PLAYER_BULLET_F_Y offset amount
     clc                                 ; clear carry in preparation for addition
     bmi @negative_f_y_offset            ; branch if PLAYER_BULLET_F_Y offset value is negative (aiming upwards)
-    adc PLAYER_BULLET_Y_POS,x           ; PLAYER_BULLET_F_Y offset was positive, add to f bullet generated y position
+    adc PLAYER_BULLET_Y_POS,x           ; PLAYER_BULLET_F_Y offset was positive, add to F bullet generated Y position
     bcs @clear_bullet_values            ; branch if had an overflow (shouldn't happen) to remove bullet
     bcc @set_fs_y                       ; always branch to set PLAYER_BULLET_F_Y and exit
 
 ; aim direction facing up
 @negative_f_y_offset:
-    adc PLAYER_BULLET_Y_POS,x ; add PLAYER_BULLET_F_Y (negative) to f bullet generated y position
-    bcc @clear_bullet_values  ; if bullet y position plus negative amount didn't overflow, then remove bullet
+    adc PLAYER_BULLET_Y_POS,x ; add PLAYER_BULLET_F_Y (negative) to F bullet generated Y position
+    bcc @clear_bullet_values  ; if bullet Y position plus negative amount didn't overflow, then remove bullet
                               ; this is because the player is at the top of the screen and the shot is off the screen above
 
 @set_fs_y:
-    sta PLAYER_BULLET_F_Y,x ; set center y position on screen f bullet swirls around
+    sta PLAYER_BULLET_F_Y,x ; set center Y position on screen F bullet swirls around
     rts
 
 @clear_bullet_values:
     jmp clear_bullet_values ; initialize bullet memory values to #$00
 
-; table for initial bullet f data depending on player aim direction (#$24 bytes)
+; table for initial bullet F data depending on player aim direction (#$24 bytes)
 ; byte 0 = initial PLAYER_BULLET_TIMER used to lookup into f_bullet_outdoor_x_swirl_amt_tbl and f_bullet_outdoor_y_swirl_amt_tbl
-; byte 1 = PLAYER_BULLET_FS_X offset, added to x position to get center x position that f bullet swirls around
-; byte 2 = PLAYER_BULLET_F_Y offset, added to y position to get center y position that f bullet swirls around
+; byte 1 = PLAYER_BULLET_FS_X offset, added to X position to get center X position that F bullet swirls around
+; byte 2 = PLAYER_BULLET_F_Y offset, added to Y position to get center Y position that F bullet swirls around
 f_bullet_initialization_tbl:
     .byte $0c,$00,$f0 ; (facing up) - vertical
     .byte $0e,$0b,$f5 ; (up-right) - angled
@@ -1079,16 +1078,16 @@ f_bullet_initialization_tbl:
 ; indoor weapon only, set PLAYER_BULLET_FS_X and PLAYER_BULLET_F_Y
 indoor_f_weapon_set_fs_x:
     lda #$04                  ; a = #$04
-    sta PLAYER_BULLET_DIST,x  ; set bullet size to #04
+    sta PLAYER_BULLET_DIST,x  ; set bullet distance to #$04
     lda PLAYER_BULLET_X_POS,x
-    sta PLAYER_BULLET_FS_X,x  ; set center x position on screen f bullet swirls around
+    sta PLAYER_BULLET_FS_X,x  ; set center X position on screen F bullet swirls around
     lda PLAYER_BULLET_Y_POS,x
     sec                       ; set carry flag in preparation for subtraction
     sbc #$02
-    sta PLAYER_BULLET_F_Y,x   ; set center y position on screen f bullet swirls around
+    sta PLAYER_BULLET_F_Y,x   ; set center Y position on screen F bullet swirls around
     rts
 
-; called for all 4 bullets created by the S weapon
+; called for all 5 bullets created by the S weapon
 s_weapon_init_bullet_velocities:
     ldy #$00      ; y = #$00
     lda $09       ; load rapid fire flag
@@ -1106,7 +1105,7 @@ s_weapon_init_bullet_velocities:
     sta $07
     ldy $0b                               ; load PLAYER_AIM_DIR
     lda player_aim_dir_ptr_tbl,y
-    ldy $17                               ; bullets number of of current shot (#$00 to #$04 for each shot)
+    ldy $17                               ; bullets number of current shot (#$00 to #$04 for each shot)
     clc                                   ; clear carry in preparation for addition
     adc s_bullet_num_index_modifier_tbl,y ; load scalar to add to the player aim direction based on the S weapon bullet number
     and #$1f                              ; max the result out at #$1f (...x xxxx)
@@ -1123,7 +1122,7 @@ s_weapon_init_bullet_velocities:
     sta PLAYER_BULLET_X_VEL_FAST,x
     rts
 
-; table for player aim direction (#$c bytes)
+; table for player aim direction (#$0c bytes)
 ; #$00 - facing right aiming up
 ; #$01 - facing right aiming upwards right (diagonally up)
 ; #$02 - facing right
@@ -1137,21 +1136,21 @@ s_weapon_init_bullet_velocities:
 player_aim_dir_ptr_tbl:
     .byte $00,$04,$08,$0c,$08,$18,$14,$18,$1c,$00,$00,$10
 
-; table for initial index modifiers into velocity tables for each of the #$05 bullets created by the S weapon (#$5 bytes)
+; table for initial index modifiers into velocity tables for each of the #$05 bullets created by the S weapon (#$05 bytes)
 s_bullet_num_index_modifier_tbl:
     .byte $00,$01,$ff,$02,$fe
 
-; pointer table for ? (2 * 2 = #$4 bytes)
+; pointer table for S bullet Y velocity lookup (#$02 * #$02 = #$04 bytes)
 s_bullet_y_vel_ptr_tbl:
     .addr s_bullet_y_vel_normal_tbl     ; CPU address $b8aa (no rapid fire)
     .addr s_bullet_y_vel_rapid_fire_tbl ; CPU address $b8fa (rapid fire)
 
-; pointer table for ? (2 * 2 = #$4 bytes)
+; pointer table for S bullet X velocity lookup (#$02 * #$02 = #$04 bytes)
 s_bullet_x_vel_ptr_tbl:
     .addr s_bullet_x_vel_normal_tbl     ; CPU address $b8ba
     .addr s_bullet_x_vel_rapid_fire_tbl ; CPU address $b90a
 
-; bullet y velocity when no rapid fire (8 * 2 = #$10 bytes)
+; bullet Y velocity when no rapid fire (#$08 * #$02 = #$10 bytes)
 ; byte 0 is PLAYER_BULLET_Y_VEL_FRACT
 ; byte 1 is PLAYER_BULLET_Y_VEL_FAST
 s_bullet_y_vel_normal_tbl:
@@ -1164,7 +1163,7 @@ s_bullet_y_vel_normal_tbl:
     .byte $dd,$fe
     .byte $6d,$ff
 
-; table for bullet x velocity with no rapid fire (#$40 bytes)
+; table for bullet X velocity with no rapid fire (#$40 bytes)
 ; s_bullet_y_vel_normal_tbl,y can overflow into this table
 s_bullet_x_vel_normal_tbl:
     .byte $00,$00
@@ -1200,7 +1199,7 @@ s_bullet_x_vel_normal_tbl:
     .byte $dd,$fe
     .byte $6d,$ff
 
-; bullet y velocity when rapid fire (8 * 2 = #$10 bytes)
+; bullet Y velocity when rapid fire (#$08 * #$02 = #$10 bytes)
 ; byte 0 is PLAYER_BULLET_Y_VEL_FRACT
 ; byte 1 is PLAYER_BULLET_Y_VEL_FAST
 s_bullet_y_vel_rapid_fire_tbl:
@@ -1213,7 +1212,7 @@ s_bullet_y_vel_rapid_fire_tbl:
     .byte $ad,$fe
     .byte $55,$ff
 
-; table for bullet x velocity with rapid fire (#$40 bytes)
+; table for bullet X velocity with rapid fire (#$40 bytes)
 ; s_bullet_y_vel_rapid_fire_tbl,y can overflow into this table
 s_bullet_x_vel_rapid_fire_tbl:
     .byte $00,$00
@@ -1255,7 +1254,7 @@ run_player_bullet_routines:
 @loop:
     lda PLAYER_BULLET_SLOT,x      ; load bullet type
     beq @advance_bullet_slot      ; move to next slot if current slot doesn't have a bullet
-    stx $10                       ; store bullet type (+1) in $10
+    stx $10                       ; store bullet slot index in $10
     lda PLAYER_BULLET_OWNER,x     ; load the player who fired the bullet (#$00 = p1, #$01 = p2)
     sta $11                       ; store player who fired the bullet in $11
     jsr run_player_bullet_routine ; run current bullet routine for the bullet slot x
@@ -1271,7 +1270,7 @@ player_bullet_routine_00_ptr_tbl:
 
 ; input
 ;  * x - PLAYER_BULLET_SLOT index
-;  * $10 - PLAYER_BULLET_SLOT (bullet type + 1)
+;  * $10 - bullet slot index
 ;  * $11 - player who fired the bullet (#$00 = p1, #$01 = p2)
 run_player_bullet_routine:
     lda PLAYER_BULLET_SLOT,x ; load bullet type + #$01
@@ -1299,7 +1298,7 @@ run_player_bullet_routine:
     sta $09
     jmp ($0008)
 
-; pointer table for ? (#$c * #$2 = #$18 bytes)
+; pointer table for player bullet routines (#$0c * #$02 = #$18 bytes)
 player_bullet_routine_ptr_tbl:
     .addr player_bullet_routine_00_ptr_tbl ; CPU address $b960 (dead code, not used, placeholder since PLAYER_BULLET_SLOT starts at #$01)
     .addr player_bullet_routine_01_ptr_tbl ; CPU address $b9a4 (default bullet)
@@ -1316,61 +1315,61 @@ player_bullet_routine_ptr_tbl:
     .addr player_bullet_routine_indoor_04_ptr_tbl ; CPU address $b9d4 (S bullet)
     .addr player_bullet_routine_indoor_05_ptr_tbl ; CPU address $b9da (L bullet)
 
-; pointer table for default bullet routines (#$2 * #$3 = #$6 bytes)
+; pointer table for default bullet routines (#$02 * #$03 = #$06 bytes)
 player_bullet_routine_01_ptr_tbl:
     .addr inc_player_bullet_routine_far   ; CPU address $b9e0
     .addr player_shared_bullet_routine_01 ; CPU address $ba46
     .addr player_bullet_collision_routine ; CPU address $bc1e
 
-; pointer table for M bullet routines (#$2 * #$3 = #$6 bytes)
+; pointer table for M bullet routines (#$02 * #$03 = #$06 bytes)
 player_bullet_routine_02_ptr_tbl:
     .addr inc_player_bullet_routine_far   ; CPU address $b9e0
     .addr player_shared_bullet_routine_01 ; CPU address $ba46
     .addr player_bullet_collision_routine ; CPU address $bc1e
 
-; pointer table for F bullet routines (#$2 * #$3 = #$6 bytes)
+; pointer table for F bullet routines (#$02 * #$03 = #$06 bytes)
 player_bullet_routine_03_ptr_tbl:
     .addr inc_player_bullet_routine_far   ; CPU address $b9e0
     .addr player_f_bullet_routine_01      ; CPU address $ba4f
     .addr player_bullet_collision_routine ; CPU address $bc1e
 
-; pointer table for S bullet routines (#$2 * #$3 = #$6 bytes)
+; pointer table for S bullet routines (#$02 * #$03 = #$06 bytes)
 player_bullet_routine_04_ptr_tbl:
     .addr inc_player_bullet_routine_far   ; CPU address $b9e0
     .addr player_s_bullet_routine_01      ; CPU address $ba60 - determines sprite (size) then calls player_shared_bullet_routine_01
     .addr player_bullet_collision_routine ; CPU address $bc1e
 
-; pointer table for L bullet routines (#$2 * #$3 = #$6 bytes)
+; pointer table for L bullet routines (#$02 * #$03 = #$06 bytes)
 player_bullet_routine_05_ptr_tbl:
     .addr player_l_bullet_routine_00      ; CPU address $b9e3
     .addr player_shared_bullet_routine_01 ; CPU address $ba46
     .addr player_bullet_collision_routine ; CPU address $bc1e
 
-; pointer table for default bullet routines on indoor levels (#$2 * #$3 = #$6 bytes)
+; pointer table for default bullet routines on indoor levels (#$02 * #$03 = #$06 bytes)
 player_bullet_routine_indoor_01_ptr_tbl:
     .addr inc_player_bullet_routine_far_2        ; CPU address $ba2f
     .addr player_shared_indoor_bullet_routine_01 ; CPU address $ba7c
     .addr player_bullet_collision_routine        ; CPU address $bc1e
 
-; pointer table for M (#$2 * #$3 = #$6 bytes)
+; pointer table for M bullet routines on indoor levels (#$02 * #$03 = #$06 bytes)
 player_bullet_routine_indoor_02_ptr_tbl:
     .addr inc_player_bullet_routine_far_2        ; CPU address $ba2f
     .addr player_shared_indoor_bullet_routine_01 ; CPU address $ba7c
     .addr player_bullet_collision_routine        ; CPU address $bc1e
 
-; pointer table for F bullet routines on indoor levels (#$2 * #$3 = #$6 bytes)
+; pointer table for F bullet routines on indoor levels (#$02 * #$03 = #$06 bytes)
 player_bullet_routine_indoor_03_ptr_tbl:
     .addr inc_player_bullet_routine_far_2   ; CPU address $ba2f
     .addr player_f_indoor_bullet_routine_01 ; CPU address $ba82
     .addr player_bullet_collision_routine   ; CPU address $bc1e
 
-; pointer table for S bullet routines on indoor levels (#$2 * #$3 = #$6 bytes)
+; pointer table for S bullet routines on indoor levels (#$02 * #$03 = #$06 bytes)
 player_bullet_routine_indoor_04_ptr_tbl:
     .addr inc_player_bullet_routine_far_2   ; CPU address $ba2f
     .addr player_s_indoor_bullet_routine_01 ; CPU address $ba8b
     .addr player_bullet_collision_routine   ; CPU address $bc1e
 
-; pointer table for L bullet routines on indoor levels (#$2 * #$3 = #$6 bytes)
+; pointer table for L bullet routines on indoor levels (#$02 * #$03 = #$06 bytes)
 player_bullet_routine_indoor_05_ptr_tbl:
     .addr player_l_indoor_bullet_routine_00 ; CPU address $ba32
     .addr player_l_indoor_bullet_routine_01 ; CPU address $baa7
@@ -1380,27 +1379,27 @@ inc_player_bullet_routine_far:
     jmp inc_player_bullet_routine
 
 player_l_bullet_routine_00:
-    lda LEVEL_SCROLLING_TYPE  ; 0 = horizontal, indoor/base; 1 = vertical
-    bne @handle_vertical      ; branch for vertical level
+    lda LEVEL_SCROLLING_TYPE      ; 0 = horizontal, indoor/base; 1 = vertical
+    bne @handle_vertical          ; branch for vertical level
     lda PLAYER_BULLET_X_POS,x
-    sec                       ; set carry flag in preparation for subtraction
-    sbc FRAME_SCROLL          ; how much to scroll the screen (#00 - no scroll)
+    sec                           ; set carry flag in preparation for subtraction
+    sbc FRAME_SCROLL              ; how much to scroll the screen (#$00 - no scroll)
     sta PLAYER_BULLET_X_POS,x
-    jmp @adv_routine          ; dec bullet timer, set sprite, and advance routine
+    jmp @adv_routine_when_elapsed ; decrement bullet timer. when elapsed, set sprite and advance routine
 
-; player l bullet routine for vertical level
+; player L bullet routine for vertical level
 @handle_vertical:
     lda PLAYER_BULLET_Y_POS,x
     clc                       ; clear carry in preparation for addition
-    adc FRAME_SCROLL          ; how much to scroll the screen (#00 - no scroll)
+    adc FRAME_SCROLL          ; how much to scroll the screen (#$00 - no scroll)
     sta PLAYER_BULLET_Y_POS,x
 
-@adv_routine:
+@adv_routine_when_elapsed:
     dec PLAYER_BULLET_TIMER,x
     beq l_bullet_set_sprite_adv_bullet_routine
     rts
 
-; sets correct l bullet sprite based on player aim direction
+; sets correct L bullet sprite based on player aim direction
 ; advances bullet routine
 l_bullet_set_sprite_adv_bullet_routine:
     jsr inc_player_bullet_routine
@@ -1415,7 +1414,7 @@ l_bullet_set_sprite_adv_bullet_routine:
 player_l_bullet_exit:
     rts
 
-; table for l bullet sprite depending on direction (#$18 bytes)
+; table for L bullet sprite depending on direction (#$18 bytes)
 ; byte 0 is the sprite_code
 ; byte 1 is the sprite attribute for flipping sprite_code
 l_bullet_sprite_code_tbl:
@@ -1466,12 +1465,12 @@ player_f_bullet_routine_01:
                                               ; and if so move bullet routine to player_bullet_collision_routine
     bmi player_f_bullet_routine_01_exit       ; branch if collision with solid background
     jsr adjust_f_bullet_if_scrolling          ; adjust bullet variables if frame is scrolling
-    jsr update_player_f_bullet_center_pos     ; update x and y center position (not including swirl effect)
-    jsr adjust_f_outdoor_bullet_pos_for_swirl ; determine swirl pattern position and adjust x and y position of bullet
+    jsr update_player_f_bullet_center_pos     ; update X and Y center position (not including swirl effect)
+    jsr adjust_f_outdoor_bullet_pos_for_swirl ; determine swirl pattern position and adjust X and Y position of bullet
     jmp destroy_bullet_if_off_screen          ; destroy bullet if it has gone off screen
 
 ; outdoor S bullet - adjust bullet sprite based on distance traveled
-; determines s bullet sprite then calls player_shared_bullet_routine_01
+; determines S bullet sprite then calls player_shared_bullet_routine_01
 player_s_bullet_routine_01:
     inc PLAYER_BULLET_DIST,x ; increase bullet travel distance
     lda PLAYER_BULLET_DIST,x ; load current bullet travel distance
@@ -1480,7 +1479,7 @@ player_s_bullet_routine_01:
     bcs @continue            ; branch if traveled for #$20 or more frames (use sprite_21)
     dey                      ; traveled less than #$20 frames, decrement bullet frame (sprite_20)
     cmp #$10                 ; see if traveled for #$10 frames
-    bcs @continue            ; branch if traveled for #$20 or more frames (use sprite_20)
+    bcs @continue            ; branch if traveled for #$10 or more frames (use sprite_20)
     dey                      ; traveled less than #$10 frames, decrement bullet frame (sprite_1f)
 
 @continue:
@@ -1495,7 +1494,7 @@ player_shared_indoor_bullet_routine_01:
     jmp dec_bullet_delay_possibly_adv_routine ; decrement PLAYER_BULLET_TIMER, and if #$00, move to next bullet routine (remove bullet)
 
 player_f_indoor_bullet_routine_01:
-    jsr update_player_f_bullet_center_pos     ; update x and y center position (not including swirl effect)
+    jsr update_player_f_bullet_center_pos     ; update X and Y center position (not including swirl effect)
     jsr f_bullet_indoor_update_pos            ; updates position based on PLAYER_BULLET_DIST and PLAYER_BULLET_TIMER
     jmp dec_bullet_delay_possibly_adv_routine ; decrement PLAYER_BULLET_TIMER, and if #$00, move to next bullet routine (remove bullet)
 
@@ -1522,24 +1521,26 @@ player_l_indoor_bullet_routine_01:
     jsr update_player_bullet_pos
     jmp dec_bullet_delay_possibly_adv_routine ; decrement PLAYER_BULLET_TIMER, and if #$00, move to next bullet routine (remove bullet)
 
-; outdoor f bullet
-; use PLAYER_BULLET_TIMER to determine swirl pattern position and adjust x and y pos of bullet
+; outdoor F bullet
+; use PLAYER_BULLET_TIMER to determine swirl pattern position and adjust X and Y position of bullet
 ; sets new PLAYER_BULLET_TIMER depending on firing direction
+; input
+;  * x - player bullet index
 adjust_f_outdoor_bullet_pos_for_swirl:
     lda PLAYER_BULLET_TIMER,x              ; load bullet timer value
     and #$0f                               ; keep bits .... xxxx
     tay                                    ; transfer to offset register
-    lda f_bullet_outdoor_x_swirl_amt_tbl,y ; load x adjustment amount based on PLAYER_BULLET_TIMER
+    lda f_bullet_outdoor_x_swirl_amt_tbl,y ; load X adjustment amount based on PLAYER_BULLET_TIMER
                                            ; this means the swirl repeats every 16 frames
     clc                                    ; clear carry in preparation for addition
-    adc PLAYER_BULLET_FS_X,x               ; add to center x position on screen f bullet swirls around
-    sta PLAYER_BULLET_X_POS,x              ; set x position adjusted for swirl
-    lda f_bullet_outdoor_y_swirl_amt_tbl,y ; load y adjustment amount based on PLAYER_BULLET_TIMER
+    adc PLAYER_BULLET_FS_X,x               ; add to center X position on screen F bullet swirls around
+    sta PLAYER_BULLET_X_POS,x              ; set X position adjusted for swirl
+    lda f_bullet_outdoor_y_swirl_amt_tbl,y ; load Y adjustment amount based on PLAYER_BULLET_TIMER
                                            ; this means the swirl repeats every 16 frames
     clc                                    ; clear carry in preparation for addition
-    adc PLAYER_BULLET_F_Y,x                ; add to base center y position on screen f bullet swirls around
-    sta PLAYER_BULLET_Y_POS,x              ; set y position adjusted for swirl
-    lda PLAYER_BULLET_AIM_DIR,x            ; load direction of the bullet (#$00 for up facing right, incrementing clockwise up to #09 for up facing left)
+    adc PLAYER_BULLET_F_Y,x                ; add to base center Y position on screen F bullet swirls around
+    sta PLAYER_BULLET_Y_POS,x              ; set Y position adjusted for swirl
+    lda PLAYER_BULLET_AIM_DIR,x            ; load direction of the bullet (#$00 for up facing right, incrementing clockwise up to #$09 for up facing left)
     cmp #$0a                               ; PLAYER_BULLET_AIM_DIR can't ever be #$0a !(WHY?)
                                            ; seems like code was added to prevent case when PLAYER_BULLET_AIM_DIR was #$0a, but that's not possible !(WHY?)
     beq @set_bullet_delay_1                ; if #$0a, assume shooting up-right (#$01)
@@ -1556,16 +1557,16 @@ adjust_f_outdoor_bullet_pos_for_swirl:
     sta PLAYER_BULLET_TIMER,x ; set new PLAYER_BULLET_TIMER
     rts
 
-; table for y adjustment for f bullets to create swirl effect (#$4 bytes)
+; table for Y adjustment for F bullets to create swirl effect (#$04 bytes)
 ; overflows into next table
 f_bullet_outdoor_y_swirl_amt_tbl:
     .byte $00,$fa,$f5,$f2
 
-; table for x adjustment for f bullets to create swirl effect (#$f bytes)
+; table for X adjustment for F bullets to create swirl effect (#$10 bytes)
 f_bullet_outdoor_x_swirl_amt_tbl:
     .byte $f1,$f2,$f5,$fa,$00,$06,$0b,$0e,$0f,$0e,$0b,$06,$00,$fa,$f5,$f2
 
-; pointer table for f indoor bullet x and y adjustment based on PLAYER_BULLET_DIST (6 * 2 = c bytes)
+; pointer table for F indoor bullet X and Y adjustment based on PLAYER_BULLET_DIST (#$06 * #$02 = #$0c bytes)
 f_bullet_indoor_pos_adj_ptr_tbl:
     .addr f_bullet_indoor_x_adj_tbl_00 ; CPU address $bb2a (farthest from player)
     .addr f_bullet_indoor_y_adj_tbl_00 ; CPU address $bb26
@@ -1574,32 +1575,35 @@ f_bullet_indoor_pos_adj_ptr_tbl:
     .addr f_bullet_indoor_x_adj_tbl_02 ; CPU address $bb02
     .addr f_bullet_indoor_y_adj_tbl_02 ; CPU address $bafe (closest from player)
 
-; table for f indoor bullet y adjustment based on PLAYER_BULLET_DIST (#$4 bytes) (bleeds into next table)
+; table for F indoor bullet Y adjustment based on PLAYER_BULLET_DIST (#$04 bytes) (bleeds into next table)
 f_bullet_indoor_y_adj_tbl_02:
     .byte $00,$fc,$f8,$f5
 
-; table for f indoor x adjustment based on PLAYER_BULLET_DIST (#$10 bytes)
+; table for F indoor X adjustment based on PLAYER_BULLET_DIST (#$10 bytes)
 f_bullet_indoor_x_adj_tbl_02:
     .byte $f5,$f5,$f8,$fc,$00,$04,$08,$0b,$0b,$0b,$08,$04,$00,$fc,$f8,$f5
 
-; table for f indoor bullet y adjustment based on PLAYER_BULLET_DIST (#$4 bytes) (bleeds into next table)
+; table for F indoor bullet Y adjustment based on PLAYER_BULLET_DIST (#$04 bytes) (bleeds into next table)
 f_bullet_indoor_y_adj_tbl_01:
     .byte $00,$fd,$fb,$f9
 
-; table for f indoor x adjustment based on PLAYER_BULLET_DIST (#$10 bytes)
+; table for F indoor X adjustment based on PLAYER_BULLET_DIST (#$10 bytes)
 f_bullet_indoor_x_adj_tbl_01:
     .byte $f9,$f9,$fb,$fd,$00,$03,$05,$07,$07,$07,$05,$03,$00,$fd,$fb,$f9
 
-; table for f indoor bullet y adjustment based on PLAYER_BULLET_DIST (#$4 bytes) (bleeds into next table)
+; table for F indoor bullet Y adjustment based on PLAYER_BULLET_DIST (#$04 bytes) (bleeds into next table)
 f_bullet_indoor_y_adj_tbl_00:
 .byte $00,$ff,$fe,$fd
 
-; table for f indoor x adjustment based on PLAYER_BULLET_DIST (#$10 bytes)
+; table for F indoor X adjustment based on PLAYER_BULLET_DIST (#$10 bytes)
 f_bullet_indoor_x_adj_tbl_00:
     .byte $fd,$fd,$fe,$ff,$00,$01,$02,$03,$03,$03,$02,$01,$00,$ff,$fe,$fd
 
+; adds any frame scrolling to player bullet position
+; input
+;  * x - player bullet index
 add_scroll_to_bullet_pos:
-    lda FRAME_SCROLL                  ; how much to scroll the screen (#00 - no scroll)
+    lda FRAME_SCROLL                  ; how much to scroll the screen (#$00 - no scroll)
     beq add_scroll_to_bullet_pos_exit ; no adjustment needed, exit
     lda LEVEL_SCROLLING_TYPE          ; 0 = horizontal, indoor/base; 1 = vertical
     bne @vertical_scroll              ; branch if vertical scroll
@@ -1609,7 +1613,7 @@ add_scroll_to_bullet_pos:
 @vertical_scroll:
     lda PLAYER_BULLET_Y_POS,x
     clc                       ; clear carry in preparation for addition
-    adc FRAME_SCROLL          ; how much to scroll the screen (#00 - no scroll)
+    adc FRAME_SCROLL          ; how much to scroll the screen (#$00 - no scroll)
     sta PLAYER_BULLET_Y_POS,x
 
 add_scroll_to_bullet_pos_exit:
@@ -1617,40 +1621,42 @@ add_scroll_to_bullet_pos_exit:
 
 ; decrements PLAYER_BULLET_FS_X for horizontal/indoor levels
 ; adds FRAME_SCROLL to PLAYER_BULLET_F_Y for vertical levels
+; input
+;  * x - player bullet index
 adjust_f_bullet_if_scrolling:
-    lda FRAME_SCROLL                  ; whether or not the screen is scrolling (#$00 or #$01)
+    lda FRAME_SCROLL                  ; load how much the screen is scrolling this frame (#$00 - no scroll)
     beq @exit                         ; exit if not scrolling
     ldy LEVEL_SCROLLING_TYPE          ; 0 = horizontal, indoor/base; 1 = vertical
     bne @vertical_scroll
-    dec PLAYER_BULLET_FS_X,x          ; horizontal level, decrement center x position on screen f bullet swirls around
+    dec PLAYER_BULLET_FS_X,x          ; horizontal level, decrement center X position on screen F bullet swirls around
     jmp add_scroll_to_bullet_pos_exit
 
 @vertical_scroll:
-    lda PLAYER_BULLET_F_Y,x ; load center y position on screen f bullet swirls around
+    lda PLAYER_BULLET_F_Y,x ; load center Y position on screen F bullet swirls around
     clc                     ; clear carry in preparation for addition
-    adc FRAME_SCROLL        ; how much to scroll the screen (#00 - no scroll)
-    sta PLAYER_BULLET_F_Y,x ; set center y position on screen f bullet swirls around
+    adc FRAME_SCROLL        ; how much to scroll the screen (#$00 - no scroll)
+    sta PLAYER_BULLET_F_Y,x ; set center Y position on screen F bullet swirls around
 
 @exit:
     rts
 
 ; updates the player's (indoor and outdoor) F bullet's X and Y center position (not including swirl effect)
-; swirl effect adjustment happens update_player_bullet_pos
+; swirl effect adjustment happens adjust_f_outdoor_bullet_pos_for_swirl or f_bullet_indoor_update_pos
 update_player_f_bullet_center_pos:
     lda PLAYER_BULLET_VEL_F_Y_ACCUM,x ; load bullet fractional velocity accumulator (f)
     clc                               ; clear carry in preparation for addition
-    adc PLAYER_BULLET_Y_VEL_FRACT,x   ; add accumulator and factional velocity
+    adc PLAYER_BULLET_Y_VEL_FRACT,x   ; add accumulator and fractional velocity
     sta PLAYER_BULLET_VEL_F_Y_ACCUM,x ; store new accumulator value
-    lda PLAYER_BULLET_F_Y,x           ; load center y position on screen f bullet swirls around
-    adc PLAYER_BULLET_Y_VEL_FAST,x    ; add fast velocity to y position (including any overflow from accumulator, i.e. fractional velocity)
-    sta PLAYER_BULLET_F_Y,x           ; set new center y position
+    lda PLAYER_BULLET_F_Y,x           ; load center Y position on screen F bullet swirls around
+    adc PLAYER_BULLET_Y_VEL_FAST,x    ; add fast velocity to Y position (including any overflow from accumulator, i.e. fractional velocity)
+    sta PLAYER_BULLET_F_Y,x           ; set new center Y position
 
 ; updates the player's F and S (indoor) bullet's PLAYER_BULLET_FS_X position based on the bullet's velocities
 ; includes additional variable compared to update_player_bullet_pos to incorporate swirl effect
 update_player_fs_bullet_x_pos:
     lda PLAYER_BULLET_VEL_FS_X_ACCUM,x ; load accumulator value for bullet X velocity
     clc                                ; clear carry in preparation for addition
-    adc PLAYER_BULLET_X_VEL_FRACT,x    ; add x fractional velocity, noting the carry being set if overflow
+    adc PLAYER_BULLET_X_VEL_FRACT,x    ; add X fractional velocity, noting the carry being set if overflow
     sta PLAYER_BULLET_VEL_FS_X_ACCUM,x ; add accumulated value back
     lda PLAYER_BULLET_FS_X,x
     adc PLAYER_BULLET_X_VEL_FAST,x     ; add fast X velocity and any carry from accumulator
@@ -1664,7 +1670,7 @@ update_player_bullet_pos:
     bmi bullet_logic_exit               ; exit if bullet collided with solid object
     lda PLAYER_BULLET_X_VEL_ACCUM,x     ; load accumulator value for bullet X velocity
     clc                                 ; clear carry in preparation for addition
-    adc PLAYER_BULLET_X_VEL_FRACT,x     ; add x fractional velocity, noting the carry being set if overflow
+    adc PLAYER_BULLET_X_VEL_FRACT,x     ; add X fractional velocity, noting the carry being set if overflow
     sta PLAYER_BULLET_X_VEL_ACCUM,x     ; add accumulated value back
     lda PLAYER_BULLET_X_POS,x           ; load bullet X position
     adc PLAYER_BULLET_X_VEL_FAST,x      ; add fast X velocity and any carry from accumulator
@@ -1673,7 +1679,7 @@ update_player_bullet_pos:
 update_player_bullet_y_pos:
     clc                             ; clear carry in preparation for addition
     lda PLAYER_BULLET_Y_VEL_ACCUM,x ; load accumulator value for bullet Y velocity
-    adc PLAYER_BULLET_Y_VEL_FRACT,x ; add y fractional velocity, noting the carry being set if overflow
+    adc PLAYER_BULLET_Y_VEL_FRACT,x ; add Y fractional velocity, noting the carry being set if overflow
     sta PLAYER_BULLET_Y_VEL_ACCUM,x ; add accumulated value back
     lda PLAYER_BULLET_Y_POS,x       ; load bullet Y position
     adc PLAYER_BULLET_Y_VEL_FAST,x  ; add fast Y velocity and any carry from accumulator
@@ -1684,14 +1690,16 @@ bullet_logic_exit:
 
 ; depending on the level, checks if bullet has collided with solid background
 ; if collision with solid object move to next bullet routine (player_bullet_collision_routine)
+; input
+;  * x - player bullet index
 ; output
 ;  * a - collision code #$00 (empty), #$01 (floor), #$02 (water), or #$80 (solid)
 check_bullet_solid_bg_collision:
     lda LEVEL_SOLID_BG_COLLISION_CHECK ; level header offset #$19
                                        ; determines whether to check player bullet - solid bg collision
     bpl bullet_logic_exit              ; exit if shouldn't check for solid bg collisions (level 6 energy zone and level 7 hangar)
-    ldy PLAYER_BULLET_Y_POS,x          ; load bullet y position
-    lda PLAYER_BULLET_X_POS,x          ; load bullet x position
+    ldy PLAYER_BULLET_Y_POS,x          ; load bullet Y position
+    lda PLAYER_BULLET_X_POS,x          ; load bullet X position
     jsr get_bg_collision_far           ; determine player background collision code at position (a,y)
     bpl bullet_logic_exit              ; branch if not a collision with solid object
     jsr set_bullet_routine_to_2        ; collided with solid object, move to bullet routine 2 and reset PLAYER_BULLET_TIMER to #$06
@@ -1702,14 +1710,14 @@ check_bullet_solid_bg_collision:
 ; bullet is removed.
 destroy_bullet_if_off_screen:
     lda PLAYER_BULLET_X_POS,x
-    cmp #$05                  ; see if bullet is off screen to the left
+    cmp #$05                  ; see if bullet is off-screen to the left
     bcc clear_bullet_values   ; destroy bullet
-    cmp #$fb                  ; see if bullet is off screen to the right
+    cmp #$fb                  ; see if bullet is off-screen to the right
     bcs clear_bullet_values   ; destroy bullet
     lda PLAYER_BULLET_Y_POS,x
-    cmp #$05                  ; see if bullet is off screen to the top
+    cmp #$05                  ; see if bullet is off-screen to the top
     bcc clear_bullet_values   ; destroy bullet
-    cmp #$e8                  ; see if bullet is off screen to the bottom
+    cmp #$e8                  ; see if bullet is off-screen to the bottom
     bcc clear_bullet_exit
 
 ; initialize bullet memory values to #$00
@@ -1746,27 +1754,27 @@ player_bullet_collision_routine:
     beq clear_bullet_values         ; initialize bullet memory values to #$00
     rts
 
-; called from f bullet indoor routine 01
-; updates f bullet indoor position based on PLAYER_BULLET_DIST and PLAYER_BULLET_TIMER
+; called from F bullet indoor routine 01
+; updates F bullet indoor position based on PLAYER_BULLET_DIST and PLAYER_BULLET_TIMER
 f_bullet_indoor_update_pos:
     ldy #$00                    ; y = #$00
-    lda PLAYER_BULLET_F_RAPID,x ; load rapid fire flag for f weapon
+    lda PLAYER_BULLET_F_RAPID,x ; load rapid fire flag for F weapon
     beq @continue               ; branch if rapid fire is not set
     ldy #$02                    ; y = #$02
 
 @continue:
     lda #$02                  ; a = #$02
-    sta $0b                   ; store initial f bullet offset (see f_bullet_indoor_pos_adj_ptr_tbl)
+    sta $0b                   ; store initial F bullet offset (see f_bullet_indoor_pos_adj_ptr_tbl)
     lda PLAYER_BULLET_TIMER,x ; load timer value for how long until bullet is removed
     cmp #$02                  ; compare to #$02 (about to be removed (too far deep in screen))
-    bcs @loop                 ; branch if f bullet not about to be removed
-    lda PLAYER_BULLET_FS_X,x  ; load center x position on screen f bullet swirls around
-    sta PLAYER_BULLET_X_POS,x ; set final x position
-    lda PLAYER_BULLET_F_Y,x   ; load center y position on screen f bullet swirls around
-    sta PLAYER_BULLET_Y_POS,x ; set final y position
+    bcs @loop                 ; branch if F bullet not about to be removed
+    lda PLAYER_BULLET_FS_X,x  ; load center X position on screen F bullet swirls around
+    sta PLAYER_BULLET_X_POS,x ; set final X position
+    lda PLAYER_BULLET_F_Y,x   ; load center Y position on screen F bullet swirls around
+    sta PLAYER_BULLET_Y_POS,x ; set final Y position
     rts
 
-; f bullet indoor - update bullet position based on
+; F bullet indoor - update bullet position based on position
 ; input
 ;  * a - PLAYER_BULLET_TIMER
 ;  * $0b - offset for f_bullet_indoor_pos_adj_ptr_tbl
@@ -1783,24 +1791,24 @@ f_bullet_indoor_update_pos:
     asl                                     ; double
     asl                                     ; double again
     tay                                     ; transfer to offset register
-    lda f_bullet_indoor_pos_adj_ptr_tbl,y   ; load low byte of x adjustment table
-    sta $08                                 ; set low byte of x adjustment table
-    lda f_bullet_indoor_pos_adj_ptr_tbl+1,y ; load high byte of x adjustment table
-    sta $09                                 ; set high byte of x adjustment table
-    lda f_bullet_indoor_pos_adj_ptr_tbl+2,y ; load low byte of y adjustment table
-    sta $0a                                 ; set low byte of y adjustment table
-    lda f_bullet_indoor_pos_adj_ptr_tbl+3,y ; load high byte of y adjustment table
-    sta $0b                                 ; set high byte of y adjustment table
+    lda f_bullet_indoor_pos_adj_ptr_tbl,y   ; load low byte of X adjustment table
+    sta $08                                 ; set low byte of X adjustment table
+    lda f_bullet_indoor_pos_adj_ptr_tbl+1,y ; load high byte of X adjustment table
+    sta $09                                 ; set high byte of X adjustment table
+    lda f_bullet_indoor_pos_adj_ptr_tbl+2,y ; load low byte of Y adjustment table
+    sta $0a                                 ; set low byte of Y adjustment table
+    lda f_bullet_indoor_pos_adj_ptr_tbl+3,y ; load high byte of Y adjustment table
+    sta $0b                                 ; set high byte of Y adjustment table
     lda PLAYER_BULLET_DIST,x                ; load how far a bullet has traveled (timer since fired)
     and #$0f                                ; keep bits .... xxxx
     tay
-    lda ($08),y                             ; load x adjustment amount
+    lda ($08),y                             ; load X adjustment amount
     clc                                     ; clear carry in preparation for addition
     adc PLAYER_BULLET_FS_X,x                ; add current swirl size [#$71-#$7b]
-    sta PLAYER_BULLET_X_POS,x               ; store new x position
-    lda ($0a),y                             ; load y adjustment amount
+    sta PLAYER_BULLET_X_POS,x               ; store new X position
+    lda ($0a),y                             ; load Y adjustment amount
     clc                                     ; clear carry in preparation for addition
-    adc PLAYER_BULLET_F_Y,x                 ; add to center y position on screen f bullet swirls around
+    adc PLAYER_BULLET_F_Y,x                 ; add to center Y position on screen F bullet swirls around
     sta PLAYER_BULLET_Y_POS,x
     lda PLAYER_BULLET_F_RAPID,x
     clc                                     ; clear carry in preparation for addition
@@ -1810,29 +1818,29 @@ f_bullet_indoor_update_pos:
     sta PLAYER_BULLET_DIST,x
     rts
 
-; table for PLAYER_BULLET_TIMER cutoff values for use in determining f_bullet_indoor_pos_adj_ptr_tbl index (#$4 bytes)
+; table for PLAYER_BULLET_TIMER cutoff values for use in determining f_bullet_indoor_pos_adj_ptr_tbl index (#$04 bytes)
 f_bullet_indoor_delay_cutoff_tbl:
-    .byte $1c,$0e ; no f rapid fire
-    .byte $0e,$07 ; f rapid fire
+    .byte $1c,$0e ; no F rapid fire
+    .byte $0e,$07 ; F rapid fire
 
 ; updates indoor level S bullet positions
-; y position is straightforward, but x position is more complicated for spread effect.
-; x position calculation includes the _FS_* variables and PLAYER_BULLET_S_INDOOR_ADJ
+; Y position is straightforward, but X position is more complicated for spread effect.
+; X position calculation includes the _FS_* variables and PLAYER_BULLET_S_INDOOR_ADJ
 update_s_bullet_indoor_pos:
     jsr update_player_fs_bullet_x_pos  ; update PLAYER_BULLET_FS_X based on _FS_ velocities
     jsr update_player_bullet_y_pos     ; update PLAYER_BULLET_Y_POS based on regular velocities
-    lda PLAYER_BULLET_VEL_FS_X_ACCUM,x ; ignore, no affect
-    clc                                ; ignore, no affect
-    adc PLAYER_BULLET_S_ADJ_ACCUM,x    ; ignore, no affect
+    lda PLAYER_BULLET_VEL_FS_X_ACCUM,x ; ignore, no effect
+    clc                                ; ignore, no effect
+    adc PLAYER_BULLET_S_ADJ_ACCUM,x    ; ignore, no effect
     sta PLAYER_BULLET_X_VEL_ACCUM,x    ; unused result, never read for S indoor bullets !(WHY?)
-    lda PLAYER_BULLET_FS_X,x           ; load center x position on screen f bullet swirls around
+    lda PLAYER_BULLET_FS_X,x           ; load center X position on screen F bullet swirls around
     clc                                ; clear carry in preparation for addition
     adc PLAYER_BULLET_S_INDOOR_ADJ,x   ; add the indoor adjustment
-    sta PLAYER_BULLET_X_POS,x          ; set new x position
+    sta PLAYER_BULLET_X_POS,x          ; set new X position
     lda PLAYER_BULLET_S_RAPID,x        ; load S weapon rapid fire flag
     lsr                                ; shift rapid fire flag to carry register
     lda PLAYER_BULLET_S_BULLET_NUM,x
-    bcc @load_bullet_pos_mod           ; branch if rapid fire flag
+    bcc @load_bullet_pos_mod           ; branch if no rapid fire flag
     adc #$04                           ; rapid fire set, load rapid fire position modifications
 
 @load_bullet_pos_mod:
@@ -1862,35 +1870,35 @@ s_bullet_pos_mod_tbl:
     .byte $80,$00 ; S bullet 3 - rapid fire
     .byte $80,$ff ; S bullet 4 - rapid fire
 
-; determine appropriate indoor l bullet sprite code and attribute based on x position on screen
+; determine appropriate indoor L bullet sprite code and attribute based on X position on screen
 set_indoor_l_bullet_sprite:
     lda PLAYER_BULLET_X_POS,x
     ldy #$08                  ; y = #$08
 
 @loop:
-    cmp l_bullet_indoor_x_cutoff_tbl-1,y ; compare to x cutoff from table
-    bcs @cutoff_found                    ; branch if l bullet X position > X cutoff from table
+    cmp l_bullet_indoor_x_cutoff_tbl-1,y ; compare to X cutoff from table
+    bcs @cutoff_found                    ; branch if L bullet X position > X cutoff from table
     dey
     bne @loop
 
 @cutoff_found:
     lda l_bullet_indoor_sprite_code_tbl,y
     sta PLAYER_BULLET_SPRITE_CODE,x
-    lda #$40                              ; #$40 specifies to flip l bullet sprite horizontally
-    cpy #$04                              ; see if bullet x position is past midpoint of screen
-    bcc @continue                         ; if on left half of screen flip l bullet sprite horizontally
-    lda #$00                              ; on right half of screen, do not flip l bullet sprite horizontally
+    lda #$40                              ; #$40 specifies to flip L bullet sprite horizontally
+    cpy #$04                              ; see if bullet X position is past midpoint of screen
+    bcc @continue                         ; if on left half of screen flip L bullet sprite horizontally
+    lda #$00                              ; on right half of screen, do not flip L bullet sprite horizontally
 
 @continue:
-    sta PLAYER_BULLET_SPRITE_ATTR,x ; store the l bullet sprite attribute if any reflection needed
-    rts                             ; index #$00 of label is never read, so this is safe as rts
+    sta PLAYER_BULLET_SPRITE_ATTR,x ; store the L bullet sprite attribute if any reflection needed
+    rts                             ; index #$00 of l_bullet_indoor_sprite_code_tbl is never read, so this is safe as rts
 
-; table for indoor l bullet x cutoff to specify angle to make the l bullet (#$8 bytes)
+; table for indoor L bullet x cutoff to specify angle to make the L bullet (#$08 bytes)
 ; actually starts at one byte less
 l_bullet_indoor_x_cutoff_tbl:
     .byte $40,$50,$60,$74,$8c,$a0,$b0,$c0
 
-; table for indoor l bullet sprite codes, depending on bullet fired x position (#$9 bytes)
+; table for indoor L bullet sprite codes, depending on bullet fired X position (#$09 bytes)
 ; sprite_23, sprite_82, sprite_83, sprite_84, sprite_92
 l_bullet_indoor_sprite_code_tbl:
     .byte $92,$84,$83,$82,$23,$82,$83,$84,$92
@@ -1905,7 +1913,7 @@ dec_bullet_delay_possibly_adv_routine:
 @exit:
     rts
 
-; unused #$2da bytes out of #$4,000 bytes total (95.54% full)
+; unused #$2da bytes out of #$4000 bytes total (95.54% full)
 ; unused 730 bytes out of 16,384 bytes total (95.54% full)
 ; filled with 730 #$ff bytes by contra.cfg configuration
 bank_6_unused_space:

@@ -18,6 +18,9 @@ IF ($Game -ceq "Probotector") {
     $DBG_NAME = "probotector.dbg"
     $GAME_HASH = "A4BDA4572EC8A3F520DEB4BF483510F6E41ED7665505850D22EC07CA1B25ABFF40B3368A27ECE982EA6E9C71A1B698EB2ADD16C26A7AD67DBA3C0A98C4E2BA43"
     $ASSETS_NAME = "probotector-assets.txt"
+    $Game = "Probotector"
+} ELSE {
+    $Game = "Contra"
 }
 
 <#

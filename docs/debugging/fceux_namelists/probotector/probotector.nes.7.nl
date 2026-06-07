@@ -97,8 +97,6 @@ $C6CC#update_palette_cfg_tbl#
 $C6D2#nametable_update_data_ptr_tbl#
 $C6F6#update_nametable_tiles_exit#
 $C6F7#update_nametable_tiles#
-$C76E#prep_overwrite_nametable_tiles#
-$C77E#write_overwrite_tile_to_cpu_buffer#
 $C79E#level_tile_animation_ptr_tbl#
 $C7B0#nametable_base_high_byte#
 $C7B2#attribute_base_high_byte#
@@ -229,7 +227,7 @@ $D19D#ending_palette_2_index#
 $D1A1#lvl_alt_collision_and_palette_tbl#
 $D228#game_palette_ptr_tbl#
 $D22A#game_palettes#
-$D374#set_frame_scroll_draw_player_bullets#
+$D374#set_frame_scroll_exe_player_bullet_routines#
 $D38E#draw_player_bullet_sprites#
 $D3B7#set_frame_scroll_weapon_strength#
 $D3CF#run_player_invincibility_and_weapon_strength#
@@ -614,5 +612,5 @@ $FFE0#nes_footer_rom_name#
 $FFF0#nes_footer_checksum#
 $FFF2#nes_footer_chr_checksum#
 $FFF4#nes_footer_size#
-$FFF5#nes_footer_mirroring#
+$FFF5#nes_footer_board_type#
 $FFF6#nes_footer_maker_code#

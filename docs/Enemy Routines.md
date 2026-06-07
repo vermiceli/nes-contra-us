@@ -9,9 +9,9 @@ enemy routine `enemy_routine_level_2_4` table.
 
 Upon execution of `level_routine_04` and `level_routine_0a`, every enemy is
 given the opportunity to execute logic specific to that enemy type.  This is
-done by looping down #$f to #$0 through the `ENEMY_ROUTINE` memory addresses in
-the `exe_all_enemy_routine` method. Enemies are added to the end going down,
-i.e. they start at #$f and go down.
+done by looping down #$0f to #$00 through the `ENEMY_ROUTINE` memory addresses
+in the `exe_all_enemy_routine` method. Enemies are added to the end going down,
+i.e. they start at #$0f and go down.
 
 # Generation
 
@@ -50,7 +50,7 @@ XXXX XXXX  RRTT TTTT  YYYY YAAA
 * `A` - Enemy Attribute
 
 ### Byte 1 - XX byte
-The first byte, #$10, from the example above specifies the x position of the
+The first byte, #$10, from the example above specifies the X position of the
 enemy.
 
 ### Byte 2 - Repeat and Enemy Type
@@ -61,7 +61,7 @@ all enemy types and what they are, see `Enemy Glossary.md`. For example, #$05
 has a repeat of 0 and a enemy type of #$05. #$05 is the soldier.
 
 If the repeat value is 0, then the enemy is not repeated and will take a total
-of #$3 bytes. However, if there is a repeat, for each repetition, one more byte
+of #$03 bytes. However, if there is a repeat, for each repetition, one more byte
 is added and has the same structure as the `Y Offset and Attribute` byte. This
 means an enemy with a repeated enemy will have the same XX position and the same
 type, but have its own Y position and attributes.
@@ -176,7 +176,7 @@ There is an exception for level one.  Until a larger number of soldiers have
 already been generated, soldiers will only appear from the right, probably to
 make the beginning of the game slightly easier.
 
-Once the x position is decided, the routine will start looking for a vertical
+Once the X position is decided, the routine will start looking for a vertical
 location that has a ground for the soldier to stand on.  It does this in one of
 3 ways randomly to ensure soldiers are generated from multiple locations if
 possible.  The 3 methods are from top of the screen to the bottom, from the

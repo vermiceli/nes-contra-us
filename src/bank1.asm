@@ -1,7 +1,7 @@
-; Contra US Disassembly - v1.3
+; Contra US Disassembly - v1.4
 ; https://github.com/vermiceli/nes-contra-us
 ; Bank 1 is responsible for audio and sprites.  The audio code takes up about
-; 3/4  of the bank. The remaining 1/4 of the bank is for sprite data and code to
+; 3/4 of the bank. The remaining 1/4 of the bank is for sprite data and code to
 ; draw sprites.
 
 .segment "BANK_1"
@@ -20,7 +20,7 @@
 ; Every PRG ROM bank starts with a single byte specifying which number it is
 .byte $01 ; The PRG ROM bank number (1)
 
-; pointer table for music of level 1 (#$8 * #$2 = #$10 bytes)
+; pointer table for music of level 1 (#$08 * #$02 = #$10 bytes)
 ; related to pulse channel config registers
 ; CPU address $8001
 pulse_volume_ptr_tbl:
@@ -33,7 +33,7 @@ pulse_volume_ptr_tbl:
     .addr lvl_1_pulse_volume_06 ; CPU address $9229
     .addr lvl_1_pulse_volume_07 ; CPU address $923c
 
-; music of level 2 (#$8 * #$2 = #$10 bytes)
+; music of level 2 (#$08 * #$02 = #$10 bytes)
     .addr lvl_2_pulse_volume_00 ; CPU address $a3db
     .addr lvl_2_pulse_volume_01 ; CPU address $a3e8
     .addr lvl_2_pulse_volume_02 ; CPU address $a3ee
@@ -43,7 +43,7 @@ pulse_volume_ptr_tbl:
     .addr lvl_2_pulse_volume_06 ; CPU address $a706
     .addr lvl_2_pulse_volume_07 ; CPU address $aa5f
 
-; music of level 3 (#$8 * #$2 = #$10 bytes)
+; music of level 3 (#$08 * #$02 = #$10 bytes)
     .addr lvl_3_pulse_volume_00 ; CPU address $aa6c
     .addr lvl_3_pulse_volume_01 ; CPU address $aa73
     .addr lvl_3_pulse_volume_02 ; CPU address $ab04
@@ -53,7 +53,7 @@ pulse_volume_ptr_tbl:
     .addr lvl_3_pulse_volume_06 ; CPU address $aa78
     .addr lvl_3_pulse_volume_07 ; CPU address $98ca
 
-; music of level 4 (#$8 * #$2 = #$10 bytes)
+; music of level 4 (#$08 * #$02 = #$10 bytes)
     .addr lvl_4_pulse_volume_00 ; CPU address $98d5
     .addr lvl_4_pulse_volume_01 ; CPU address $98ea
     .addr lvl_4_pulse_volume_02 ; CPU address $98f1
@@ -63,7 +63,7 @@ pulse_volume_ptr_tbl:
     .addr lvl_4_pulse_volume_06 ; CPU address $9915
     .addr lvl_4_pulse_volume_07 ; CPU address $991c
 
-; music of level 5 (#$8 * #$2 = #$10 bytes)
+; music of level 5 (#$08 * #$02 = #$10 bytes)
     .addr lvl_5_pulse_volume_00 ; CPU address $9928
     .addr lvl_5_pulse_volume_01 ; CPU address $9e71
     .addr lvl_5_pulse_volume_02 ; CPU address $9e7d
@@ -73,7 +73,7 @@ pulse_volume_ptr_tbl:
     .addr lvl_5_pulse_volume_06 ; CPU address $9c65
     .addr lvl_5_pulse_volume_07 ; CPU address $a064
 
-; music of level 6 (#$8 * #$2 = #$10 bytes)
+; music of level 6 (#$08 * #$02 = #$10 bytes)
     .addr lvl_6_pulse_volume_00 ; CPU address $a072
     .addr lvl_6_pulse_volume_01 ; CPU address $a080
     .addr lvl_6_pulse_volume_02 ; CPU address $a088
@@ -83,7 +83,7 @@ pulse_volume_ptr_tbl:
     .addr lvl_6_pulse_volume_06 ; CPU address $a713
     .addr lvl_6_pulse_volume_07 ; CPU address $a71b
 
-; music of level 7 (#$6 * #$2 = #$c bytes)
+; music of level 7 (#$06 * #$02 = #$0c bytes)
     .addr lvl_7_pulse_volume_00 ; CPU address $a728
     .addr lvl_7_pulse_volume_01 ; CPU address $abd2
     .addr lvl_7_pulse_volume_02 ; CPU address $abda
@@ -102,7 +102,7 @@ mute_pulse_channel:
     jsr wait                       ; execute #$0a nop instructions
     bne set_pulse_timer_and_length ; always branch to set pulse timer and length
 
-; mute/unmutes pulse wave channel based on pause state
+; mutes/unmutes pulse wave channel based on pause state
 ; input
 ;  * x - sound register offset
 mute_unmute_pulse_channel:
@@ -129,7 +129,7 @@ set_pulse_timer_and_length:
     jmp wait                 ; execute #$0a nop instructions
 
 ; see if pausing/unpausing
-; if unpausing, turn off level music, otherwise play music
+; if unpausing, turn on level music, otherwise stop bg music
 sound_check_pause:
     lda PAUSE_STATE      ; #$01 for paused, #$00 for not paused
     cmp PAUSE_STATE_01   ; compare to last frame pause state
@@ -386,7 +386,7 @@ check_decrescendo_end_pause:
 ; compare to resume_decrescendo
 lower_pulse_volume:
     dec PULSE_VOL_DURATION,x      ; decrement pulse volume decrescendo duration (how many frames to lower the volume)
-    bmi @pause_decrescendo        ; if volume decrescendo length elapsed, brach to pause decrescendo
+    bmi @pause_decrescendo        ; if volume decrescendo length elapsed, branch to pause decrescendo
     dec PULSE_VOLUME,x            ; decrement current volume
     bmi handle_sound_code_exit_01 ; branch if volume is negative
     lda PULSE_VOLUME,x            ; re-load volume
@@ -404,7 +404,7 @@ lower_pulse_volume:
 resume_decrescendo:
     dec PULSE_VOLUME,x            ; decrement volume
     beq handle_sound_code_exit_01 ; branch if volume is #$00
-    lda PULSE_VOLUME,x            ; re-load  volume
+    lda PULSE_VOLUME,x            ; re-load volume
     jmp set_pulse_config          ; set pulse channel 1 or 2 config register based on PULSE_VOLUME,x, UNKNOWN_SOUND_01, and SOUND_CFG_HIGH,x
 
 handle_sound_code_exit_01:
@@ -523,10 +523,10 @@ read_high_sound_cmd:
     lda ($e0),y              ; not noise channel, load sound byte
     and #$f0                 ; keep high nibble
     cmp #$c0                 ; compare to #$c0
-    bcs @regular_sound_cmd   ; branch if high nibble is greater than #$c0 to process the sound command
+    bcs @regular_sound_cmd   ; branch if high nibble is greater than or equal to #$c0 to process the sound command
     jmp simple_sound_cmd     ; simple sound command, just a note and length multiplier
 
-; sound byte < #$c0
+; sound byte >= #$c0
 @regular_sound_cmd:
     and #$30                  ; keep bits ..xx .... of high nibble
     lsr
@@ -546,24 +546,24 @@ read_high_sound_cmd:
 parse_percussion_cmd:
     lda ($e0),y              ; load sound code byte
     and #$f0                 ; keep high nibble
-    cmp #$f0                 ; see if #$f
+    cmp #$f0                 ; see if high nibble is #$f
     bne @continue            ; branch if high nibble isn't #$f
     lda ($e0),y              ; high nibble is #$f
     and #$0f                 ; keep low nibble
     jmp sound_cmd_routine_03 ; high nibble #$f, go to sound_cmd_routine_03 with low nibble
-                             ; either #$e or #$f
+                             ; either #$0e or #$f
                              ; moves to next (child or parent) sound command
                              ; or finished with entire sound command and re-initialize channel
 
 ; high nibble isn't #$f
 @continue:
     cmp #$d0
-    beq @control_nibble_d            ; branch if sound command high nibble is #$d to determine SOUND_LENGTH_MULTIPLIER
+    beq @control_nibble_d            ; branch if sound command high nibble is #$0d to determine SOUND_LENGTH_MULTIPLIER
                                      ; and then loop to actually play percussion sound
-    jmp calc_cmd_len_play_percussion ; high nibble isn't #$f nor #$d
+    jmp calc_cmd_len_play_percussion ; high nibble isn't #$0f nor #$d
                                      ; play percussive sound (dpcm sample)
 
-; high nibble is #$d (delay command)
+; high nibble is #$0d (delay command)
 ; load low nibble and set it as SOUND_LENGTH_MULTIPLIER before looping to actually
 ; play the percussion sound sample
 @control_nibble_d:
@@ -619,11 +619,11 @@ interpret_sound_byte:
     cmp #$20               ; see if high nibble is #$20, this is a control byte
     bne @high_nibble_not_2 ; branch if high nibble isn't #$20
     lda ($e0),y            ; high nibble is #$20, this is a control byte, reload sound byte
-                           ; #$2 - sets the number of video frames to wait before reading the next sound
+                           ; #$02 - sets the number of video frames to wait before reading the next sound
                            ; command (`SOUND_LENGTH_MULTIPLIER`) as well as the high nibble of the APU
                            ; configuration register for the sound channel (`SOUND_CFG_HIGH`).
     and #$0f               ; keep low nibble to see if using low nibble for SOUND_LENGTH_MULTIPLIER or the entire next byte
-    bne @continue          ; branch if low nibble isn't #$f to use low nibble for SOUND_LENGTH_MULTIPLIER
+    bne @continue          ; branch if low nibble isn't #$0f to use low nibble for SOUND_LENGTH_MULTIPLIER
     iny                    ; low nibble is #$f, i.e. sound_xx byte is #$2f, use next byte as full byte multiplier
     lda ($e0),y            ; increment sound_xx byte read offset
 
@@ -636,7 +636,7 @@ interpret_sound_byte:
     beq @high_nibble_not_2        ; !(WHY?) I don't think this will branch as y wouldn't go up to #$ff
     jmp read_low_sound_cmd        ; read sound byte and if not [#$fd-#$ff] interpret_sound_byte otherwise sound_cmd_routine_03
 
-; high nibble wasn't 2, see if #$1 (flatten note or set sweep), or not #$1 (@high_nibble_not_1)
+; high nibble wasn't 2, see if #$01 (flatten note or set sweep), or not #$01 (@high_nibble_not_1)
 ; - #$10 will set sweep, #$1x will flatten note
 @high_nibble_not_2:
     cmp #$10                        ; see if sound code high nibble is #$10
@@ -667,7 +667,7 @@ interpret_sound_byte:
 @pulse_1_set_sweep_continue:
     cpx #$04                 ; see if sound slot 4 (pulse 1 channel)
     bne @set_sweep_continue  ; skip setting duration if not sound slot 4
-    sta PULSE_VOL_DURATION+3 ; set slot 3's (noise/dcm channel) volume duration
+    sta PULSE_VOL_DURATION+3 ; set slot 3's (noise/dmc channel) volume duration
 
 @set_sweep_continue:
     jsr ldx_pulse_triangle_reg        ; set x to apu channel register [0, 1, 4, 5, 8, #$c]
@@ -681,12 +681,12 @@ interpret_sound_byte:
 
 @flatten_note:
     lda SOUND_FLAGS,x      ; load the current sound slot's sound flags
-    ora #$10               ; set bit 4 (slightly flatten note flat)
+    ora #$10               ; set bit 4 (slightly flatten note flag)
     sta SOUND_FLAGS,x      ; set new sound slot flag values
     jmp read_low_sound_cmd ; read sound byte and if not [#$fd-#$ff] interpret_sound_byte otherwise sound_cmd_routine_03
 
 ; low sound command high nibble of sound code is not #$10
-; now will set set command length, apu channel config, note value, and then exit
+; now will set command length, apu channel config, note value, and then exit
 ; to allow sound to play for expected duration
 @high_nibble_not_1:
     lda SOUND_LENGTH_MULTIPLIER,x ; load sound command length
@@ -798,7 +798,7 @@ clear_mute_set_note:
     beq @exit_loop ; exit if SOUND_PERIOD_ROTATE,x is #$04
     lsr $ef        ; shift right high byte (3 bits) of note period ($4003/$4007)
     ror $ee        ; rotate low byte of note period ($4002/$4006)
-    inx            ; add one to the sound slot
+    inx            ; increment shift counter
     bne @loop      ; branch until reach #$00
 
 @exit_loop:
@@ -840,7 +840,7 @@ set_note:
     cmp SOUND_PULSE_LENGTH,x ; compare to the current pulse/noise length
     bne @set_length          ; set new length if not already set
     lda SOUND_FLAGS,x        ; load the current sound slot's sound flags
-    bmi @continue_01         ; branch if sound flags negative to to set APU_PULSE_LENGTH
+    bmi @continue_01         ; branch if sound flags negative to set APU_PULSE_LENGTH
     lda SOUND_CFG_HIGH,x     ; load high nibble for when storing in pulse config register
     and #$10                 ; keep bits ...x ....
     bne @set_period          ; skip setting APU_PULSE_LENGTH if SOUND_CFG_HIGH,x bit 4 set
@@ -956,7 +956,7 @@ sound_cmd_routine_03:
                                    ; then begins reading that sound command
 
 ; #$fe command, i.e. a repeat command. Allows repeating a section of music a specified number of times
-; .byte $fe,$03 ; repeat #$3 times
+; .byte $fe,$03 ; repeat #$03 times
 ; .addr sound_3e
 @repeat_cmd:
     inc SOUND_REPEAT_COUNT,x         ; increment sound part repeat counter
@@ -1324,7 +1324,7 @@ init_triangle_channel:
     rts
 
 init_pulse_channel:
-    ldx SOUND_CHNL_REG_OFFSET     ; load pulse waive channel register offset, i.e. #$04 for second pulse channel #$00 for first
+    ldx SOUND_CHNL_REG_OFFSET     ; load pulse wave channel register offset, i.e. #$04 for second pulse channel #$00 for first
     lda #$30                      ; a = #$30
     sta APU_PULSE_CONFIG,x        ; mute the pulse channel 0 register
     jsr wait                      ; execute #$0a nop instructions
@@ -1358,7 +1358,7 @@ sound_code_00:
     lda $e6
     jmp sound_exit_00
 
-; pointer table for ? (#$7 * #$2 = e bytes)
+; pointer table for ? (#$07 * #$02 = e bytes)
 channel_init_ptr_tbl:
     .addr mute_channel          ; CPU address $8651
     .addr mute_channel          ; CPU address $8651
@@ -1368,7 +1368,7 @@ channel_init_ptr_tbl:
     .addr mute_noise_channel    ; CPU address $86a6
     .addr mute_channel          ; CPU address $8651 (not sure if possible, only #$06 sound slots) !(WHY?)
 
-; pointer table for ? (#$4 * #$2 = #$8 bytes)
+; pointer table for ? (#$04 * #$02 = #$08 bytes)
 sound_cmd_ptr_tbl:
     .addr sound_cmd_routine_00 ; CPU address $8500 - set sound channel configuration, advance sound command address
     .addr sound_cmd_routine_01 ; CPU address $8522 - set in memory configuration for channel, set multiplier, and sometimes read_high_sound_cmd
@@ -1421,7 +1421,7 @@ wait:
     nop
     rts
 
-; pointer for master lookup table (#$2 bytes)
+; pointer for master lookup table (#$02 bytes)
 sound_master_ptr_tbl:
     .addr sound_table_00 ; CPU address $88e8
 
@@ -1755,7 +1755,7 @@ play_dpcm_sample:
     tay                          ; restore y
     rts
 
-; table for APU configuration (#$d bytes)
+; table for APU configuration (#$0d bytes)
 ; byte 0 - APU_DMC - sampling rate (how many CPU cycles happen between playback samples), no looping
 ;        - always $0f, highest sampling rate. NTSC 33,143.9 Hz, PAL 33,252.1 Hz
 ; byte 1 - APU_DMC_COUNTER - initial sample level
@@ -1768,7 +1768,7 @@ dpcm_sample_data_tbl:
     .byte $0f
 
 ; CPU address $88e8
-; main look-up table for sounds and music #$5E * #$3 = #$11a bytes)
+; main look-up table for sounds and music #$5e * #$03 = #$11a bytes)
 ; groups of #$03 bytes
 ; read by @play_sound
 ; byte 0 - ...y yxxx ->
@@ -1856,22 +1856,22 @@ sound_table_00:
     .byte $05
     .addr sound_0f ; CPU address $8b90
 
-    ; PL FIRE - f bullet firing (pulse 1 channel)
+    ; PL FIRE - F bullet firing (pulse 1 channel)
     ; #$01 additional sound code entry, sound slot #$04
     .byte $0c
     .addr sound_10 ; CPU address $8bf3
 
-    ; PL FIRE - f bullet firing (noise channel)
+    ; PL FIRE - F bullet firing (noise channel)
     ; #$00 additional sound code entries, sound slot #$05
     .byte $05
     .addr sound_11 ; CPU address $8c07
 
-    ; SPREAD - s bullet firing (pulse 1 channel)
+    ; SPREAD - S bullet firing (pulse 1 channel)
     ; #$01 additional sound code entry, sound slot #$04
     .byte $0c
     .addr sound_12 ; CPU address $8c19
 
-    ; SPREAD - s bullet firing (noise channel)
+    ; SPREAD - S bullet firing (noise channel)
     ; #$00 additional sound code entries, sound slot #$05
     .byte $05
     .addr sound_13 ; CPU address $8c27
@@ -2334,7 +2334,7 @@ sound_0e:
 sound_0f:
     .incbin "assets/audio_data/sound_0f.bin"
 
-; PL FIRE - f bullet firing (pulse 1 channel)
+; PL FIRE - F bullet firing (pulse 1 channel)
 ; CPU address $8bf3
 sound_10:
     .incbin "assets/audio_data/sound_10.bin"
@@ -2343,7 +2343,7 @@ sound_10:
 sound_10_part_00:
     .incbin "assets/audio_data/sound_10_part_00.bin"
 
-; PL FIRE - f bullet firing (noise/dmc channel)
+; PL FIRE - F bullet firing (noise/dmc channel)
 ; CPU address $8c07
 sound_11:
     .incbin "assets/audio_data/sound_11.bin"
@@ -2352,12 +2352,12 @@ sound_11:
 sound_11_part_00:
     .incbin "assets/audio_data/sound_11_part_00.bin"
 
-; SPREAD - s bullet firing (pulse 1 channel)
+; SPREAD - S bullet firing (pulse 1 channel)
 ; CPU address $8c19
 sound_12:
     .incbin "assets/audio_data/sound_12.bin"
 
-; SPREAD - s bullet firing (noise/dmc channel)
+; SPREAD - S bullet firing (noise/dmc channel)
 ; CPU address $8c27
 sound_13:
     .incbin "assets/audio_data/sound_13.bin"
@@ -4020,10 +4020,10 @@ draw_sprites:
     beq @adv_sprite            ; move to next contra sprite if this current wasn't used
     ldy SPRITE_ATTR,x          ; load sprite attribute data
     sty $00                    ; set $00 to hold SPRITE_ATTR
-    ldy SPRITE_Y_POS,x         ; sprite y position on screen
-    sty $01                    ; set $01 to hold base y position of sprite (sprite tiles are positioned relative to this point)
-    ldy SPRITE_X_POS,x         ; sprite x position on screen
-    sty $02                    ; set $02 to hold base x position of sprite (sprite tiles are positioned relative to this point)
+    ldy SPRITE_Y_POS,x         ; sprite Y position on screen
+    sty $01                    ; set $01 to hold base Y position of sprite (sprite tiles are positioned relative to this point)
+    ldy SPRITE_X_POS,x         ; sprite X position on screen
+    sty $02                    ; set $02 to hold base X position of sprite (sprite tiles are positioned relative to this point)
     jsr load_sprite_to_cpu_mem ; loads all the sprite pattern tiles to the OAMDMA buffer
 
 @adv_sprite:
@@ -4037,7 +4037,7 @@ draw_sprites:
 ; take the remaining sprite tiles that are available in the OAMDMA and blank them
 @fill_unused_OAM:
     lda #$f4                ; hide any sprite whose byte 0 is $ef-$ff is not displayed
-    sta OAMDMA_CPU_BUFFER,x ; write y position as #$f4 (hidden)
+    sta OAMDMA_CPU_BUFFER,x ; write Y position as #$f4 (hidden)
     jsr adv_OAMDMA_addr     ; add #$c4 to x (move to next sprite tile location)
     dey                     ; decrement remaining sprite tiles counter
     bpl @fill_unused_OAM    ; loop to hide next sprite tile if haven't hidden all leftover tiles
@@ -4050,8 +4050,8 @@ draw_sprites_exit:
 ; input
 ;  * a - sprite code, offset into sprite_ptr_tbl_0 or sprite_ptr_tbl_1
 ;  * $00 - sprite attribute
-;  * $01 - sprite y position on screen
-;  * $02 - sprite x position
+;  * $01 - sprite Y position on screen
+;  * $02 - sprite X position
 ; output
 ;  * $04 - the next starting position of the OAMDMA_CPU_BUFFER write offset
 ;  * $07 - lowers the number of remaining sprite tiles that can be drawn by the
@@ -4084,7 +4084,7 @@ load_sprite_to_cpu_mem:
     sta $03                     ; store number of pattern tiles in sprite into $03
     lda $00                     ; load SPRITE_ATTR
     and #$c8                    ; keep bits xx.. x..., keep horizontal and vertical flip bits
-                                ; bit 3 signals whether to add 1 to y position for regular sprites (not small sprites)
+                                ; bit 3 signals whether to add 1 to Y position for regular sprites (not small sprites)
     sta $0b                     ; store in $0b, this is later used when rendering the sprite tile
                                 ; e.g. if the sprite tile within the sprite is defined as flipped vertically or horizontally,
                                 ; and the SPRITE_ATTR specifies flipping the entire sprite, then we have to 'flip the flip', i.e. change from a 1 to a 0
@@ -4106,12 +4106,12 @@ load_sprite_to_cpu_mem:
     ldx $04 ; load OAMDMA_CPU_BUFFER write offset
 
 @write_sprite_tile:
-    lda ($08),y   ; load first byte of sprite (y position), or #$80 for shared sprite
+    lda ($08),y   ; load first byte of sprite (Y position), or #$80 for shared sprite
     cmp #$80      ; see if using shared sprite
     bne @continue ; not using shared sprite, continue like normal
                   ; using shared sprite, need to update cpu read address
     lda $0b       ; load sprite effect
-    and #$f7      ; strip bit 3 to prevent adding #$01 to y position
+    and #$f7      ; strip bit 3 to prevent adding #$01 to Y position
     sta $0b       ; save sprite effect
     iny           ; increment sprite_xx read offset
     lda ($08),y   ; load low byte of new sprite read address
@@ -4124,26 +4124,26 @@ load_sprite_to_cpu_mem:
     ldy #$00      ; clear sprite_xx read offset since starting at new address
 
 @continue:
-    lda ($08),y          ; read sprite relative y position (Byte 0)
-    sta $0c              ; store sprite tile relative y offset
+    lda ($08),y          ; read sprite relative Y position (Byte 0)
+    sta $0c              ; store sprite tile relative Y offset
     lda $0b
     asl                  ; shift sprite effect left
     and #$10             ; keep bits ...x ....
     beq @prep_y_position ; see if bit 3 of SPRITE_ATTR is set
-    inc $0c              ; bit 3 was set, add #$01 to relative y position
+    inc $0c              ; bit 3 was set, add #$01 to relative Y position
                          ; used for creating recoil effect when firing gun
 
 @prep_y_position:
     lda $0c                     ; load sprite tile relative offset
     bcc @write_sprite_tile_data ; branch bit 7 of $0b is 0
-    sta $0c                     ; store sprite tile relative y offset
+    sta $0c                     ; store sprite tile relative Y offset
     lda #$f0                    ; a = #$f0
-    sbc $0c                     ; #$f0 minus sprite tile relative y offset
+    sbc $0c                     ; #$f0 minus sprite tile relative Y offset
     clc
 
 @write_sprite_tile_data:
-    adc $01                   ; add SPRITE_Y_POS to sprite y offset (sets tile's absolute position)
-    sta OAMDMA_CPU_BUFFER,x   ; write y position to CPU buffer
+    adc $01                   ; add SPRITE_Y_POS to sprite Y offset (sets tile's absolute position)
+    sta OAMDMA_CPU_BUFFER,x   ; write Y position to CPU buffer
     iny                       ; increment sprite_xx read offset
     lda ($08),y               ; read 2nd byte, which specifies pattern table tile (Byte 1)
     sta OAMDMA_CPU_BUFFER+1,x ; write pattern tile number to CPU buffer
@@ -4159,18 +4159,18 @@ load_sprite_to_cpu_mem:
     asl
     lda ($08),y               ; read next byte of sprite_xx
     bcc @continue2            ; branch if no horizontal flip
-    sta $0c                   ; horizontal flip, store x position
+    sta $0c                   ; horizontal flip, store X position
     lda #$f8                  ; a = #$f8
     sbc $0c
     clc
 
 @continue2:
     bmi @set_sprite_tile_x_adv_addr
-    adc $02                         ; add to sprite x position
+    adc $02                         ; add to sprite X position
     bcs @move_next_sprite_tile      ; increment read offset, set next write offset, decrement total sprite tiles
 
 @set_x_adv_addr:
-    jsr set_x_adv_OAMDMA_addr ; set sprite tile x position (a) in OAMDMA and advance OAMDMA write address
+    jsr set_x_adv_OAMDMA_addr ; set sprite tile X position (a) in OAMDMA and advance OAMDMA write address
 
 @move_next_sprite_tile:
     iny                    ; increment sprite_xx read offset
@@ -4179,12 +4179,12 @@ load_sprite_to_cpu_mem:
     stx $04                ; write next OAMDMA write offset to $04
     rts
 
-; set sprite tile's relative x position, and set next OAMDMA write address
+; set sprite tile's relative X position, and set next OAMDMA write address
 ; input
-;  a - the x offset of the sprite tile from the SPRITE_X_POS
+;  a - the X offset of the sprite tile from the SPRITE_X_POS
 @set_sprite_tile_x_adv_addr:
     adc $02                    ; add to sprite x base position
-    bcs @set_x_adv_addr        ; set sprite tile x position (a) in OAMDMA and advance OAMDMA write address
+    bcs @set_x_adv_addr        ; set sprite tile X position (a) in OAMDMA and advance OAMDMA write address
     bcc @move_next_sprite_tile ; increment read offset, set next write offset, decrement total sprite tiles
 
 ; sprite code is made of a single #$03-byte entry (including #$fe)
@@ -4194,19 +4194,19 @@ load_sprite_to_cpu_mem:
     ldx $04                   ; load OAM write offset
     lda #$f8                  ; a = -#$08
     clc                       ; clear carry in preparation for addition
-    adc $01                   ; subtract #$08 from y position
-    sta OAMDMA_CPU_BUFFER,x   ; set y position of small sprite
+    adc $01                   ; subtract #$08 from Y position
+    sta OAMDMA_CPU_BUFFER,x   ; set Y position of small sprite
     lda ($08),y               ; load pattern tile of sprite
     sta OAMDMA_CPU_BUFFER+1,x ; set pattern tile of small sprite
     iny                       ; increment sprite_xx read offset
     lda ($08),y               ; load SPRITE_ATTR
     ora $00                   ; merge with $00
     sta OAMDMA_CPU_BUFFER+2,x ; store SPRITE_ATTR of small sprite
-    lda $02                   ; load sprite's base x position
+    lda $02                   ; load sprite's base X position
     sec                       ; set carry flag in preparation for subtraction
     sbc #$04                  ; subtract #$04
     bcc @exit                 ; exit if overflow
-    jsr set_x_adv_OAMDMA_addr ; set sprite tile x position (a) in OAMDMA and advance OAMDMA write address
+    jsr set_x_adv_OAMDMA_addr ; set sprite tile X position (a) in OAMDMA and advance OAMDMA write address
     stx $04                   ; store next OAMDMA write address in $04
 
 @exit:
@@ -4250,18 +4250,18 @@ draw_player_hud_sprites:
     dec $01                     ; decrement number of medals to draw
     bmi @move_to_next_player    ; if done drawing all sprites, move to next player
     lda #$10                    ; a = #$10
-    sta OAMDMA_CPU_BUFFER,x     ; set y position of medal/game over hud sprite to #$10
+    sta OAMDMA_CPU_BUFFER,x     ; set Y position of medal/game over hud sprite to #$10
     lda hud_sprites,y           ; load HUD sprite (either medal, or game over text)
     sta OAMDMA_CPU_BUFFER+1,x   ; write tile number to OAM
     lda $00
     sta OAMDMA_CPU_BUFFER+2,x   ; write the tile attributes (blue palette for p1, red palette for p2)
     lsr                         ; set carry flag if on player 2
-    lda sprite_medal_x_offset,y ; load x offset based on sprite number
+    lda sprite_medal_x_offset,y ; load X offset based on sprite number
     bcc @continue
-    adc #$af                    ; add #$af to sprite x offset if on player 2 (see previous lsr)
+    adc #$af                    ; add #$af to sprite X offset if on player 2 (see previous lsr)
 
 @continue:
-    jsr set_x_adv_OAMDMA_addr ; set sprite tile x position (a) in OAMDMA and advance OAMDMA write address
+    jsr set_x_adv_OAMDMA_addr ; set sprite tile X position (a) in OAMDMA and advance OAMDMA write address
     iny                       ; increment medal sprite number (#$00 to #$04)
     jmp @draw_p_sprite
 
@@ -4283,12 +4283,14 @@ sprite_medal_x_offset:
     .byte $10,$1c,$28,$34
     .byte $10,$1c,$28,$34
 
-; set sprite tile x position (a) in OAMDMA and advance OAMDMA write address
+; set sprite tile X position (a) in OAMDMA and advance OAMDMA write address
 set_x_adv_OAMDMA_addr:
     sta OAMDMA_CPU_BUFFER+3,x ; set X position of sprite
     dec $07                   ; decrement number of remaining sprite tiles that NES can draw
 
 ; adds #$c4 to x for next write location of OAMDMA sprite data
+; input
+;  * x - OAMDMA_CPU_BUFFER write offset
 adv_OAMDMA_addr:
     txa      ; move current write offset to a
     clc      ; clear carry in preparation for addition
@@ -4296,7 +4298,7 @@ adv_OAMDMA_addr:
     tax      ; move new offset back to x
     rts
 
-; enormous pointer table for sprites (#$cf * #$2 = #$19e bytes)
+; enormous pointer table for sprites (#$cf * #$02 = #$19e bytes)
 sprite_ptr_tbl_0:
     .addr sprite_01 ; CPU address $b1ce - blank
     .addr sprite_02 ; CPU address $b1cf - player walking (frame 1)
@@ -4427,87 +4429,87 @@ sprite_ptr_tbl_0:
     .addr sprite_7f ; CPU address $b88c - unknown (doesn't seem to be used)
 
 sprite_ptr_tbl_1:
-    .addr sprite_80 ; (offset 00) CPU address $b88c - unknown (doesn't seem to be used)
-    .addr sprite_81 ; (offset 01) CPU address $b895 - unknown (doesn't seem to be used)
-    .addr sprite_82 ; (offset 02) CPU address $b89e - l bullet indoor level
-    .addr sprite_83 ; (offset 03) CPU address $b8a3 - l bullet indoor level
-    .addr sprite_84 ; (offset 04) CPU address $b8a8 - l bullet indoor level
-    .addr sprite_85 ; (offset 05) CPU address $b8ad - base boss level 4 blue soldier
-    .addr sprite_86 ; (offset 06) CPU address $b8c2 - base boss level 4 blue soldier
-    .addr sprite_87 ; (offset 07) CPU address $b8d3 - base boss level 4 blue soldier
-    .addr sprite_88 ; (offset 08) CPU address $b8e0 - base boss level 4 blue soldier facing out (frame 1)
-    .addr sprite_89 ; (offset 09) CPU address $b8f1 - base boss level 4 blue soldier facing out (frame 2)
-    .addr sprite_8a ; (offset 0a) CPU address $b902 - base boss level 4 blue soldier flying (frame 1)
-    .addr sprite_8b ; (offset 0b) CPU address $b917 - base boss level 4 blue soldier flying (frame 2)
-    .addr sprite_8c ; (offset 0c) CPU address $b934 - base boss level 4 base 2 red soldier
-    .addr sprite_8d ; (offset 0d) CPU address $b93c - base boss level 4 base 2 red soldier
-    .addr sprite_8e ; (offset 0e) CPU address $b944 - base boss level 4 base 2 red soldier
-    .addr sprite_8f ; (offset 0f) CPU address $b94c - base boss level 4 base 2 red soldier facing player
+    .addr sprite_80 ; (offset #$00) CPU address $b88c - unknown (doesn't seem to be used)
+    .addr sprite_81 ; (offset #$01) CPU address $b895 - unknown (doesn't seem to be used)
+    .addr sprite_82 ; (offset #$02) CPU address $b89e - L bullet indoor level
+    .addr sprite_83 ; (offset #$03) CPU address $b8a3 - L bullet indoor level
+    .addr sprite_84 ; (offset #$04) CPU address $b8a8 - L bullet indoor level
+    .addr sprite_85 ; (offset #$05) CPU address $b8ad - base boss level 4 blue soldier
+    .addr sprite_86 ; (offset #$06) CPU address $b8c2 - base boss level 4 blue soldier
+    .addr sprite_87 ; (offset #$07) CPU address $b8d3 - base boss level 4 blue soldier
+    .addr sprite_88 ; (offset #$08) CPU address $b8e0 - base boss level 4 blue soldier facing out (frame 1)
+    .addr sprite_89 ; (offset #$09) CPU address $b8f1 - base boss level 4 blue soldier facing out (frame 2)
+    .addr sprite_8a ; (offset #$0a) CPU address $b902 - base boss level 4 blue soldier flying (frame 1)
+    .addr sprite_8b ; (offset #$0b) CPU address $b917 - base boss level 4 blue soldier flying (frame 2)
+    .addr sprite_8c ; (offset #$0c) CPU address $b934 - base boss level 4 base 2 red soldier
+    .addr sprite_8d ; (offset #$0d) CPU address $b93c - base boss level 4 base 2 red soldier
+    .addr sprite_8e ; (offset #$0e) CPU address $b944 - base boss level 4 base 2 red soldier
+    .addr sprite_8f ; (offset #$0f) CPU address $b94c - base boss level 4 base 2 red soldier facing player
                     ; Probotector uses sprite_88 rather than separately defining a sprite_8f
-    .addr sprite_90 ; (offset 10) CPU address $b954 - base boss level 4 base 2 red soldier facing player with weapon
-    .addr sprite_91 ; (offset 11) CPU address $b965 - indoor boss defeated elevator with player on top
-    .addr sprite_92 ; (offset 12) CPU address $b975 - l bullet indoor level
-    .addr sprite_93 ; (offset 13) CPU address $b97a - jumping man
-    .addr sprite_94 ; (offset 14) CPU address $b98b - jumping man
-    .addr sprite_95 ; (offset 15) CPU address $b99c - jumping man
-    .addr sprite_96 ; (offset 16) CPU address $b9ad - indoor soldier hit by bullet (indoor soldier, jumping man, grenade launcher, group of four soldiers)
-    .addr sprite_97 ; (offset 17) CPU address $b9be - jumping man in air
-    .addr sprite_98 ; (offset 18) CPU address $b9d3 - jumping man facing player
-    .addr sprite_99 ; (offset 19) CPU address $b9e0 - small indoor rolling grenade
-    .addr sprite_9a ; (offset 1a) CPU address $b9e9 - closer indoor rolling grenade
-    .addr sprite_9b ; (offset 1b) CPU address $b9f2 - even closer indoor rolling grenade
-    .addr sprite_9c ; (offset 1c) CPU address $b9ff - closest indoor rolling grenade
-    .addr sprite_9d ; (offset 1d) CPU address $ba0c - indoor base enemy kill explosion (frame 1)
-    .addr sprite_9e ; (offset 1e) CPU address $ba0f - indoor base enemy kill explosion (frame 2)
-    .addr sprite_9f ; (offset 1f) CPU address $ba18 - indoor base enemy kill explosion (frame 3)
-    .addr sprite_a0 ; (offset 20) CPU address $ba21 - indoor hand grenade
-    .addr sprite_a1 ; (offset 21) CPU address $ba2a - indoor hand grenade
-    .addr sprite_a2 ; (offset 22) CPU address $ba2f - indoor hand grenade
-    .addr sprite_a3 ; (offset 23) CPU address $ba32 - indoor hand grenade
-    .addr sprite_a4 ; (offset 24) CPU address $ba37 - indoor hand grenade
-    .addr sprite_a5 ; (offset 25) CPU address $ba3c - indoor hand grenade
-    .addr sprite_a6 ; (offset 26) CPU address $ba41 - indoor hand grenade
-    .addr sprite_a7 ; (offset 27) CPU address $ba44 - indoor hand grenade
-    .addr sprite_a8 ; (offset 28) CPU address $ba49 - indoor hand grenade
-    .addr sprite_a9 ; (offset 29) CPU address $ba4c - indoor hand grenade
-    .addr sprite_aa ; (offset 2a) CPU address $ba50 - falcon (player select icon)
-    .addr sprite_ab ; (offset 2b) CPU address $ba59 - Bill and Lance's hair and shirt (for Probotector - red splash behind Probotector title)
-    .addr sprite_ac ; (offset 2c) CPU address $bab2 - alien's lair bundle (crustacean-like alien)
-    .addr sprite_ad ; (offset 2d) CPU address $bacb - alien's lair bundle (crustacean-like alien) mouth open
-    .addr sprite_ae ; (offset 2e) CPU address $bad7 - alien's lair bundle (crustacean-like alien)
-    .addr sprite_af ; (offset 2f) CPU address $baf0 - alien's lair bundle (crustacean-like alien)
-    .addr sprite_b0 ; (offset 30) CPU address $bafc - poisonous insect gel
-    .addr sprite_b1 ; (offset 31) CPU address $bb05 - poisonous insect gel (frame 1)
-    .addr sprite_b2 ; (offset 32) CPU address $bb0e - poisonous insect gel (frame 2)
-    .addr sprite_b3 ; (offset 33) CPU address $bb17 - boss alien bugger insect/spider (frame 1)
-    .addr sprite_b4 ; (offset 34) CPU address $bb30 - boss alien bugger insect/spider (frame 2)
-    .addr sprite_b5 ; (offset 35) CPU address $bb51 - boss alien bugger insect/spider (frame 3)
-    .addr sprite_b6 ; (offset 36) CPU address $bb6e - boss alien eggron (alien egg)
-    .addr sprite_b7 ; (offset 37) CPU address $bb77 - energy zone boss giant armored soldier gordea
-    .addr sprite_b7 ; (offset 38) CPU address $bb77 - energy zone boss giant armored soldier gordea (sprite_b8)
-    .addr sprite_b9 ; (offset 39) CPU address $bbd0 - energy zone boss giant armored soldier gordea (legs together)
-    .addr sprite_ba ; (offset 3a) CPU address $bc19 - energy zone boss giant armored soldier gordea (running, jumping)
-    .addr sprite_bb ; (offset 3b) CPU address $bc45 - energy zone boss projectile (spiked disk)
-    .addr sprite_bc ; (offset 3c) CPU address $bc4e - energy zone boss projectile (spiked disk)
-    .addr sprite_bd ; (offset 3d) CPU address $bc57 - turret man (basquez)
-    .addr sprite_be ; (offset 3e) CPU address $bc74 - turret man (basquez)
-    .addr sprite_bf ; (offset 3f) CPU address $bc91 - energy zone wall fire
-    .addr sprite_c0 ; (offset 40) CPU address $bc96 - energy zone wall fire
-    .addr sprite_c1 ; (offset 41) CPU address $bc9b - energy zone ceiling fire
-    .addr sprite_c2 ; (offset 42) CPU address $bca0 - energy zone ceiling fire
-    .addr sprite_c3 ; (offset 43) CPU address $bca5 - energy zone boss giant armored soldier gordea (throwing)
-    .addr sprite_c4 ; (offset 44) CPU address $bccd - snow field ground separator
-    .addr sprite_c5 ; (offset 45) CPU address $bcd2 - green helicopter ending scene (frame 1)
-    .addr sprite_c6 ; (offset 46) CPU address $bcdb - green helicopter ending scene (frame 2)
-    .addr sprite_c7 ; (offset 47) CPU address $bce8 - green helicopter ending scene (frame 3)
-    .addr sprite_c8 ; (offset 48) CPU address $bcf1 - green helicopter ending scene (frame 4)
-    .addr sprite_c9 ; (offset 49) CPU address $bcfe - green helicopter facing forward (frame 1)
-    .addr sprite_ca ; (offset 4a) CPU address $bd13 - green helicopter facing forward (frame 2)
-    .addr sprite_cb ; (offset 4b) CPU address $bd30 - green helicopter facing forward (frame 3)
-    .addr sprite_cc ; (offset 4c) CPU address $bd59 - green helicopter facing forward (frame 4)
-    .addr sprite_cd ; (offset 4d) CPU address $bd7e - green helicopter facing forward (frame 5)
-    .addr sprite_ce ; (offset 4e) CPU address $bdab - green helicopter facing forward (frame 6)
-    .addr sprite_cf ; (offset 4f) CPU address $bdd0 - ending sequence mountains
+    .addr sprite_90 ; (offset #$10) CPU address $b954 - base boss level 4 base 2 red soldier facing player with weapon
+    .addr sprite_91 ; (offset #$11) CPU address $b965 - indoor boss defeated elevator with player on top
+    .addr sprite_92 ; (offset #$12) CPU address $b975 - L bullet indoor level
+    .addr sprite_93 ; (offset #$13) CPU address $b97a - jumping man
+    .addr sprite_94 ; (offset #$14) CPU address $b98b - jumping man
+    .addr sprite_95 ; (offset #$15) CPU address $b99c - jumping man
+    .addr sprite_96 ; (offset #$16) CPU address $b9ad - indoor soldier hit by bullet (indoor soldier, jumping man, grenade launcher, group of four soldiers)
+    .addr sprite_97 ; (offset #$17) CPU address $b9be - jumping man in air
+    .addr sprite_98 ; (offset #$18) CPU address $b9d3 - jumping man facing player
+    .addr sprite_99 ; (offset #$19) CPU address $b9e0 - small indoor rolling grenade
+    .addr sprite_9a ; (offset #$1a) CPU address $b9e9 - closer indoor rolling grenade
+    .addr sprite_9b ; (offset #$1b) CPU address $b9f2 - even closer indoor rolling grenade
+    .addr sprite_9c ; (offset #$1c) CPU address $b9ff - closest indoor rolling grenade
+    .addr sprite_9d ; (offset #$1d) CPU address $ba0c - indoor base enemy kill explosion (frame 1)
+    .addr sprite_9e ; (offset #$1e) CPU address $ba0f - indoor base enemy kill explosion (frame 2)
+    .addr sprite_9f ; (offset #$1f) CPU address $ba18 - indoor base enemy kill explosion (frame 3)
+    .addr sprite_a0 ; (offset #$20) CPU address $ba21 - indoor hand grenade
+    .addr sprite_a1 ; (offset #$21) CPU address $ba2a - indoor hand grenade
+    .addr sprite_a2 ; (offset #$22) CPU address $ba2f - indoor hand grenade
+    .addr sprite_a3 ; (offset #$23) CPU address $ba32 - indoor hand grenade
+    .addr sprite_a4 ; (offset #$24) CPU address $ba37 - indoor hand grenade
+    .addr sprite_a5 ; (offset #$25) CPU address $ba3c - indoor hand grenade
+    .addr sprite_a6 ; (offset #$26) CPU address $ba41 - indoor hand grenade
+    .addr sprite_a7 ; (offset #$27) CPU address $ba44 - indoor hand grenade
+    .addr sprite_a8 ; (offset #$28) CPU address $ba49 - indoor hand grenade
+    .addr sprite_a9 ; (offset #$29) CPU address $ba4c - indoor hand grenade
+    .addr sprite_aa ; (offset #$2a) CPU address $ba50 - falcon (player select icon)
+    .addr sprite_ab ; (offset #$2b) CPU address $ba59 - Bill and Lance's hair and shirt (for Probotector - red splash behind Probotector title)
+    .addr sprite_ac ; (offset #$2c) CPU address $bab2 - alien's lair bundle (crustacean-like alien)
+    .addr sprite_ad ; (offset #$2d) CPU address $bacb - alien's lair bundle (crustacean-like alien) mouth open
+    .addr sprite_ae ; (offset #$2e) CPU address $bad7 - alien's lair bundle (crustacean-like alien)
+    .addr sprite_af ; (offset #$2f) CPU address $baf0 - alien's lair bundle (crustacean-like alien)
+    .addr sprite_b0 ; (offset #$30) CPU address $bafc - poisonous insect gel
+    .addr sprite_b1 ; (offset #$31) CPU address $bb05 - poisonous insect gel (frame 1)
+    .addr sprite_b2 ; (offset #$32) CPU address $bb0e - poisonous insect gel (frame 2)
+    .addr sprite_b3 ; (offset #$33) CPU address $bb17 - boss alien bugger insect/spider (frame 1)
+    .addr sprite_b4 ; (offset #$34) CPU address $bb30 - boss alien bugger insect/spider (frame 2)
+    .addr sprite_b5 ; (offset #$35) CPU address $bb51 - boss alien bugger insect/spider (frame 3)
+    .addr sprite_b6 ; (offset #$36) CPU address $bb6e - boss alien eggron (alien egg)
+    .addr sprite_b7 ; (offset #$37) CPU address $bb77 - energy zone boss giant armored soldier gordea
+    .addr sprite_b7 ; (offset #$38) CPU address $bb77 - energy zone boss giant armored soldier gordea (sprite_b8)
+    .addr sprite_b9 ; (offset #$39) CPU address $bbd0 - energy zone boss giant armored soldier gordea (legs together)
+    .addr sprite_ba ; (offset #$3a) CPU address $bc19 - energy zone boss giant armored soldier gordea (running, jumping)
+    .addr sprite_bb ; (offset #$3b) CPU address $bc45 - energy zone boss projectile (spiked disk)
+    .addr sprite_bc ; (offset #$3c) CPU address $bc4e - energy zone boss projectile (spiked disk)
+    .addr sprite_bd ; (offset #$3d) CPU address $bc57 - turret man (basquez)
+    .addr sprite_be ; (offset #$3e) CPU address $bc74 - turret man (basquez)
+    .addr sprite_bf ; (offset #$3f) CPU address $bc91 - energy zone wall fire
+    .addr sprite_c0 ; (offset #$40) CPU address $bc96 - energy zone wall fire
+    .addr sprite_c1 ; (offset #$41) CPU address $bc9b - energy zone ceiling fire
+    .addr sprite_c2 ; (offset #$42) CPU address $bca0 - energy zone ceiling fire
+    .addr sprite_c3 ; (offset #$43) CPU address $bca5 - energy zone boss giant armored soldier gordea (throwing)
+    .addr sprite_c4 ; (offset #$44) CPU address $bccd - snow field ground separator
+    .addr sprite_c5 ; (offset #$45) CPU address $bcd2 - green helicopter ending scene (frame 1)
+    .addr sprite_c6 ; (offset #$46) CPU address $bcdb - green helicopter ending scene (frame 2)
+    .addr sprite_c7 ; (offset #$47) CPU address $bce8 - green helicopter ending scene (frame 3)
+    .addr sprite_c8 ; (offset #$48) CPU address $bcf1 - green helicopter ending scene (frame 4)
+    .addr sprite_c9 ; (offset #$49) CPU address $bcfe - green helicopter facing forward (frame 1)
+    .addr sprite_ca ; (offset #$4a) CPU address $bd13 - green helicopter facing forward (frame 2)
+    .addr sprite_cb ; (offset #$4b) CPU address $bd30 - green helicopter facing forward (frame 3)
+    .addr sprite_cc ; (offset #$4c) CPU address $bd59 - green helicopter facing forward (frame 4)
+    .addr sprite_cd ; (offset #$4d) CPU address $bd7e - green helicopter facing forward (frame 5)
+    .addr sprite_ce ; (offset #$4e) CPU address $bdab - green helicopter facing forward (frame 6)
+    .addr sprite_cf ; (offset #$4f) CPU address $bdd0 - ending sequence mountains
 
 ; each sprite entry is defined as follows
 ; first byte (n) is number of tiles for sprite
@@ -6107,14 +6109,14 @@ sprite_81:
     .byte $f8,$cc,$02,$f8
     .byte $f8,$cc,$42,$00
 
-; l bullet indoor level shot from
+; L bullet indoor level shot from
 ;  * 27%-43% horizontal portion of the playable screen
 ;  * 58%-70% horizontal portion of the playable screen
 sprite_82:
     .byte $01
     .byte $f8,$a2,$02,$fc
 
-; l bullet indoor level shot from
+; L bullet indoor level shot from
 ;  * 20%-27% horizontal portion of the playable screen
 ;  * 70%-80% horizontal portion of the playable screen
 ; same as sprite_92
@@ -6122,7 +6124,7 @@ sprite_83:
     .byte $01
     .byte $f8,$a0,$02,$fc
 
-; l bullet indoor level shot from
+; L bullet indoor level shot from
 ;  * 10%-20% horizontal portion of the playable screen
 ;  * 80%-90% horizontal portion of the playable screen
 sprite_84:
@@ -6353,7 +6355,7 @@ sprite_91:
     .addr player_facing_side
 .endif
 
-; l bullet indoor level shot from
+; L bullet indoor level shot from
 ;  * <= 10% horizontal portion of the playable screen
 ;  * >= 90% horizontal portion of the playable screen
 ; same as sprite_83
@@ -7188,7 +7190,7 @@ sprite_ce:
     .byte $00,$89,$03,$20
 .endif
 
-; unused #$21b bytes out of #$4,000 bytes total (96.71% full)
+; unused #$21b bytes out of #$4000 bytes total (96.71% full)
 ; unused 539 bytes out of 16,384 bytes total (96.71% full)
 ; filled with 539 #$ff bytes by contra.cfg configuration
 bank_1_unused_space:

@@ -1,6 +1,6 @@
-; Contra US Disassembly - v1.3
+; Contra US Disassembly - v1.4
 ; https://github.com/vermiceli/nes-contra-us
-; Bank 2 starts with RLE-encoded level data (graphic super tiles for the level
+; Bank 2 starts with RLE-encoded level data (graphic super-tiles for the level
 ; screens).  It then contains compressed tile data and alternate tile data and
 ; occasional attribute table data.  Then, bank 2 contains logic for setting the
 ; players' sprite based on player state.  Next, bank 2 contains the level
@@ -42,7 +42,7 @@
 ; Every PRG ROM bank starts with a single byte specifying which number it is
 .byte $02 ; The PRG ROM bank number (2)
 
-; pointer table for level 1 super tile data (#$e * #$2 = #$1c bytes)
+; pointer table for level 1 super tile data (#$0e * #$02 = #$1c bytes)
 ; each entry is a screen (256 pixels wide) worth of super-tile indexes
 ; CPU address $8001
 level_1_supertiles_screen_ptr_table:
@@ -64,12 +64,11 @@ level_1_supertiles_screen_ptr_table:
 ; beginning of level 1 data table
 ; each label is a screen of the level
 ; each byte is a super-tile block number (a block of 4x4 tiles)
-; bit 7 set means the next byte is repeated by the amount of bits 0-6 of current byte
+; if bit 7 is set, the next byte is repeated using bits 0-6 as the repeat count
 ; each label expands to #$38 bytes for horizontal levels
 ; each label expands to #$40 bytes for vertical levels
 ; 8x = make x consecutive units of the following byte
 ; ef = make 6f consecutive units (max)
-; fx = ?
 level_1_supertiles_screen_00:
     .byte $21,$20,$21,$2b,$23,$22,$23,$2a,$20,$54,$54,$2f,$27,$26,$27,$2e
     .byte $54,$1c,$1d,$1e,$1c,$1e,$1c,$1c,$54,$87,$00,$0c,$84,$51,$83,$00
@@ -131,7 +130,7 @@ level_1_supertiles_screen_0c:
     .byte $05,$06,$32,$00,$00,$52,$28,$61,$64,$06,$32,$04,$04,$00,$52,$30
     .byte $31,$33,$36,$07,$3e,$51,$00,$34,$35,$06,$32,$85,$00,$15,$3a,$32
 
-; pointer table for level 2 (#$18 * #$2 = #$30 bytes)
+; pointer table for level 2 (#$18 * #$02 = #$30 bytes)
 level_2_supertiles_screen_ptr_table:
     .addr level_2_supertiles_screen_00 ; CPU address $8276 (0) Normal Room
     .addr level_2_supertiles_screen_01 ; CPU address $8300 (1)
@@ -163,7 +162,7 @@ level_2_supertiles_screen_ptr_table:
     .addr level_2_supertiles_screen_02 ; CPU address $832e (2)
     .addr level_2_supertiles_screen_03 ; CPU address $835c (3)
 
-; pointer table for level 4 (#$20 * #$2 = #$40 bytes)
+; pointer table for level 4 (#$20 * #$02 = #$40 bytes)
 level_4_supertiles_screen_ptr_table:
     .addr level_4_supertiles_screen_00 ; CPU address $838a (0)
     .addr level_4_supertiles_screen_01 ; CPU address $842c (1)
@@ -271,7 +270,7 @@ level_4_supertiles_screen_03:
     .byte $68,$53,$54,$55,$55,$56,$57,$75,$67,$46,$84,$11,$47,$74,$64,$72
     .byte $73,$72,$73,$72,$73,$64
 
-; pointer table for level 3 (#$a * #$2 = #$14 bytes)
+; pointer table for level 3 (#$0a * #$02 = #$14 bytes)
 level_3_supertiles_screen_ptr_table:
     .addr level_3_supertiles_screen_00 ; CPU address $8667
     .addr level_3_supertiles_screen_01 ; CPU address $8635
@@ -338,7 +337,7 @@ level_3_supertiles_screen_00:
     .byte $00,$5d,$83,$00,$16,$5d,$5d,$84,$00,$5d,$26,$83,$5d,$83,$00,$18
     .byte $28,$16,$83,$5d,$8b,$00,$88,$5d
 
-; pointer table for level 5 (#$16 * #$2 = #$2c bytes)
+; pointer table for level 5 (#$16 * #$02 = #$2c bytes)
 level_5_supertiles_screen_ptr_table:
     .addr level_5_supertiles_screen_00 ; CPU address $86bb
     .addr level_5_supertiles_screen_01 ; CPU address $86e1
@@ -441,7 +440,7 @@ level_5_supertiles_screen_0f:
     .byte $95,$00,$4d,$4e,$4f,$85,$00,$4a,$4b
     .byte $4c,$85,$00,$31,$48,$49,$84,$1a,$15,$1b,$1f,$20,$88,$1a
 
-; pointer table for level 6 (#$e * #$2 = #$1c bytes)
+; pointer table for level 6 (#$0e * #$02 = #$1c bytes)
 level_6_supertiles_screen_ptr_table:
     .addr level_6_supertiles_screen_00 ; CPU address $8941
     .addr level_6_supertiles_screen_01 ; CPU address $8973
@@ -628,7 +627,7 @@ level_7_supertiles_screen_0e:
     .byte $83,$6f,$39,$4e,$60,$67,$61,$11,$11,$42,$46,$42,$46,$76,$62,$4a
     .byte $49,$4c,$4b,$4c,$4b,$4a,$63
 
-; pointer table for level 8 (#$c * #$2 = #$18 bytes)
+; pointer table for level 8 (#$0c * #$02 = #$18 bytes)
 level_8_supertiles_screen_ptr_table:
     .addr level_8_supertiles_screen_00 ; CPU address $8e5f
     .addr level_8_supertiles_screen_01 ; CPU address $8e8e
@@ -698,7 +697,7 @@ level_8_supertiles_screen_0a:
     .byte $4c,$50,$4f,$18,$84,$4c,$1a,$17,$17,$18,$84,$35,$1e,$6e,$6e,$18
     .byte $18,$49,$86,$18
 
-; pointer table for indoor levels boss rooms (#$2 * #$2 = #$4 bytes)
+; pointer table for indoor levels boss rooms (#$02 * #$02 = #$04 bytes)
 level_2_4_boss_supertiles_screen_ptr_table:
     .addr level_2_4_boss_supertiles_screen_00 ; CPU address $9017
     .addr level_2_4_boss_supertiles_screen_01 ; CPU address $9057
@@ -946,7 +945,7 @@ set_player_frame_sprite_from_a:
 player_frame_sprite_type_tbl:
     .byte $00,$02,$00,$03,$00,$00,$03,$00,$02,$00
 
-; pointer table for which sprite to load for player based on aim direction and whether there is gun recoil  (#$5 * #$2 = #$a bytes)
+; pointer table for which sprite to load for player based on aim direction and whether there is gun recoil  (#$05 * #$02 = #$0a bytes)
 player_frame_sprite_ptr_tbl:
     .addr player_frame_sprite_tbl_00 ; CPU address $b0d1 - walking with gun in hand
     .addr player_frame_sprite_tbl_01 ; CPU address $b0d7 - walking with gun and recoil
@@ -1077,7 +1076,7 @@ set_player_jump_sprite:
 @exit:
     rts
 
-; table for player animation frames when spinning during a jump (#$4 bytes)
+; table for player animation frames when spinning during a jump (#$04 bytes)
 ; sprite_08, sprite_09
 player_curled_sprite_code_tbl:
     .byte $08,$09,$08,$09
@@ -1093,10 +1092,10 @@ set_player_water_sprite_and_state:
     sta PLAYER_ANIMATION_FRAME_INDEX,x ; initialize frame index to #$00
     lda #$05                           ; a = #$05 (sprite_05) - player walking (frame 4)
     sta PLAYER_SPRITE_CODE,x           ; set player sprite code, player standing for #$08 frames before splash
-    lda SPRITE_Y_POS,x                 ; player y position on screen
+    lda SPRITE_Y_POS,x                 ; player Y position on screen
     clc                                ; clear carry in preparation for addition
     adc #$10                           ; move down #$10 pixels
-    sta SPRITE_Y_POS,x                 ; update player y position on screen
+    sta SPRITE_Y_POS,x                 ; update player Y position on screen
     lda PLAYER_AIM_DIR,x               ; which direction the player is aiming/looking
     cmp #$05                           ; see if facing left or right
     bcc @continue                      ; branch if facing right
@@ -1113,7 +1112,7 @@ set_player_water_sprite_and_state:
 
 @set_enter_water_sprite:
     lda #$00                         ; a = #$00
-    sta PLAYER_X_VELOCITY,x          ; stop player x velocity
+    sta PLAYER_X_VELOCITY,x          ; stop player X velocity
     lda PLAYER_WATER_TIMER,x         ; load water animation timer
     beq set_player_in_water_sprite   ; if timer has elapsed, branch to set the correct sprite
     cmp #$0c                         ; see if timer is greater than or equal to #$0c
@@ -1177,7 +1176,7 @@ set_player_in_water_sprite:
     lda FRAME_COUNTER                   ; load frame counter
     and #$0f                            ; keep bits .... xxxx
     bne @check_anim_frame_and_collision ; continue if not the #$fth frame
-    inc PLAYER_ANIMATION_FRAME_INDEX,x  ; move to next animation every #$f frames
+    inc PLAYER_ANIMATION_FRAME_INDEX,x  ; move to next animation every #$0f frames
 
 @check_anim_frame_and_collision:
     lda PLAYER_ANIMATION_FRAME_INDEX,x     ; load frame of the player animation
@@ -1194,9 +1193,9 @@ set_player_in_water_sprite:
 
 @check_ground_collision:
     sta PLAYER_SPRITE_FLIP,x           ; store whether sprite is flipped horizontally and/or vertically
-    lda SPRITE_Y_POS,x                 ; load player y position on screen
-    tay                                ; transfer y position to y
-    lda SPRITE_X_POS,x                 ; load player x position on screen
+    lda SPRITE_Y_POS,x                 ; load player Y position on screen
+    tay                                ; transfer Y position to y
+    lda SPRITE_X_POS,x                 ; load player X position on screen
     jsr get_bg_collision               ; determine player background collision code at position (a,y)
     cmp #$02                           ; see if collision code #$02 (water)
     beq @exit                          ; exit if in water
@@ -1229,7 +1228,7 @@ set_player_in_water_sprite:
 ; executed repeatedly until PLAYER_WATER_TIMER,x is #$00
 player_walk_out_of_water:
     lda #$06                         ; !(OBS) unnecessary, because overwritten to #$00 by handle_player_state_calc_x_vel
-    sta PLAYER_X_VELOCITY,x          ; unnecessary, set player x velocity to #$06
+    sta PLAYER_X_VELOCITY,x          ; unnecessary, set player X velocity to #$06
     lda PLAYER_WATER_TIMER,x         ; load animation timer
     beq clear_water_vars_set_y_pos   ; timer elapsed, player is now out of water
     cmp #$05                         ; timer not elapsed, see if less than #$05
@@ -1243,12 +1242,12 @@ player_walk_out_of_water:
     dec PLAYER_WATER_TIMER,x         ; decrement animation timer
     rts
 
-; player out of water, clear water variables and adjust y position to be on land
+; player out of water, clear water variables and adjust Y position to be on land
 clear_water_vars_set_y_pos:
     lda #$00                           ; a = #$00
     sta PLAYER_WATER_STATE,x           ; clear player in water animation
     sta PLAYER_ANIMATION_FRAME_INDEX,x ; set player frame to first frame of walking
-    lda SPRITE_Y_POS,x                 ; player y position on screen
+    lda SPRITE_Y_POS,x                 ; player Y position on screen
     sec                                ; set carry flag in preparation for subtraction
     sbc #$10                           ; move player up so that they are on the ground and out of the water
     sta SPRITE_Y_POS,x
@@ -1291,7 +1290,7 @@ set_indoor_player_sprite_for_sequence:
     lda PLAYER_SPRITE_SEQUENCE,x
     jsr run_routine_from_tbl_below ; run routine a in the following table (indoor_player_sprite_tbl)
 
-; pointer table for setting appropriate player sprite (#$8 * #$2 = #$10 bytes)
+; pointer table for setting appropriate player sprite (#$08 * #$02 = #$10 bytes)
 indoor_player_sprite_tbl:
     .addr player_sprite_indoor_facing_up         ; CPU address $b2c6
     .addr player_sprite_indoor_electrocuted      ; CPU address $b2ca
@@ -1368,7 +1367,7 @@ indoor_boss_set_player_sprite:
     lda PLAYER_SPRITE_SEQUENCE,x
     jsr run_routine_from_tbl_below ; run routine a in the following table (indoor_boss_player_sprite_tbl)
 
-; pointer table for ? (#$5 * #$2 = #$a bytes)
+; pointer table for ? (#$05 * #$02 = #$0a bytes)
 indoor_boss_player_sprite_tbl:
     .addr indoor_boss_player_aiming_up_sprite ; CPU address $b30e
     .addr indoor_boss_player_aiming_up_sprite ; CPU address $b30e
@@ -1541,7 +1540,7 @@ load_enemy_outdoor_level:
     lda ($0a),y                     ; load first byte of screen enemy data (level_x_enemy_screen_xx)
     cmp #$ff                        ; if #$ff no more data to read
     beq load_screen_enemy_data_exit ; just read #$ff, exit
-    sta $0f                         ; store x position of enemy into $0f
+    sta $0f                         ; store X position of enemy into $0f
     and #$fe                        ; look at the last bit
     sec                             ; set the carry flag in preparation for subtraction
     sbc LEVEL_SCREEN_SCROLL_OFFSET  ; subtract scrolling offset in pixels within screen, vertical scroll for indoor levels
@@ -1565,15 +1564,15 @@ load_enemy_outdoor_level:
     and #$03    ; keep only the last 2 bits, which is the repeat value
     sta $09     ; store the number of times to repeat the enemy in $09
 
-; read the 3rd byte of the enemy triple, which is the y position and the enemy attribute data
-; also used when enemies are repeated to load repeat enemy data y position
+; read the 3rd byte of the enemy triple, which is the Y position and the enemy attribute data
+; also used when enemies are repeated to load repeat enemy data Y position
 read_enemy_data_byte_3:
     iny
     lda ($0a),y                ; load vertical offset and enemy attributes
     sta $0c                    ; store vertical offset and enemy attributes into $0c
     jsr find_next_enemy_slot   ; find next available enemy slot, put result in x register
     beq set_enemy_slot_data    ; found enemy slot to use
-    lda $0f                    ; no enemy slot available, load enemy x position
+    lda $0f                    ; no enemy slot available, load enemy X position
     lsr                        ; shift least significant bit to carry flat
     bcc load_enemy_repeat_data ; if carry flag clear, jump
     jsr find_bullet_slot
@@ -1590,23 +1589,23 @@ set_enemy_slot_data:
     beq @handle_horizontal     ; handle horizontal level
     lda $0c                    ; load vertical position and enemy attributes
     and #$f0                   ; keep most significant 4 bits xxxx ....
-    sta ENEMY_X_POS,x          ; set enemy x position on screen
+    sta ENEMY_X_POS,x          ; set enemy X position on screen
     lda $0e
-    sta ENEMY_Y_POS,x          ; enemy y position on screen
+    sta ENEMY_Y_POS,x          ; enemy Y position on screen
     jmp load_enemy_repeat_data ; if enemy is repeated, handle that
 
 @handle_horizontal:
     lda $0c
     and #$f0          ; keep bits xxxx ....
-    sta ENEMY_Y_POS,x ; enemy y position on screen
+    sta ENEMY_Y_POS,x ; enemy Y position on screen
     lda #$f0          ; a = #$f0
     sec               ; set carry flag in preparation for subtraction
     sbc $0e
-    sta ENEMY_X_POS,x ; set enemy x position on screen
+    sta ENEMY_X_POS,x ; set enemy X position on screen
 
 load_enemy_repeat_data:
     dec $09                      ; decrement enemy repeat value
-    bpl read_enemy_data_byte_3   ; read y offset and attributes for next repetition
+    bpl read_enemy_data_byte_3   ; read Y offset and attributes for next repetition
     iny                          ; increment read offset
     sty ENEMY_SCREEN_READ_OFFSET
 
@@ -1652,30 +1651,30 @@ load_enemy_indoor_level:
     beq load_screen_enemy_data_exit ; exit if read all of the data
     sta $0f                         ; store enemy position in $0f
     iny                             ; increment enemy data read offset
-    lda ($0a),y                     ; load enemy type (and enemy pos adjustment flags)
+    lda ($0a),y                     ; load enemy type (and enemy position adjustment flags)
     sta $08                         ; store in $08
     and #$3f                        ; strip bits 6 and 7 (pos adjustment flags) to get enemy type
     sta ENEMY_TYPE,x                ; set current enemy type
     jsr initialize_enemy            ; initialize enemy attributes
     lda $0f                         ; load enemy position
-    and #$f0                        ; keep high nibble (y position)
-    asl $08                         ; see enemy y pos adjustment flag set
-    bcc @get_x_pos                  ; branch if no y adjustment
-    adc #$07                        ; enemy y pos adjustment flag set, adjust y position by #$07
+    and #$f0                        ; keep high nibble (Y position)
+    asl $08                         ; see enemy Y position adjustment flag set
+    bcc @get_x_pos                  ; branch if no Y adjustment
+    adc #$07                        ; enemy Y position adjustment flag set, adjust Y position by #$07
 
 @get_x_pos:
-    sta ENEMY_Y_POS,x         ; set enemy y position on screen
+    sta ENEMY_Y_POS,x         ; set enemy Y position on screen
     lda $0f                   ; load enemy position
     asl
     asl
     asl
     asl                       ; shift low nibble to high nibble
-    asl $08                   ; see enemy x pos adjustment flag set
-    bcc @set_y_attrs_continue ; branch if no x adjustment
-    adc #$07                  ; enemy x pos adjustment flag set, adjust y position by #$07
+    asl $08                   ; see enemy X position adjustment flag set
+    bcc @set_y_attrs_continue ; branch if no X adjustment
+    adc #$07                  ; enemy X position adjustment flag set, adjust Y position by #$07
 
 @set_y_attrs_continue:
-    sta ENEMY_X_POS,x      ; set enemy x position on screen
+    sta ENEMY_X_POS,x      ; set enemy X position on screen
     iny                    ; increment enemy data read offset
     lda ($0a),y            ; load enemy attributes
     sta ENEMY_ATTRIBUTES,x ; set enemy attributes
@@ -1684,7 +1683,7 @@ load_enemy_indoor_level:
     bpl @load_indoor_enemy ; continue to load next enemy if slots available
     rts
 
-; levels enemy groups pointers (#$8 * #$2 = #$10 bytes)
+; levels enemy groups pointers (#$08 * #$02 = #$10 bytes)
 level_enemy_screen_ptr_ptr_tbl:
     .addr level_1_enemy_screen_ptr_tbl ; CPU address $b82b
     .addr level_2_enemy_screen_ptr_tbl ; CPU address $b8aa
@@ -1707,7 +1706,7 @@ exe_soldier_generation:
     lda SOLDIER_GENERATION_ROUTINE ; soldier generation routine index
     jsr run_routine_from_tbl_below ; run routine a in the following table (soldier_generation_ptr_tbl)
 
-; pointer table for soldier generation (#$3 * #$2 = #$6 bytes)
+; pointer table for soldier generation (#$03 * #$02 = #$06 bytes)
 ; CPU address $b537
 soldier_generation_ptr_tbl:
     .addr soldier_generation_00 ; CPU address $b53d
@@ -1725,13 +1724,15 @@ soldier_generation_00_exit:
     rts
 
 ; get level's initial value for the soldier generation timer and store in a
+; output
+;  * a - soldier generation timer for current level
 get_soldier_gen_timer_for_lvl:
     lda CURRENT_LEVEL                    ; load current level
     tay                                  ; move current level into y
     lda level_soldier_generation_timer,y ; load soldier generation timer for level
     rts
 
-; update timer based on how many times player beat game and weapon strength
+; updates timer based on how many times player beat game and weapon strength
 adjust_generation_timer:
     jsr get_soldier_gen_timer_for_lvl
     sta SOLDIER_GENERATION_TIMER      ; soldier generation timer
@@ -1768,7 +1769,7 @@ adjust_generation_timer:
 @exit:
     rts
 
-; table for soldier generation initial timer values (#$8 bytes)
+; table for soldier generation initial timer values (#$08 bytes)
 ; current level value stored in SOLDIER_GENERATION_TIMER
 ; the lower the value, the quicker a soldier is generated
 ; #$36 = lots of soldiers
@@ -1811,53 +1812,53 @@ gen_soldier_find_pos:
     eor #$01                    ; flip least significant bit (0 to 1, or 1 to 0)
     lda SPRITE_Y_POS,y          ; reload #$00, !(BUG?)
                                 ; the developers may have meant to do a tay before this instruction
-                                ; to switch to use the other player's y position, but since
+                                ; to switch to use the other player's Y position, but since
                                 ; they didn't, the same #$00 is read
 
 @search_for_position:
-    sta $08                            ; store player y position in $08
-    sta $0a                            ; set stopping y position of search
+    sta $08                            ; store player Y position in $08
+    sta $0a                            ; set stopping Y position of search
     lda FRAME_COUNTER                  ; load frame counter
     and #$03                           ; keep bits .... ..xx
     tay
     beq top_down_find_gen_soldier_pos  ; 1/3 chance to start with y = #$00 (top)
     dey
     beq bottom_up_find_gen_soldier_pos ; 1/3 chance to start with y = #$f0 (bottom)
-    jsr get_x_pos_check_bg_collision   ; 1/3 chance to start with y = player y position (then search up)
+    jsr get_x_pos_check_bg_collision   ; 1/3 chance to start with y = player Y position (then search up)
 
 ; look at every #$10 pixels to see if can place a soldier at position
-; start at player y position and move up
+; start at player Y position and move up
 @find_y_pos:
-    lda $08                            ; load previous soldier generation test y position
+    lda $08                            ; load previous soldier generation test Y position
     sec                                ; set carry flag in preparation for subtraction
-    sbc #$10                           ; subtract #$10 pixels from soldier generation test y position (move up)
-    sta $08                            ; update soldier generation test y position
-    cmp $0a                            ; compare to the player y position
-    beq gen_soldier_find_pos_exit      ; exit if reached player y position (wrapped around screen)
-    jsr check_gen_soldier_bg_collision ; check if soldier can be generated at location
+    sbc #$10                           ; subtract #$10 pixels from soldier generation test Y position (move up)
+    sta $08                            ; update soldier generation test Y position
+    cmp $0a                            ; compare to the player Y position
+    beq gen_soldier_find_pos_exit      ; exit if reached player Y position (wrapped around screen)
+    jsr check_gen_soldier_bg_collision ; check if soldier can be generated at location ($09, $08)
     bcc @find_y_pos                    ; didn't have a ground. loop to next y test position.
 
 gen_soldier_find_pos_exit:
     rts
 
 ; look at every #$10 pixels to see if can place a soldier at position
-; start at top of screen down until player y position
+; start at top of screen down until player Y position
 top_down_find_gen_soldier_pos:
     lda #$00                         ; a = #$00
-    sta $08                          ; set start y position (top of screen)
-    sta $0a                          ; set stopping y position of search
-    jsr get_x_pos_check_bg_collision ; determine the x position (don't bother with carry flag result)
+    sta $08                          ; set start Y position (top of screen)
+    sta $0a                          ; set stopping Y position of search
+    jsr get_x_pos_check_bg_collision ; determine the X position (don't bother with carry flag result)
 
 ; look at every #$10 pixels to see if can place a soldier at position
 ; start at the top of the screen down to bottom
 @find_y_pos:
-    lda $08                            ; load previous soldier generation test y position
+    lda $08                            ; load previous soldier generation test Y position
     clc                                ; clear carry in preparation for addition
-    adc #$10                           ; add #$10 pixels from soldier generation test y position (move down)
-    sta $08                            ; update soldier generation test y position
+    adc #$10                           ; add #$10 pixels from soldier generation test Y position (move down)
+    sta $08                            ; update soldier generation test Y position
     cmp $0a                            ; compare to the top of the screen #$00
     beq gen_soldier_find_pos_exit      ; exit if reached top of screen (wrapped around)
-    jsr check_gen_soldier_bg_collision ; check if soldier can be generated at location
+    jsr check_gen_soldier_bg_collision ; check if soldier can be generated at location ($09, $08)
     bcc @find_y_pos                    ; didn't have a ground. loop to next y test position.
     bcs gen_soldier_find_pos_exit      ; always jump, found ground and possibly generated soldier
 
@@ -1865,29 +1866,29 @@ top_down_find_gen_soldier_pos:
 ; start at the bottom of the screen up to top
 bottom_up_find_gen_soldier_pos:
     lda #$f0                         ; a = #$f0
-    sta $08                          ; set start y position (bottom of screen)
+    sta $08                          ; set start Y position (bottom of screen)
     sta $0a                          ; set stopping position of search
-    jsr get_x_pos_check_bg_collision ; determine the x position (don't bother with carry flag result)
+    jsr get_x_pos_check_bg_collision ; determine the X position (don't bother with carry flag result)
 
 @find_y_pos:
-    lda $08                            ; load previous soldier generation test y position
+    lda $08                            ; load previous soldier generation test Y position
     sec                                ; set carry flag in preparation for subtraction
-    sbc #$10                           ; subtract #$10 pixels from soldier generation test y position (move up)
-    sta $08                            ; update soldier generation test y position
+    sbc #$10                           ; subtract #$10 pixels from soldier generation test Y position (move up)
+    sta $08                            ; update soldier generation test Y position
     cmp $0a                            ; compare to the bottom of the screen #$00
     beq gen_soldier_find_pos_exit      ; exit if reached bottom of screen (wrapped around)
-    jsr check_gen_soldier_bg_collision ; check if soldier can be generated at location
+    jsr check_gen_soldier_bg_collision ; check if soldier can be generated at location ($09, $08)
     bcc @find_y_pos                    ; didn't have a ground. loop to next y test position.
     bcs gen_soldier_find_pos_exit      ; always jump, found ground and possibly generated soldier
 
-; determine appropriate x position for soldier to generate and then
+; determine appropriate X position for soldier to generate and then
 ; see if there is a ground collision
 get_x_pos_check_bg_collision:
     lda FRAME_COUNTER                 ; load frame counter
     adc RANDOM_NUM                    ; a = FRAME_COUNTER + RANDOM_NUM
     and #$0f                          ; keep low nibble of FRAME_COUNTER + RANDOM_NUM
     tay
-    lda gen_soldier_initial_x_pos,y   ; load possible initial x position of generated soldier
+    lda gen_soldier_initial_x_pos,y   ; load possible initial X position of generated soldier
     ldy GAME_COMPLETION_COUNT         ; load the number of times the game has been completed
     bne @check_bg_collision           ; player(s) have completed game at least once
     ldy CURRENT_LEVEL                 ; current level
@@ -1897,7 +1898,7 @@ get_x_pos_check_bg_collision:
     cmp #$1e
     bcs @pop_x_pos_check_bg_collision ; branch if the number of soldiers generated for frame >= #$1e
     pla                               ; pop a from stack, not going to use gen_soldier_initial_x_pos value
-    lda #$fc                          ; set soldier generation test x position to right edge of screen
+    lda #$fc                          ; set soldier generation test X position to right edge of screen
     bne @check_bg_collision           ; always branch
 
 @pop_x_pos_check_bg_collision:
@@ -1906,21 +1907,25 @@ get_x_pos_check_bg_collision:
 @check_bg_collision:
     sta $09 ; put gen_soldier_initial_x_pos value, or #$fc into $09
 
+; checks if soldier can be generated at location ($09, $08)
+; input
+;  * $09 - test point X position
+;  * $08 - test point Y position
 check_gen_soldier_bg_collision:
-    lda $09                  ; generated soldier possible x position
-    ldy $08                  ; generated soldier possible y position
+    lda $09                  ; generated soldier possible X position
+    ldy $08                  ; generated soldier possible Y position
     jsr get_bg_collision     ; determine player background collision code at position (a,y)
     bcs @set_pos_adv_routine ; floor collision, mark that soldier can be generated
     rts                      ; exit soldier_generation_01
 
 ; soldier background collision
 @set_pos_adv_routine:
-    lda $09                        ; load generated soldier x position
-    sta SOLDIER_GENERATION_X_POS   ; store generated soldier initial x position
-    lda $08                        ; load generated soldier initial y position
+    lda $09                        ; load generated soldier X position
+    sta SOLDIER_GENERATION_X_POS   ; store generated soldier initial X position
+    lda $08                        ; load generated soldier initial Y position
     sec                            ; set carry flag in preparation for subtraction
-    sbc #$10                       ; subtract #$10 from generated soldier initial y position
-    sta SOLDIER_GENERATION_Y_POS   ; store initial y position
+    sbc #$10                       ; subtract #$10 from generated soldier initial Y position
+    sta SOLDIER_GENERATION_Y_POS   ; store initial Y position
     lda SOLDIER_GENERATION_ROUTINE
     cmp #$02                       ; see if routine is set to soldier_generation_02
     beq @mark_and_exit             ; see if still on soldier_generation_02
@@ -1932,7 +1937,7 @@ check_gen_soldier_bg_collision:
     sec ; set carry flag, mark that a soldier can be generated at position
     rts
 
-; table for possible initial x positions of generated soldiers (#$10 bytes)
+; table for possible initial X positions of generated soldiers (#$10 bytes)
 ; always either left edge (#$0a) or right edge (#$fa)
 ; level 1 doesn't use this table until at least #$1e (36 decimal) enemies have been
 ; generated for the screen. Instead soldiers always come from the right.
@@ -1944,7 +1949,7 @@ soldier_generation_02:
     lda CURRENT_LEVEL            ; current level
     cmp #$02                     ; compare current level to #$02 (level 3 - waterfall)
     beq generate_soldier         ; don't prevent top %25 from generating soldiers for level 3 waterfall (vertical level)
-    lda SOLDIER_GENERATION_Y_POS ; load soldier initial y position
+    lda SOLDIER_GENERATION_Y_POS ; load soldier initial Y position
     cmp #$40                     ; compare to 25% of the vertical space, don't generate top 25% of screen
     bcs generate_soldier         ; branch if in bottom 3/4 of the screen
 
@@ -1952,8 +1957,8 @@ soldier_gen_exit_far:
     jmp soldier_gen_exit
 
 generate_soldier:
-    lda SOLDIER_GENERATION_Y_POS    ; generated soldier initial y position on screen
-    cmp #$e0                        ; compare y position to bottom extremity of screen
+    lda SOLDIER_GENERATION_Y_POS    ; generated soldier initial Y position on screen
+    cmp #$e0                        ; compare Y position to bottom extremity of screen
     bcs soldier_gen_exit_far        ; exit if soldier generation position is too low
     lda ENEMY_ATTACK_FLAG           ; see if enemies should attack
     beq soldier_gen_exit_far        ; don't generate soldier if ENEMY_ATTACK_FLAG is #$00
@@ -1967,17 +1972,17 @@ generate_soldier:
     bcc soldier_gen_exit_far        ; exit if from left half. don't generate soldiers from left
 
 @continue:
-    lda SOLDIER_GENERATION_X_POS    ; load generated soldier initial x position
-    ldy SOLDIER_GENERATION_Y_POS    ; load generated soldier initial y position
+    lda SOLDIER_GENERATION_X_POS    ; load generated soldier initial X position
+    ldy SOLDIER_GENERATION_Y_POS    ; load generated soldier initial Y position
     jsr get_bg_collision_far        ; determine player background collision code at position (a,y)
     bmi soldier_gen_exit_far        ; exit if collision with solid object (#$80)
     jsr get_soldier_gen_screen_side ; see which horizontal half of the screen soldier is being generated on
     bcc @load_gen_soldier_attr      ; branch if generating on left half of the screen
-    sbc #$10                        ; soldier generation on right half of screen, subtract #$10 from x position
+    sbc #$10                        ; soldier generation on right half of screen, subtract #$10 from X position
 
 @load_gen_soldier_attr:
     clc                                      ; clear carry in preparation for addition
-    adc #$08                                 ; subtract #$08 from soldier generation x position
+    adc #$08                                 ; subtract #$08 from soldier generation X position
     ldy SOLDIER_GENERATION_Y_POS
     jsr get_bg_collision_far                 ; determine player background collision code at position (a,y)
     bmi soldier_gen_exit_far                 ; branch if collision with solid object
@@ -2028,7 +2033,7 @@ init_and_generate_soldier:
     lda CURRENT_LEVEL           ; current level
     cmp #$02                    ; compare level to level 3 (waterfall)
     beq @init_generated_soldier ; initialize generated soldier without checking FRAME_SCROLL for waterfall
-    lda FRAME_SCROLL            ; how much to scroll the screen (#00 - no scroll)
+    lda FRAME_SCROLL            ; how much to scroll the screen (#$00 - no scroll)
     beq @init_generated_soldier ; initialize generated soldier if not scrolling
     lda RANDOM_NUM              ; load a random number
     and #$03                    ; keep bits .... ..xx
@@ -2060,10 +2065,10 @@ init_and_generate_soldier:
     sta ENEMY_ATTRIBUTES,x             ; save new ENEMY_ATTRIBUTES value
 
 @set_gen_soldier_pos_and_dir:
-    lda SOLDIER_GENERATION_Y_POS    ; load the computed y position of the generated soldier
-    sta ENEMY_Y_POS,x               ; copy the computed generated soldier y position to the enemy y position
+    lda SOLDIER_GENERATION_Y_POS    ; load the computed Y position of the generated soldier
+    sta ENEMY_Y_POS,x               ; copy the computed generated soldier Y position to the enemy Y position
     jsr get_soldier_gen_screen_side ; see which horizontal half of the screen soldier is being generated on
-    sta ENEMY_X_POS,x               ; copy the computed generated soldier x position to the enemy x position
+    sta ENEMY_X_POS,x               ; copy the computed generated soldier X position to the enemy X position
     bcs @inc_soldier_cnt_exit       ; branch if right horizontal half of the screen
     inc ENEMY_ATTRIBUTES,x          ; left half of the screen, set soldier direction to run towards the right
 
@@ -2078,7 +2083,7 @@ soldier_gen_exit:
 ; compares SOLDIER_GENERATION_X_POS to the middle of the screen (#$80)
 ; clears carry if on left half of the screen, sets carry for right half of screen
 get_soldier_gen_screen_side:
-    lda SOLDIER_GENERATION_X_POS ; generated soldier initial x position on screen
+    lda SOLDIER_GENERATION_X_POS ; generated soldier initial X position on screen
     cmp #$80
     rts
 
@@ -2086,7 +2091,7 @@ get_soldier_gen_screen_side:
 ; generates a 'default' soldier for each player, i.e. not using gen_soldier_initial_attr_tbl
 create_default_soldiers:
     lda #$00                        ; a = #$00
-    sta $07                         ; initial soldier x direction is to the left
+    sta $07                         ; initial soldier X direction is to the left
     jsr get_soldier_gen_screen_side ; see which horizontal half of the screen soldier is being generated on
     bcs @create_soldier             ; branch if soldier is generated from the right side
     inc $07                         ; generated soldier generated from left side, have them run to the right
@@ -2115,7 +2120,7 @@ create_default_soldiers:
     asl
     clc                             ; clear carry in preparation for addition
     adc ENEMY_ATTRIBUTES,x          ;
-    ora $07                         ; set soldier x direction
+    ora $07                         ; set soldier X direction
     sta ENEMY_ATTRIBUTES,x          ; save soldier direction back in ENEMY_ATTRIBUTES
     jsr @set_enemy_pos              ; seems redundant, already was set above
     dey                             ; move to player 1
@@ -2127,10 +2132,10 @@ create_default_soldiers:
     jmp soldier_gen_exit
 
 @set_enemy_pos:
-    lda SOLDIER_GENERATION_Y_POS ; generated soldier initial y position on screen
-    sta ENEMY_Y_POS,x            ; enemy y position on screen
-    lda SOLDIER_GENERATION_X_POS ; generated soldier initial x position on screen
-    sta ENEMY_X_POS,x            ; set enemy x position on screen
+    lda SOLDIER_GENERATION_Y_POS ; generated soldier initial Y position on screen
+    sta ENEMY_Y_POS,x            ; enemy Y position on screen
+    lda SOLDIER_GENERATION_X_POS ; generated soldier initial X position on screen
+    sta ENEMY_X_POS,x            ; set enemy X position on screen
     rts
 
 ; player(s) haven't completed game and less than #$1e soldiers
@@ -2147,7 +2152,7 @@ player_edge_check:
 @player_loop:
     lda P1_GAME_OVER_STATUS,y      ; game over state (1 = game over)
     bne @move_next_player          ; skip player if in game over state
-    lda SPRITE_X_POS,y             ; player x position on screen
+    lda SPRITE_X_POS,y             ; player X position on screen
     cmp #$40                       ; left 25% of screen
     bcc restore_y_soldier_gen_exit ; exit if player is close to the left
                                    ; where the soldier would have been generated
@@ -2171,8 +2176,8 @@ restore_y_soldier_gen_exit:
 gen_soldier_right_side:
     lda P1_GAME_OVER_STATUS,y      ; game over state (1 = game over)
     bne @next_player               ; branch if game over for player
-    lda SPRITE_X_POS,y             ; load player's x position
-    cmp #$c0                       ; compare x position to 3/4 (75%) of the horizontal screen
+    lda SPRITE_X_POS,y             ; load player's X position
+    cmp #$c0                       ; compare X position to 3/4 (75%) of the horizontal screen
     bcs restore_y_soldier_gen_exit ; exit if player is close to the right
                                    ; where the soldier would have been generated
 
@@ -2181,7 +2186,7 @@ gen_soldier_right_side:
     bpl gen_soldier_right_side              ; check player 1's game over status
     bmi restore_y_init_and_generate_soldier
 
-; pointer table for soldier random generation (#$8 * #$2 = #$10 bytes)
+; pointer table for soldier random generation (#$08 * #$02 = #$10 bytes)
 soldier_level_attributes_ptr_tbl:
     .addr soldier_level_attributes_00 ; CPU address $b7cb
     .addr soldier_level_attributes_00 ; CPU address $b7cb
@@ -2203,11 +2208,11 @@ soldier_level_attributes_ptr_tbl:
 ; #$02 = random right/left, shoot 1-2 bullets ratio 67-33, freq. like 00
 ; #$03 = random right/left, shoot 1-2 bullets ratio 67-33, freq. like 00
 
-; #$c bytes
+; #$0c bytes
 soldier_level_attributes_00:
     .byte $80,$80,$80,$80,$80,$80,$80,$40,$40,$80,$ff,$ff
 
-; #$9 bytes
+; #$09 bytes
 soldier_level_attributes_01:
     .byte $00,$00,$00,$01,$00,$ff,$01,$ff,$ff
 
@@ -2216,11 +2221,11 @@ soldier_level_attributes_02:
     .byte $01,$02,$03,$04,$03,$03,$03,$02,$ff,$04,$02,$03,$ff,$02,$03,$04
     .byte $02,$ff,$ff,$ff
 
-; #$c bytes
+; #$0c bytes
 soldier_level_attributes_03:
     .byte $00,$05,$02,$ff,$ff,$80,$05,$03,$82,$ff,$ff,$ff
 
-; #$f bytes
+; #$0f bytes
 soldier_level_attributes_04:
     .byte $80,$05,$06,$80,$80,$05,$07,$80,$80,$04,$ff,$04,$04,$ff,$ff
 
@@ -2257,15 +2262,15 @@ level_1_enemy_screen_ptr_tbl:
 ;
 ; xx tt yy
 ;
-; xx = x position
-; xxxxxxxx x position
+; xx = X position
+; xxxxxxxx X position
 ;
 ; tt = enemy type + repeat
 ; xx.. .... repeat
 ; ..xx xxxx enemy type
 ;
-; yy = y position + attributes
-; xxxx x... y position
+; yy = Y position + attributes
+; xxxx x... Y position
 ; .... .xxx attributes
 level_1_enemy_screen_00:
     .byte $10,$05,$60 ; soldier - runs left, doesn't shoot
@@ -2336,7 +2341,7 @@ level_1_enemy_screen_0b:
 level_1_enemy_screen_0c:
     .byte $ff
 
-; pointer table for level 2 enemy groups (#$6 * #$2 = #$c bytes)
+; pointer table for level 2 enemy groups (#$06 * #$02 = #$0c bytes)
 level_2_enemy_screen_ptr_tbl:
     .addr level_2_enemy_screen_00 ; CPU address $b8b6
     .addr level_2_enemy_screen_01 ; CPU address $b8be
@@ -2349,15 +2354,15 @@ level_2_enemy_screen_ptr_tbl:
 ; first byte specifies number of wall cores to destroy
 ; then enemies are described
 ; byte 0 = location of object
-;  * xxxx .... - y position * #$10
-;  * .... xxxx - x position * #$10
+;  * xxxx .... - Y position * #$10
+;  * .... xxxx - X position * #$10
 ; byte 1 = enemy type and position adjustment
-;  * x... .... - y position + #$07
-;  * .x.. .... - x position + #$07
+;  * x... .... - Y position + #$07
+;  * .x.. .... - X position + #$07
 ;  * ..xx xxxx object type
 ; byte 2 = enemy attributes
-;  * xxxx .... - y position of enemy
-;  * .... xxxx - x position of enemy
+;  * xxxx .... - Y position of enemy
+;  * .... xxxx - X position of enemy
 level_2_enemy_screen_00:
     .byte $01         ; number of cores to destroy to advance to next room, if set to #$00 no electric barrier, can't advance
     .byte $11,$19,$00 ; enemy type #$19 (indoor soldier generator)
@@ -2407,16 +2412,16 @@ level_2_enemy_screen_05:
     .byte $9b,$0a,$00 ; enemy type #$0a (wall plating)
     .byte $ff
 
-; pointer table for level 3 enemy groups (#$a * #$2 = #$14 bytes)
-; xx = x position
-; xxxxxxxx x position
+; pointer table for level 3 enemy groups (#$0a * #$02 = #$14 bytes)
+; xx = X position
+; xxxxxxxx X position
 ;
 ; tt = enemy type + repeat
 ; xx...... repeat
 ; ..xxxxxx enemy type
 ;
-; yy = y position + attributes
-; xxxxx... y position
+; yy = Y position + attributes
+; xxxxx... Y position
 ; .....xxx attributes
 level_3_enemy_screen_ptr_tbl:
     .addr level_3_enemy_screen_00 ; CPU address $b921
@@ -2502,7 +2507,7 @@ level_3_enemy_screen_07:
 level_3_enemy_screen_08:
     .byte $ff
 
-; pointer table for level 4 enemy groups (#$9 * #$2 = #$12 bytes)
+; pointer table for level 4 enemy groups (#$09 * #$02 = #$12 bytes)
 level_4_enemy_screen_ptr_tbl:
     .addr level_4_enemy_screen_00 ; CPU address $b9c1
     .addr level_4_enemy_screen_01 ; CPU address $b9cf
@@ -2518,15 +2523,15 @@ level_4_enemy_screen_ptr_tbl:
 ; first byte specifies number of wall cores to destroy
 ; then enemies are described
 ; byte 0 = location of object
-;  * xxxx .... - y position * #$10
-;  * .... xxxx - x position * #$10
+;  * xxxx .... - Y position * #$10
+;  * .... xxxx - X position * #$10
 ; byte 1 = enemy type and position adjustment
-;  * x... .... - y position + #$07
-;  * .x.. .... - x position + #$07
+;  * x... .... - Y position + #$07
+;  * .x.. .... - X position + #$07
 ;  * ..xx xxxx object type
 ; byte 2 = enemy attributes
-;  * xxxx .... - y position of enemy
-;  * .... xxxx - x position of enemy
+;  * xxxx .... - Y position of enemy
+;  * .... xxxx - X position of enemy
 level_4_enemy_screen_00:
     .byte $01         ; number of cores to destroy to advance to next room
     .byte $11,$19,$01 ; enemy type #$19 (indoor soldier generator)
@@ -2603,7 +2608,7 @@ level_4_enemy_screen_08:
     .byte $8b,$0a,$00 ; enemy type #$0a (wall plating)
     .byte $ff
 
-; pointer table for level 5 enemy groups (#$16 * #$2 = #$2c bytes)
+; pointer table for level 5 enemy groups (#$16 * #$02 = #$2c bytes)
 level_5_enemy_screen_ptr_tbl:
     .addr level_5_enemy_screen_00 ; CPU address $ba74
     .addr level_5_enemy_screen_01 ; CPU address $ba81
@@ -2834,18 +2839,18 @@ level_6_enemy_screen_0b:
 level_6_enemy_screen_0c:
     .byte $ff
 
-; pointer table for level 7 enemy data (#$f * #$2 = #$1e bytes)
+; pointer table for level 7 enemy data (#$0f * #$02 = #$1e bytes)
 ; enemy format
 ; xx tt yy
-; xx = x position
-; xxxxxxxx x position
+; xx = X position
+; xxxxxxxx X position
 ;
 ; tt = enemy type + repeat
 ; xx...... repeat
 ; ..xxxxxx enemy type
 ;
-; yy = y position + attributes
-; xxxxx... y position
+; yy = Y position + attributes
+; xxxxx... Y position
 ; .....xxx attributes
 level_7_enemy_screen_ptr_tbl:
     .addr level_7_enemy_screen_00 ; CPU address $bbd5
@@ -2975,7 +2980,7 @@ level_7_enemy_screen_0d:
 level_7_enemy_screen_0e:
     .byte $ff
 
-; pointer table for level 8 enemy groups (#$b * #$2 = #$16 bytes)
+; pointer table for level 8 enemy groups (#$0b * #$02 = #$16 bytes)
 level_8_enemy_screen_ptr_tbl:
     .addr level_8_enemy_screen_00 ; CPU address $bcc0
     .addr level_8_enemy_screen_01 ; CPU address $bcc8
@@ -3063,7 +3068,7 @@ level_8_enemy_screen_09:
 level_8_enemy_screen_0a:
     .byte $ff
 
-; unused #$2c3 bytes out of #$4,000 bytes total (95.68% full)
+; unused #$2c3 bytes out of #$4000 bytes total (95.68% full)
 ; unused 707 bytes out of 16,384 bytes total (95.68% full)
 ; filled with 707 #$ff bytes by contra.cfg configuration
 bank_2_unused_space:
